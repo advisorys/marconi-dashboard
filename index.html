@@ -11040,5 +11040,48 @@ html body .dashboard-main .container {
 })();
 </script>
 
+
+<style id="patch-v55-no-submenus">
+/* =================================================================
+   PATCH v55 - REMOVER TODOS OS SUBMENUS DA TOPBAR
+   Em TODAS as páginas, os links secundários (.top-site-links) somem
+   ================================================================= */
+
+html body header.top-site-nav .top-site-links,
+html body[data-page="director"] header.top-site-nav .top-site-links,
+html body[data-page="cash"] header.top-site-nav .top-site-links,
+html body[data-page="fixed"] header.top-site-nav .top-site-links {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+</style>
+
+<script>
+/* PATCH v55 JS - Remove fisicamente o submenu do DOM */
+(function() {
+  function hideSubmenus() {
+    var submenus = document.querySelectorAll('.top-site-links');
+    submenus.forEach(function(el) {
+      el.style.setProperty('display', 'none', 'important');
+      el.style.setProperty('visibility', 'hidden', 'important');
+    });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hideSubmenus);
+  } else {
+    hideSubmenus();
+  }
+  
+  // Re-aplicar quando muda de página
+  var obs = new MutationObserver(hideSubmenus);
+  obs.observe(document.body, { attributes: true, attributeFilter: ['data-page', 'class'] });
+  
+  console.log('[PATCH v55] Submenus secundários ocultados em todas as páginas');
+})();
+</script>
+
 </body>
 </html>
