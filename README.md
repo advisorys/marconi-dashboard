@@ -4,7 +4,7 @@ Dashboard executivo de fluxo de caixa e controle orçamentário desenvolvido par
 
 ## 🌐 Acesso
 
-**URL pública:** [[https://advisorys.github.io/marconi-dashboard/]((https://advisorys.github.io/marconi-dashboard/))
+**URL pública:** https://advisorys.github.io/marconi-dashboard/
 
 ## 📊 O que mostra
 
