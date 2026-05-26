@@ -11083,5 +11083,481 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
 })();
 </script>
 
+
+<style id="patch-v56-export-pptx">
+/* Loading overlay durante export */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 999999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.export-overlay.show { display: flex; }
+.export-spinner {
+  width: 56px; height: 56px;
+  border: 4px solid rgba(252, 211, 77, 0.2);
+  border-top-color: #FCD34D;
+  border-radius: 50%;
+  animation: exportSpin 0.8s linear infinite;
+}
+@keyframes exportSpin { to { transform: rotate(360deg); } }
+.export-title {
+  color: #fff; font-size: 18px; font-weight: 700;
+  letter-spacing: 1px; margin-top: 8px;
+}
+.export-status {
+  color: #94A0B8; font-size: 13px; letter-spacing: 0.5px;
+  max-width: 480px; text-align: center; line-height: 1.6;
+}
+.export-progress {
+  width: 320px; height: 4px;
+  background: rgba(45,52,84,0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.export-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FCD34D, #DFA447);
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 999px;
+}
+</style>
+
+<script id="patch-v56-pptx-export">
+/* =================================================================
+   PATCH v56 - EXPORT POWERPOINT
+   Captura todo o dashboard e gera uma apresentação executiva
+   ================================================================= */
+(function() {
+  'use strict';
+  
+  let html2canvasLoaded = false;
+  let pptxLoaded = false;
+  
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  
+  async function loadDependencies(updateStatus) {
+    if (!html2canvasLoaded) {
+      updateStatus('Carregando biblioteca de captura...', 5);
+      await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+      html2canvasLoaded = true;
+    }
+    if (!pptxLoaded) {
+      updateStatus('Carregando gerador de slides...', 10);
+      await loadScript('https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js');
+      pptxLoaded = true;
+    }
+  }
+  
+  // Criar overlay de loading
+  function createOverlay() {
+    let overlay = document.getElementById('exportOverlayV56');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'exportOverlayV56';
+    overlay.className = 'export-overlay';
+    overlay.innerHTML = `
+      <div class="export-spinner"></div>
+      <div class="export-title">Gerando Apresentação</div>
+      <div class="export-status" id="exportStatusV56">Iniciando...</div>
+      <div class="export-progress">
+        <div class="export-progress-bar" id="exportProgressV56"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+  
+  function updateStatus(msg, progress) {
+    const el = document.getElementById('exportStatusV56');
+    const bar = document.getElementById('exportProgressV56');
+    if (el) el.textContent = msg;
+    if (bar && typeof progress === 'number') bar.style.width = progress + '%';
+  }
+  
+  function showOverlay() {
+    createOverlay().classList.add('show');
+  }
+  
+  function hideOverlay() {
+    const o = document.getElementById('exportOverlayV56');
+    if (o) o.classList.remove('show');
+  }
+  
+  async function waitFor(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+  
+  async function captureElement(selector, options = {}) {
+    const el = document.querySelector(selector);
+    if (!el) return null;
+    
+    // Aguarda renderização
+    await waitFor(300);
+    
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#0A0E1A',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: false,
+        ...options
+      });
+      return canvas.toDataURL('image/png', 0.95);
+    } catch (e) {
+      console.warn('Falha ao capturar', selector, e);
+      return null;
+    }
+  }
+  
+  function addCoverSlide(pptx, meta) {
+    const slide = pptx.addSlide();
+    slide.background = { color: '0A0E1A' };
+    
+    // Faixa dourada à esquerda
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: 0.4, h: 7.5,
+      fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
+    });
+    
+    // Logo placeholder (M dourado)
+    slide.addText('M', {
+      x: 0.8, y: 0.6, w: 1.2, h: 1.2,
+      fontSize: 72, bold: true,
+      color: 'FCD34D', fontFace: 'Calibri',
+      align: 'center', valign: 'middle'
+    });
+    
+    // Marca
+    slide.addText('MARCONI FOODS', {
+      x: 0.8, y: 2.0, w: 11, h: 0.5,
+      fontSize: 20, bold: true,
+      color: 'FFFFFF', fontFace: 'Calibri',
+      charSpacing: 8
+    });
+    
+    // Título principal
+    slide.addText('Performance', {
+      x: 0.8, y: 2.7, w: 11, h: 1.2,
+      fontSize: 64, bold: true,
+      color: 'FFFFFF', fontFace: 'Calibri'
+    });
+    slide.addText('Financeira 2026', {
+      x: 0.8, y: 3.7, w: 11, h: 1.2,
+      fontSize: 64, bold: true,
+      color: 'FCD34D', fontFace: 'Calibri'
+    });
+    
+    // Subtítulo
+    slide.addText('Dashboard Financeiro Executivo · Relatório Diretoria', {
+      x: 0.8, y: 5.2, w: 11, h: 0.4,
+      fontSize: 14,
+      color: '94A0B8', fontFace: 'Calibri',
+      charSpacing: 4
+    });
+    
+    // Data
+    const dataStr = new Date().toLocaleDateString('pt-BR', { 
+      day: '2-digit', month: 'long', year: 'numeric' 
+    });
+    slide.addText(`Apresentado em ${dataStr}`, {
+      x: 0.8, y: 6.6, w: 11, h: 0.3,
+      fontSize: 11,
+      color: '5A6580', fontFace: 'Calibri',
+      charSpacing: 2
+    });
+  }
+  
+  function addSectionSlide(pptx, title, subtitle, imageData) {
+    const slide = pptx.addSlide();
+    slide.background = { color: '0A0E1A' };
+    
+    // Linha dourada superior
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: 13.33, h: 0.08,
+      fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
+    });
+    
+    // Subtítulo (eyebrow)
+    if (subtitle) {
+      slide.addText(subtitle.toUpperCase(), {
+        x: 0.6, y: 0.35, w: 12, h: 0.3,
+        fontSize: 10, bold: true,
+        color: 'FCD34D', fontFace: 'Calibri',
+        charSpacing: 6
+      });
+    }
+    
+    // Título da seção
+    slide.addText(title, {
+      x: 0.6, y: 0.65, w: 12, h: 0.6,
+      fontSize: 26, bold: true,
+      color: 'FFFFFF', fontFace: 'Calibri'
+    });
+    
+    // Imagem capturada
+    if (imageData) {
+      slide.addImage({
+        data: imageData,
+        x: 0.6, y: 1.6, w: 12.1, h: 5.6,
+        sizing: { type: 'contain', w: 12.1, h: 5.6 }
+      });
+    }
+    
+    // Footer
+    slide.addText('Marconi Foods · Performance Financeira 2026', {
+      x: 0.6, y: 7.2, w: 12, h: 0.2,
+      fontSize: 8,
+      color: '5A6580', fontFace: 'Calibri',
+      charSpacing: 2
+    });
+  }
+  
+  function addClosingSlide(pptx) {
+    const slide = pptx.addSlide();
+    slide.background = { color: '0A0E1A' };
+    
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 3.5, w: 13.33, h: 0.05,
+      fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
+    });
+    
+    slide.addText('Obrigado.', {
+      x: 0.6, y: 2.5, w: 12, h: 1,
+      fontSize: 56, bold: true,
+      color: 'FFFFFF', fontFace: 'Calibri',
+      align: 'center'
+    });
+    
+    slide.addText('Marconi Foods · Performance Financeira 2026', {
+      x: 0.6, y: 4.0, w: 12, h: 0.4,
+      fontSize: 14,
+      color: '94A0B8', fontFace: 'Calibri',
+      align: 'center', charSpacing: 4
+    });
+    
+    slide.addText('Dúvidas e considerações ficam à disposição.', {
+      x: 0.6, y: 5.0, w: 12, h: 0.3,
+      fontSize: 12,
+      color: '5A6580', fontFace: 'Calibri',
+      align: 'center', italic: true
+    });
+  }
+  
+  async function exportToPPTX() {
+    showOverlay();
+    
+    try {
+      await loadDependencies(updateStatus);
+      
+      updateStatus('Preparando apresentação...', 15);
+      const pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = 'Marconi Foods - Performance Financeira 2026';
+      pptx.author = 'Consultoria Financeira';
+      pptx.subject = 'Relatório executivo de desempenho';
+      
+      // Salvar página atual e estado da sidebar
+      const originalPage = document.body.dataset.page || 'director';
+      const originalCollapsed = document.body.classList.contains('sidebar-collapsed');
+      
+      // Esconder sidebar temporariamente pra capturas mais limpas
+      if (!originalCollapsed) {
+        document.body.classList.add('sidebar-collapsed');
+      }
+      
+      // ============ SLIDE 1: CAPA ============
+      updateStatus('Criando capa...', 20);
+      addCoverSlide(pptx, {});
+      
+      // ============ DIRETORIA ============
+      updateStatus('Capturando página Diretoria...', 30);
+      if (typeof window.setDashboardPage === 'function') {
+        window.setDashboardPage('director');
+      } else {
+        document.body.dataset.page = 'director';
+      }
+      await waitFor(800);
+      
+      // Diretoria - visão geral
+      const dirHero = await captureElement('#directoria') || 
+                      await captureElement('section.director-section') ||
+                      await captureElement('.dashboard-main');
+      if (dirHero) {
+        addSectionSlide(pptx, 'Visão Executiva', 'Diretoria · Resumo', dirHero);
+      }
+      
+      // ============ FLUXO DE CAIXA ============
+      updateStatus('Capturando página Fluxo de Caixa...', 50);
+      if (typeof window.setDashboardPage === 'function') {
+        window.setDashboardPage('cash');
+      } else {
+        document.body.dataset.page = 'cash';
+      }
+      await waitFor(800);
+      
+      // KPIs principais
+      updateStatus('Capturando KPIs...', 60);
+      const kpis = await captureElement('#kpis');
+      if (kpis) {
+        addSectionSlide(pptx, 'Indicadores-Chave do Período', 'Fluxo de Caixa · KPIs', kpis);
+      }
+      
+      // Performance Mensal
+      updateStatus('Capturando performance mensal...', 70);
+      const monthly = await captureElement('#monthly');
+      if (monthly) {
+        addSectionSlide(pptx, 'Evolução Mês a Mês', 'Fluxo de Caixa · Performance', monthly);
+      }
+      
+      // Resultado
+      const result = await captureElement('#result');
+      if (result) {
+        addSectionSlide(pptx, 'Resultado Consolidado', 'Fluxo de Caixa · Resultado', result);
+      }
+      
+      // Categorias
+      updateStatus('Capturando categorias...', 80);
+      const cats = await captureElement('#categories');
+      if (cats) {
+        addSectionSlide(pptx, 'Ranking de Categorias', 'Fluxo de Caixa · Análise', cats);
+      }
+      
+      // ============ CUSTOS FIXOS ============
+      updateStatus('Capturando página Custos Fixos...', 85);
+      if (typeof window.setDashboardPage === 'function') {
+        window.setDashboardPage('fixed');
+      } else {
+        document.body.dataset.page = 'fixed';
+      }
+      await waitFor(800);
+      
+      const fixedCosts = await captureElement('#fixed-costs') ||
+                          await captureElement('.fixed-costs-section');
+      if (fixedCosts) {
+        addSectionSlide(pptx, 'Estrutura Fixa e Controle Orçamentário', 'Custos Fixos · Análise', fixedCosts);
+      }
+      
+      // ============ SLIDE FINAL ============
+      updateStatus('Finalizando apresentação...', 92);
+      addClosingSlide(pptx);
+      
+      // Restaurar estado original
+      if (typeof window.setDashboardPage === 'function') {
+        window.setDashboardPage(originalPage);
+      }
+      if (!originalCollapsed) {
+        document.body.classList.remove('sidebar-collapsed');
+      }
+      
+      // ============ DOWNLOAD ============
+      updateStatus('Gerando arquivo PowerPoint...', 95);
+      const dataStr = new Date().toISOString().slice(0, 10);
+      await pptx.writeFile({ 
+        fileName: `Marconi-Foods-Performance-${dataStr}.pptx` 
+      });
+      
+      updateStatus('Apresentação pronta! Download iniciado.', 100);
+      await waitFor(1200);
+      
+    } catch (err) {
+      console.error('[Export PPTX] Erro:', err);
+      updateStatus('Erro ao gerar apresentação. Tente novamente.', 0);
+      await waitFor(2500);
+    } finally {
+      hideOverlay();
+    }
+  }
+  
+  // Encontrar botão "EXPORTAR PDF" e modificar
+  function attachToButton() {
+    // Tentar várias seletores
+    const buttons = document.querySelectorAll('button, a');
+    let target = null;
+    buttons.forEach(b => {
+      const text = b.textContent.trim().toUpperCase();
+      if (text.includes('EXPORTAR PDF') || text === 'EXPORTAR PDF' || 
+          text.includes('EXPORT PDF')) {
+        target = b;
+      }
+    });
+    
+    if (!target) {
+      // Tentar IDs comuns
+      target = document.getElementById('btnExportPDF') || 
+               document.getElementById('exportPdfBtn') ||
+               document.querySelector('[data-action="export-pdf"]');
+    }
+    
+    if (target) {
+      // Mudar texto
+      const icon = target.querySelector('svg, i, span:first-child');
+      if (icon && icon.nextSibling && icon.nextSibling.nodeType === 3) {
+        icon.nextSibling.textContent = ' EXPORTAR APRESENTAÇÃO';
+      } else {
+        // Substituir texto preservando ícone
+        const txt = target.textContent;
+        target.innerHTML = target.innerHTML.replace(
+          /EXPORTAR\s*PDF/i, 
+          'EXPORTAR APRESENTAÇÃO'
+        );
+      }
+      
+      // Remover handlers antigos
+      const newBtn = target.cloneNode(true);
+      target.parentNode.replaceChild(newBtn, target);
+      
+      // Adicionar novo handler
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        exportToPPTX();
+      });
+      
+      console.log('[PATCH v56] Botão Exportar conectado');
+      return true;
+    }
+    return false;
+  }
+  
+  function init() {
+    if (!attachToButton()) {
+      // Tenta de novo se não achou
+      setTimeout(attachToButton, 500);
+      setTimeout(attachToButton, 1500);
+    }
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  // Expor função globalmente
+  window.exportToPPTX = exportToPPTX;
+  
+  console.log('[PATCH v56] Export PowerPoint disponível. Use o botão ou window.exportToPPTX()');
+})();
+</script>
+
 </body>
 </html>
