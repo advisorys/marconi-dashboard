@@ -8558,17 +8558,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (page === 'fixed') {
       if (!document.body.dataset.fixedView) document.body.dataset.fixedView = 'overview';
       document.querySelector('.top-site-links a[data-fixed-anchor]')?.classList.add('active');
-      setTimeout(()=>document.getElementById('fixed-costs')?.scrollIntoView({behavior:'smooth', block:'start'}), 40);
+      requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}));
       try { window.renderFixedCosts && window.renderFixedCosts(); } catch(e) { console.error(e); }
     } else if (page === 'director') {
       document.querySelector('.top-site-links a[data-director-anchor]')?.classList.add('active');
-      setTimeout(()=>document.getElementById('directoria')?.scrollIntoView({behavior:'smooth', block:'start'}), 40);
+      requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}));
       try { window.renderDirectorPage && window.renderDirectorPage(); } catch(e) { console.error(e); }
     } else {
       document.querySelector('.top-site-links a[data-target="home"]')?.classList.add('active');
-      setTimeout(()=>document.getElementById('home')?.scrollIntoView({behavior:'smooth', block:'start'}), 40);
+      requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}));
     }
   }
+  window.__baseSetDashboardPage = setPage;
   window.setDashboardPage = setPage;
 
   function setFixedView(view){
@@ -8618,7 +8619,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   document.addEventListener('click', function(e){
     const pageBtn = e.target.closest('[data-page-link]');
-    if (pageBtn) { e.preventDefault(); setPage(pageBtn.dataset.pageLink); return; }
+    if (pageBtn) { e.preventDefault(); window.setDashboardPage?.(pageBtn.dataset.pageLink); return; }
     const fixedNav = e.target.closest('[data-fixed-view-link]');
     if (fixedNav) { e.preventDefault(); setFixedView(fixedNav.dataset.fixedViewLink); document.getElementById('fixed-costs')?.scrollIntoView({behavior:'smooth', block:'start'}); return; }
     const viewBtn = e.target.closest('[data-fixed-view]');
@@ -10828,6 +10829,10 @@ body.sidebar-collapsed .control-sidebar::after {
     
     // Toggle handler
     function toggle() {
+      // BLOQUEIO: Diretoria não tem sidebar — S não faz nada nessa página
+      if (document.body.dataset.page === 'director') {
+        return;
+      }
       const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
       localStorage.setItem('marconi_sidebar_collapsed', isCollapsed ? '1' : '0');
       
@@ -11084,19 +11089,18 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
 </script>
 
 
-<style id="patch-v56-export-pptx">
-/* Loading overlay durante export */
+
+
+
+<style id="patch-v57-export-pptx">
 .export-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 14, 26, 0.95);
+  position: fixed; inset: 0;
+  background: rgba(10, 14, 26, 0.96);
   backdrop-filter: blur(20px);
   z-index: 999999;
   display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 .export-overlay.show { display: flex; }
@@ -11119,8 +11123,7 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
 .export-progress {
   width: 320px; height: 4px;
   background: rgba(45,52,84,0.6);
-  border-radius: 999px;
-  overflow: hidden;
+  border-radius: 999px; overflow: hidden;
   margin-top: 12px;
 }
 .export-progress-bar {
@@ -11132,11 +11135,8 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
 }
 </style>
 
-<script id="patch-v56-pptx-export">
-/* =================================================================
-   PATCH v56 - EXPORT POWERPOINT
-   Captura todo o dashboard e gera uma apresentação executiva
-   ================================================================= */
+<script id="patch-v57-pptx-export">
+/* PATCH v57 - Export PowerPoint refinado */
 (function() {
   'use strict';
   
@@ -11166,19 +11166,18 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
     }
   }
   
-  // Criar overlay de loading
   function createOverlay() {
-    let overlay = document.getElementById('exportOverlayV56');
+    let overlay = document.getElementById('exportOverlayV57');
     if (overlay) return overlay;
     overlay = document.createElement('div');
-    overlay.id = 'exportOverlayV56';
+    overlay.id = 'exportOverlayV57';
     overlay.className = 'export-overlay';
     overlay.innerHTML = `
       <div class="export-spinner"></div>
       <div class="export-title">Gerando Apresentação</div>
-      <div class="export-status" id="exportStatusV56">Iniciando...</div>
+      <div class="export-status" id="exportStatusV57">Iniciando...</div>
       <div class="export-progress">
-        <div class="export-progress-bar" id="exportProgressV56"></div>
+        <div class="export-progress-bar" id="exportProgressV57"></div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -11186,149 +11185,208 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
   }
   
   function updateStatus(msg, progress) {
-    const el = document.getElementById('exportStatusV56');
-    const bar = document.getElementById('exportProgressV56');
+    const el = document.getElementById('exportStatusV57');
+    const bar = document.getElementById('exportProgressV57');
     if (el) el.textContent = msg;
     if (bar && typeof progress === 'number') bar.style.width = progress + '%';
   }
   
-  function showOverlay() {
-    createOverlay().classList.add('show');
-  }
-  
+  function showOverlay() { createOverlay().classList.add('show'); }
   function hideOverlay() {
-    const o = document.getElementById('exportOverlayV56');
+    const o = document.getElementById('exportOverlayV57');
     if (o) o.classList.remove('show');
   }
   
-  async function waitFor(ms) {
-    return new Promise(r => setTimeout(r, ms));
-  }
+  async function waitFor(ms) { return new Promise(r => setTimeout(r, ms)); }
   
   async function captureElement(selector, options = {}) {
     const el = document.querySelector(selector);
-    if (!el) return null;
+    if (!el) {
+      console.warn('[Export] Elemento não encontrado:', selector);
+      return null;
+    }
     
-    // Aguarda renderização
-    await waitFor(300);
+    // Scroll até o elemento e aguarda render
+    el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    window.scrollTo(0, Math.max(0, el.offsetTop - 80));
+    
+    // Dispara resize pra charts recalcularem
+    window.dispatchEvent(new Event('resize'));
+    
+    // Aguarda render
+    await waitFor(700);
     
     try {
+      const rect = el.getBoundingClientRect();
+      
       const canvas = await html2canvas(el, {
         backgroundColor: '#0A0E1A',
-        scale: 2,
+        scale: 1.8,
         logging: false,
         useCORS: true,
         allowTaint: false,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
         ...options
       });
-      return canvas.toDataURL('image/png', 0.95);
+      
+      if (canvas.width < 100 || canvas.height < 100) {
+        console.warn('[Export] Canvas muito pequeno para', selector, canvas.width, canvas.height);
+        return null;
+      }
+      
+      return {
+        data: canvas.toDataURL('image/png', 0.95),
+        width: canvas.width,
+        height: canvas.height
+      };
     } catch (e) {
-      console.warn('Falha ao capturar', selector, e);
+      console.warn('[Export] Falha ao capturar', selector, e);
       return null;
     }
   }
   
-  function addCoverSlide(pptx, meta) {
+  // Slide WIDE: 13.33 x 7.5 polegadas
+  const SLIDE_W = 13.33;
+  const SLIDE_H = 7.5;
+  
+  function addCoverSlide(pptx) {
     const slide = pptx.addSlide();
     slide.background = { color: '0A0E1A' };
     
-    // Faixa dourada à esquerda
+    // Faixa dourada superior
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0, y: 0, w: 0.4, h: 7.5,
+      x: 0, y: 0, w: SLIDE_W, h: 0.12,
       fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
     });
     
-    // Logo placeholder (M dourado)
-    slide.addText('M', {
-      x: 0.8, y: 0.6, w: 1.2, h: 1.2,
-      fontSize: 72, bold: true,
-      color: 'FCD34D', fontFace: 'Calibri',
-      align: 'center', valign: 'middle'
+    // Faixa dourada inferior fina
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 7.38, w: SLIDE_W, h: 0.12,
+      fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
     });
     
-    // Marca
-    slide.addText('MARCONI FOODS', {
-      x: 0.8, y: 2.0, w: 11, h: 0.5,
-      fontSize: 20, bold: true,
-      color: 'FFFFFF', fontFace: 'Calibri',
+    // Pequeno "ano" eyebrow
+    slide.addText('2026', {
+      x: 0.6, y: 0.5, w: 2, h: 0.4,
+      fontSize: 11, bold: true,
+      color: 'FCD34D', fontFace: 'Calibri',
       charSpacing: 8
     });
     
-    // Título principal
+    // Marca em cima
+    slide.addText('MARCONI FOODS', {
+      x: 0.6, y: 1.0, w: 12, h: 0.5,
+      fontSize: 14, bold: true,
+      color: 'FFFFFF', fontFace: 'Calibri',
+      charSpacing: 12
+    });
+    
+    // Linha decorativa
+    slide.addShape(pptx.ShapeType.line, {
+      x: 0.6, y: 3.4, w: 1.2, h: 0,
+      line: { color: 'FCD34D', width: 4 }
+    });
+    
+    // Título principal — centralizado verticalmente
     slide.addText('Performance', {
-      x: 0.8, y: 2.7, w: 11, h: 1.2,
-      fontSize: 64, bold: true,
+      x: 0.6, y: 3.6, w: 12, h: 1.1,
+      fontSize: 60, bold: true,
       color: 'FFFFFF', fontFace: 'Calibri'
     });
     slide.addText('Financeira 2026', {
-      x: 0.8, y: 3.7, w: 11, h: 1.2,
-      fontSize: 64, bold: true,
+      x: 0.6, y: 4.5, w: 12, h: 1.1,
+      fontSize: 60, bold: true,
       color: 'FCD34D', fontFace: 'Calibri'
     });
     
     // Subtítulo
     slide.addText('Dashboard Financeiro Executivo · Relatório Diretoria', {
-      x: 0.8, y: 5.2, w: 11, h: 0.4,
+      x: 0.6, y: 5.9, w: 12, h: 0.4,
       fontSize: 14,
       color: '94A0B8', fontFace: 'Calibri',
-      charSpacing: 4
+      charSpacing: 3
     });
     
-    // Data
+    // Footer com data
     const dataStr = new Date().toLocaleDateString('pt-BR', { 
       day: '2-digit', month: 'long', year: 'numeric' 
     });
     slide.addText(`Apresentado em ${dataStr}`, {
-      x: 0.8, y: 6.6, w: 11, h: 0.3,
-      fontSize: 11,
+      x: 0.6, y: 6.8, w: 12, h: 0.3,
+      fontSize: 10,
       color: '5A6580', fontFace: 'Calibri',
       charSpacing: 2
     });
   }
   
-  function addSectionSlide(pptx, title, subtitle, imageData) {
+  function addSectionSlide(pptx, title, subtitle, capture) {
+    if (!capture || !capture.data) return false;
+    
     const slide = pptx.addSlide();
     slide.background = { color: '0A0E1A' };
     
-    // Linha dourada superior
+    // Faixa dourada superior
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0, y: 0, w: 13.33, h: 0.08,
+      x: 0, y: 0, w: SLIDE_W, h: 0.08,
       fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
     });
     
-    // Subtítulo (eyebrow)
+    // Eyebrow
     if (subtitle) {
       slide.addText(subtitle.toUpperCase(), {
-        x: 0.6, y: 0.35, w: 12, h: 0.3,
-        fontSize: 10, bold: true,
+        x: 0.5, y: 0.25, w: 12, h: 0.3,
+        fontSize: 9, bold: true,
         color: 'FCD34D', fontFace: 'Calibri',
-        charSpacing: 6
+        charSpacing: 5
       });
     }
     
-    // Título da seção
+    // Título
     slide.addText(title, {
-      x: 0.6, y: 0.65, w: 12, h: 0.6,
-      fontSize: 26, bold: true,
+      x: 0.5, y: 0.55, w: 12, h: 0.6,
+      fontSize: 22, bold: true,
       color: 'FFFFFF', fontFace: 'Calibri'
     });
     
-    // Imagem capturada
-    if (imageData) {
-      slide.addImage({
-        data: imageData,
-        x: 0.6, y: 1.6, w: 12.1, h: 5.6,
-        sizing: { type: 'contain', w: 12.1, h: 5.6 }
-      });
+    // Calcula tamanho ótimo da imagem mantendo proporção
+    const aspectRatio = capture.width / capture.height;
+    const availW = 12.3;
+    const availH = 5.7;
+    const availRatio = availW / availH;
+    
+    let imgW, imgH, imgX, imgY;
+    
+    if (aspectRatio > availRatio) {
+      // Imagem mais larga que o slide — limita por largura
+      imgW = availW;
+      imgH = availW / aspectRatio;
+    } else {
+      // Imagem mais alta — limita por altura
+      imgH = availH;
+      imgW = availH * aspectRatio;
     }
+    
+    // Centralizar
+    imgX = (SLIDE_W - imgW) / 2;
+    imgY = 1.4 + (availH - imgH) / 2;
+    
+    slide.addImage({
+      data: capture.data,
+      x: imgX, y: imgY, w: imgW, h: imgH
+    });
     
     // Footer
     slide.addText('Marconi Foods · Performance Financeira 2026', {
-      x: 0.6, y: 7.2, w: 12, h: 0.2,
+      x: 0.5, y: 7.2, w: 12, h: 0.2,
       fontSize: 8,
       color: '5A6580', fontFace: 'Calibri',
       charSpacing: 2
     });
+    
+    return true;
   }
   
   function addClosingSlide(pptx) {
@@ -11336,28 +11394,37 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
     slide.background = { color: '0A0E1A' };
     
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0, y: 3.5, w: 13.33, h: 0.05,
+      x: 0, y: 0, w: SLIDE_W, h: 0.12,
+      fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
+    });
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 7.38, w: SLIDE_W, h: 0.12,
       fill: { color: 'FCD34D' }, line: { color: 'FCD34D' }
     });
     
     slide.addText('Obrigado.', {
-      x: 0.6, y: 2.5, w: 12, h: 1,
-      fontSize: 56, bold: true,
+      x: 0.5, y: 2.8, w: 12.3, h: 1.2,
+      fontSize: 64, bold: true,
       color: 'FFFFFF', fontFace: 'Calibri',
       align: 'center'
     });
     
-    slide.addText('Marconi Foods · Performance Financeira 2026', {
-      x: 0.6, y: 4.0, w: 12, h: 0.4,
-      fontSize: 14,
-      color: '94A0B8', fontFace: 'Calibri',
-      align: 'center', charSpacing: 4
+    slide.addShape(pptx.ShapeType.line, {
+      x: 6.1, y: 4.4, w: 1.2, h: 0,
+      line: { color: 'FCD34D', width: 3 }
+    });
+    
+    slide.addText('Marconi Foods', {
+      x: 0.5, y: 4.7, w: 12.3, h: 0.4,
+      fontSize: 14, bold: true,
+      color: 'FCD34D', fontFace: 'Calibri',
+      align: 'center', charSpacing: 6
     });
     
     slide.addText('Dúvidas e considerações ficam à disposição.', {
-      x: 0.6, y: 5.0, w: 12, h: 0.3,
+      x: 0.5, y: 5.3, w: 12.3, h: 0.3,
       fontSize: 12,
-      color: '5A6580', fontFace: 'Calibri',
+      color: '94A0B8', fontFace: 'Calibri',
       align: 'center', italic: true
     });
   }
@@ -11368,171 +11435,159 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
     try {
       await loadDependencies(updateStatus);
       
-      updateStatus('Preparando apresentação...', 15);
+      updateStatus('Preparando apresentação...', 12);
       const pptx = new PptxGenJS();
       pptx.layout = 'LAYOUT_WIDE';
       pptx.title = 'Marconi Foods - Performance Financeira 2026';
       pptx.author = 'Consultoria Financeira';
-      pptx.subject = 'Relatório executivo de desempenho';
       
-      // Salvar página atual e estado da sidebar
       const originalPage = document.body.dataset.page || 'director';
       const originalCollapsed = document.body.classList.contains('sidebar-collapsed');
       
-      // Esconder sidebar temporariamente pra capturas mais limpas
+      // Colapsar sidebar pra ter mais área útil
       if (!originalCollapsed) {
         document.body.classList.add('sidebar-collapsed');
+        await waitFor(500);
       }
       
-      // ============ SLIDE 1: CAPA ============
-      updateStatus('Criando capa...', 20);
-      addCoverSlide(pptx, {});
+      // CAPA
+      updateStatus('Criando capa...', 18);
+      addCoverSlide(pptx);
       
-      // ============ DIRETORIA ============
-      updateStatus('Capturando página Diretoria...', 30);
+      // DIRETORIA
+      updateStatus('Capturando Diretoria...', 28);
       if (typeof window.setDashboardPage === 'function') {
         window.setDashboardPage('director');
       } else {
         document.body.dataset.page = 'director';
       }
-      await waitFor(800);
+      await waitFor(1200);
+      window.scrollTo(0, 0);
+      await waitFor(400);
       
-      // Diretoria - visão geral
-      const dirHero = await captureElement('#directoria') || 
-                      await captureElement('section.director-section') ||
-                      await captureElement('.dashboard-main');
-      if (dirHero) {
-        addSectionSlide(pptx, 'Visão Executiva', 'Diretoria · Resumo', dirHero);
+      const dirCapture = await captureElement('#directoria');
+      if (dirCapture) {
+        addSectionSlide(pptx, 'Visão Executiva', 'Diretoria · Resumo', dirCapture);
       }
       
-      // ============ FLUXO DE CAIXA ============
-      updateStatus('Capturando página Fluxo de Caixa...', 50);
+      // FLUXO DE CAIXA
+      updateStatus('Capturando Fluxo de Caixa...', 42);
       if (typeof window.setDashboardPage === 'function') {
         window.setDashboardPage('cash');
       } else {
         document.body.dataset.page = 'cash';
       }
-      await waitFor(800);
+      await waitFor(1200);
+      window.scrollTo(0, 0);
+      await waitFor(400);
       
-      // KPIs principais
-      updateStatus('Capturando KPIs...', 60);
-      const kpis = await captureElement('#kpis');
-      if (kpis) {
-        addSectionSlide(pptx, 'Indicadores-Chave do Período', 'Fluxo de Caixa · KPIs', kpis);
+      updateStatus('Capturando indicadores...', 50);
+      const kpisCapture = await captureElement('#kpis');
+      if (kpisCapture) {
+        addSectionSlide(pptx, 'Indicadores-Chave do Período', 'Fluxo de Caixa · KPIs', kpisCapture);
       }
       
-      // Performance Mensal
-      updateStatus('Capturando performance mensal...', 70);
-      const monthly = await captureElement('#monthly');
-      if (monthly) {
-        addSectionSlide(pptx, 'Evolução Mês a Mês', 'Fluxo de Caixa · Performance', monthly);
+      updateStatus('Capturando evolução mensal...', 60);
+      const monthlyCapture = await captureElement('#monthly');
+      if (monthlyCapture) {
+        addSectionSlide(pptx, 'Evolução Mês a Mês', 'Fluxo de Caixa · Performance', monthlyCapture);
       }
       
-      // Resultado
-      const result = await captureElement('#result');
-      if (result) {
-        addSectionSlide(pptx, 'Resultado Consolidado', 'Fluxo de Caixa · Resultado', result);
+      updateStatus('Capturando resultado consolidado...', 68);
+      const resultCapture = await captureElement('#result');
+      if (resultCapture) {
+        addSectionSlide(pptx, 'Resultado Consolidado', 'Fluxo de Caixa · Resultado', resultCapture);
       }
       
-      // Categorias
-      updateStatus('Capturando categorias...', 80);
-      const cats = await captureElement('#categories');
-      if (cats) {
-        addSectionSlide(pptx, 'Ranking de Categorias', 'Fluxo de Caixa · Análise', cats);
+      updateStatus('Capturando ranking de categorias...', 76);
+      // Scroll first then capture (categorias está mais embaixo)
+      const catsEl = document.querySelector('#categories');
+      if (catsEl) {
+        catsEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+        await waitFor(800);
+      }
+      const catsCapture = await captureElement('#categories');
+      if (catsCapture) {
+        addSectionSlide(pptx, 'Ranking de Categorias', 'Fluxo de Caixa · Análise', catsCapture);
       }
       
-      // ============ CUSTOS FIXOS ============
-      updateStatus('Capturando página Custos Fixos...', 85);
+      // CUSTOS FIXOS
+      updateStatus('Capturando Custos Fixos...', 85);
       if (typeof window.setDashboardPage === 'function') {
         window.setDashboardPage('fixed');
       } else {
         document.body.dataset.page = 'fixed';
       }
-      await waitFor(800);
+      await waitFor(1500);
+      window.scrollTo(0, 0);
+      await waitFor(400);
       
-      const fixedCosts = await captureElement('#fixed-costs') ||
-                          await captureElement('.fixed-costs-section');
-      if (fixedCosts) {
-        addSectionSlide(pptx, 'Estrutura Fixa e Controle Orçamentário', 'Custos Fixos · Análise', fixedCosts);
+      const fixedCapture = await captureElement('#fixed-costs') ||
+                           await captureElement('.fixed-costs-section');
+      if (fixedCapture) {
+        addSectionSlide(pptx, 'Estrutura Fixa e Controle Orçamentário', 'Custos Fixos · Análise', fixedCapture);
       }
       
-      // ============ SLIDE FINAL ============
-      updateStatus('Finalizando apresentação...', 92);
+      // FINAL
+      updateStatus('Criando slide de encerramento...', 92);
       addClosingSlide(pptx);
       
-      // Restaurar estado original
+      // Restaurar
       if (typeof window.setDashboardPage === 'function') {
         window.setDashboardPage(originalPage);
       }
       if (!originalCollapsed) {
         document.body.classList.remove('sidebar-collapsed');
       }
+      window.scrollTo(0, 0);
       
-      // ============ DOWNLOAD ============
-      updateStatus('Gerando arquivo PowerPoint...', 95);
+      // DOWNLOAD
+      updateStatus('Gerando arquivo PowerPoint...', 96);
       const dataStr = new Date().toISOString().slice(0, 10);
       await pptx.writeFile({ 
         fileName: `Marconi-Foods-Performance-${dataStr}.pptx` 
       });
       
-      updateStatus('Apresentação pronta! Download iniciado.', 100);
-      await waitFor(1200);
+      updateStatus('✓ Apresentação pronta! Download iniciado.', 100);
+      await waitFor(1500);
       
     } catch (err) {
       console.error('[Export PPTX] Erro:', err);
-      updateStatus('Erro ao gerar apresentação. Tente novamente.', 0);
-      await waitFor(2500);
+      updateStatus('Erro ao gerar apresentação. Veja o console (F12).', 0);
+      await waitFor(3000);
     } finally {
       hideOverlay();
     }
   }
   
-  // Encontrar botão "EXPORTAR PDF" e modificar
   function attachToButton() {
-    // Tentar várias seletores
     const buttons = document.querySelectorAll('button, a');
     let target = null;
     buttons.forEach(b => {
       const text = b.textContent.trim().toUpperCase();
-      if (text.includes('EXPORTAR PDF') || text === 'EXPORTAR PDF' || 
-          text.includes('EXPORT PDF')) {
+      if (text.includes('EXPORTAR') && (text.includes('PDF') || text.includes('APRESENTAÇÃO'))) {
         target = b;
       }
     });
     
-    if (!target) {
-      // Tentar IDs comuns
-      target = document.getElementById('btnExportPDF') || 
-               document.getElementById('exportPdfBtn') ||
-               document.querySelector('[data-action="export-pdf"]');
-    }
-    
     if (target) {
-      // Mudar texto
-      const icon = target.querySelector('svg, i, span:first-child');
-      if (icon && icon.nextSibling && icon.nextSibling.nodeType === 3) {
-        icon.nextSibling.textContent = ' EXPORTAR APRESENTAÇÃO';
-      } else {
-        // Substituir texto preservando ícone
-        const txt = target.textContent;
-        target.innerHTML = target.innerHTML.replace(
-          /EXPORTAR\s*PDF/i, 
-          'EXPORTAR APRESENTAÇÃO'
-        );
+      // Atualizar texto se ainda for "EXPORTAR PDF"
+      const html = target.innerHTML;
+      if (html.toUpperCase().includes('EXPORTAR PDF')) {
+        target.innerHTML = html.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTAÇÃO');
       }
       
-      // Remover handlers antigos
+      // Substituir handlers
       const newBtn = target.cloneNode(true);
       target.parentNode.replaceChild(newBtn, target);
       
-      // Adicionar novo handler
       newBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         exportToPPTX();
       });
       
-      console.log('[PATCH v56] Botão Exportar conectado');
+      console.log('[PATCH v57] Botão Exportar Apresentação conectado');
       return true;
     }
     return false;
@@ -11540,7 +11595,6 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
   
   function init() {
     if (!attachToButton()) {
-      // Tenta de novo se não achou
       setTimeout(attachToButton, 500);
       setTimeout(attachToButton, 1500);
     }
@@ -11552,10 +11606,269 @@ html body[data-page="fixed"] header.top-site-nav .top-site-links {
     init();
   }
   
-  // Expor função globalmente
   window.exportToPPTX = exportToPPTX;
-  
-  console.log('[PATCH v56] Export PowerPoint disponível. Use o botão ou window.exportToPPTX()');
+  console.log('[PATCH v57] Export PowerPoint refinado disponível');
+})();
+</script>
+
+
+<script id="patch-v58-director-fix">
+/* PATCH v58 antigo
+   Neutralizado na versão v60: a estabilidade agora é resolvida por CSS + navegação centralizada,
+   evitando MutationObserver/setInterval/requestAnimationFrame que forçavam layout durante a troca de páginas. */
+(function(){ window.__patch_v58_director_fix_neutralized = true; })();
+</script>
+
+
+<style id="patch-v59-topbar-consistent">
+/* PATCH v59 - Topbar IGUAL em todas as páginas: sempre left:0 */
+
+/* Especificidade máxima sem ID: 3 tags + 2 classes + 1 attr */
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav,
+html body.sidebar-collapsed header.top-site-nav,
+html body:not(.sidebar-collapsed) header.top-site-nav {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  top: 0 !important;
+}
+
+/* Sidebar: começa ABAIXO da topbar em todas as páginas */
+html body[data-page="cash"] .control-sidebar,
+html body[data-page="fixed"] .control-sidebar,
+html body.sidebar-collapsed .control-sidebar {
+  top: 72px !important;
+}
+
+/* Conteúdo: padding-top consistente em todas as páginas */
+html body[data-page="director"] .dashboard-main,
+html body[data-page="cash"] .dashboard-main,
+html body[data-page="fixed"] .dashboard-main,
+html body[data-page="director"] main.dashboard-main,
+html body[data-page="cash"] main.dashboard-main,
+html body[data-page="fixed"] main.dashboard-main {
+  padding-top: 80px !important;
+}
+</style>
+
+<script id="patch-v59-js">
+/* PATCH v59 JS antigo
+   Neutralizado na versão v60: a estabilidade agora é resolvida por CSS + navegação centralizada,
+   evitando MutationObserver/setInterval/requestAnimationFrame que forçavam layout durante a troca de páginas. */
+(function(){ window.__patch_v59_js_neutralized = true; })();
+</script>
+
+
+<style id="patch-v60-smooth-ux">
+/* PATCH v60 — fluidez e estabilidade de troca de páginas
+   Objetivo: reduzir layout shift/tremida sem alterar os dados nem os cálculos. */
+
+html {
+  scroll-behavior: auto !important;
+}
+
+/* Mantém a barra de rolagem reservada e evita micro deslocamento horizontal. */
+body {
+  overflow-y: scroll !important;
+}
+
+/* Topbar: posição final única; sem animação de left/width/top durante navegação. */
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav {
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  contain: layout paint !important;
+  transition: background-color .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease !important;
+}
+
+/* Main renderizado em camada própria. Evita tremida causada por transform no elemento inteiro. */
+html body .dashboard-main,
+html body main.dashboard-main {
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: opacity !important;
+}
+
+/* Durante a troca, congelar propriedades de layout que antes animavam margin-left/left/width. */
+html body.page-switching-lite .dashboard-main,
+html body.page-switching-lite main.dashboard-main,
+html body.page-switching-lite .control-sidebar,
+html body.page-switching-lite header.top-site-nav,
+html body.page-switching-lite .dashboard-main .container {
+  transition: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+/* Desativa o fade antigo no <main>, que aplicava blur/translate no layout inteiro. */
+body.page-changing main,
+body.page-changing > section,
+body.page-changing > .container > section,
+body.page-entered main,
+body.page-entered > section,
+body.page-entered > .container > section,
+body.page-entered .reveal {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Transição nova: só opacidade curta, sem mexer em geometria. */
+body.page-switching-lite .dashboard-main {
+  opacity: .86 !important;
+  pointer-events: none !important;
+}
+
+body.page-settled-lite .dashboard-main {
+  animation: v60PageIn .38s cubic-bezier(.22, 1, .36, 1) both !important;
+}
+
+@keyframes v60PageIn {
+  from { opacity: .86; }
+  to   { opacity: 1; }
+}
+
+/* Pulse leve nos números sem alterar texto/medidas, evitando reflow. */
+.v60-kpi-pulse {
+  animation: v60KpiPulse .34s ease both !important;
+}
+
+@keyframes v60KpiPulse {
+  from { opacity: .84; }
+  to   { opacity: 1; }
+}
+
+/* Respeita usuários/navegadores com redução de movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+
+<script id="patch-v60-smooth-ux-js">
+/* PATCH v60 — controlador único de navegação.
+   Evita múltiplos wrappers brigando entre si e remove smooth-scroll na troca de página. */
+(function() {
+  'use strict';
+  if (window.__v60SmoothUXLoaded) return;
+  window.__v60SmoothUXLoaded = true;
+
+  const baseSetPage = window.__baseSetDashboardPage || window.setDashboardPage;
+  if (typeof baseSetPage !== 'function') return;
+
+  let isSwitching = false;
+  let queuedPage = null;
+
+  function pulseVisibleNumbers() {
+    const selectors = [
+      '.kpi-value', '.fixed-kpi-value', '.director-value', '.director-metric',
+      '.hero-stat-value', '.health-card .metric-value'
+    ].join(',');
+
+    document.querySelectorAll(selectors).forEach(function(el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+      el.classList.remove('v60-kpi-pulse');
+      void el.offsetWidth;
+      el.classList.add('v60-kpi-pulse');
+      window.setTimeout(function(){ el.classList.remove('v60-kpi-pulse'); }, 380);
+    });
+  }
+
+  function settle(page) {
+    const body = document.body;
+
+    window.requestAnimationFrame(function() {
+      body.classList.remove('page-switching-lite', 'page-changing', 'page-entered');
+      body.classList.add('page-settled-lite');
+
+      if (page === 'fixed' && typeof window.renderFixedCosts === 'function') {
+        window.setTimeout(function(){ try { window.renderFixedCosts(); } catch(e){} }, 40);
+      }
+      if (page === 'director' && typeof window.renderDirectorPage === 'function') {
+        window.setTimeout(function(){ try { window.renderDirectorPage(); } catch(e){} }, 40);
+      }
+
+      window.setTimeout(function() {
+        body.classList.remove('page-settled-lite');
+        pulseVisibleNumbers();
+        isSwitching = false;
+
+        if (queuedPage && queuedPage !== document.body.dataset.page) {
+          const next = queuedPage;
+          queuedPage = null;
+          setDashboardPageSmooth(next);
+        } else {
+          queuedPage = null;
+        }
+      }, 260);
+    });
+  }
+
+  function setDashboardPageSmooth(page) {
+    if (!page) return;
+    const current = document.body.dataset.page;
+    if (isSwitching) {
+      queuedPage = page;
+      return;
+    }
+    if (current === page) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      pulseVisibleNumbers();
+      return;
+    }
+
+    isSwitching = true;
+    const body = document.body;
+
+    if ('scrollRestoration' in history) {
+      try { history.scrollRestoration = 'manual'; } catch(e) {}
+    }
+
+    body.classList.remove('page-changing', 'page-entered', 'page-settled-lite');
+    body.classList.add('page-switching-lite');
+
+    /* Topo instantâneo: elimina tremida de smooth-scroll entre layouts com alturas diferentes. */
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    window.requestAnimationFrame(function() {
+      try {
+        baseSetPage.call(window, page);
+      } catch (err) {
+        console.error('[PATCH v60] Erro ao trocar página:', err);
+      }
+
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      settle(page);
+    });
+  }
+
+  window.setDashboardPage = setDashboardPageSmooth;
+
+  /* Garante que qualquer botão de página use o controlador final, mesmo que scripts antigos tenham listeners próprios. */
+  document.addEventListener('click', function(e) {
+    const pageBtn = e.target.closest('[data-page-link]');
+    if (!pageBtn) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    setDashboardPageSmooth(pageBtn.dataset.pageLink);
+  }, true);
+
+  console.log('[PATCH v60] Smooth UX ativo: navegação centralizada, sem reflow forçado.');
 })();
 </script>
 
