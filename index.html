@@ -3816,6 +3816,7 @@
 .fixed-status.ok { color:#86EFAC; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.22);}
 .fixed-status.att { color:#FCD34D; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.22);}
 .fixed-status.crit { color:#FCA5A5; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.22);}
+.fixed-status.econ { color:#5EEAD4; background:rgba(20,184,166,.12); border:1px solid rgba(20,184,166,.26);}
 .fixed-sensitive-metrics {
   display:grid; grid-template-columns:1fr 1fr; gap:10px;
 }
@@ -8344,6 +8345,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   function healthStatus(diff, est) {
     const pct = est ? Math.abs(diff) / Math.abs(est) * 100 : (Math.abs(diff)>0 ? 100 : 0);
     if (pct <= 5) return {cls:'ok', text:'OK'};
+    if (diff < 0) return {cls:'econ', text:'Economia'};
     if (pct <= 15) return {cls:'att', text:'Atenção'};
     return {cls:'crit', text:'Crítico'};
   }
@@ -11869,6 +11871,1683 @@ body.page-settled-lite .dashboard-main {
   }, true);
 
   console.log('[PATCH v60] Smooth UX ativo: navegação centralizada, sem reflow forçado.');
+})();
+</script>
+
+
+<style id="patch-v62-layered-transition-css">
+/* PATCH v62 — transição em camadas.
+   Objetivo: sensação premium na troca de páginas sem alterar layout, dados, cálculos ou navegação. */
+:root {
+  --v62-layer-duration: .52s;
+  --v62-layer-ease: cubic-bezier(.22, 1, .36, 1);
+  --v62-layer-shift: 7px;
+}
+
+[data-v62-layer="true"] {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+body.v62-layered-transition [data-v62-layer="true"] {
+  animation: v62LayeredIn var(--v62-layer-duration) var(--v62-layer-ease) both !important;
+  animation-delay: var(--v62-layer-delay, 0ms) !important;
+  will-change: opacity, transform, filter;
+}
+
+@keyframes v62LayeredIn {
+  0% {
+    opacity: .72;
+    transform: translate3d(0, var(--v62-layer-shift), 0) scale(.997);
+    filter: blur(.35px);
+  }
+  62% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.v62-layered-transition [data-v62-layer="true"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+</style>
+
+<script id="patch-v62-layered-transition-js">
+/* PATCH v62 — entrada em camadas para troca de páginas.
+   Mantém a estabilidade conquistada na v60/v61: sem smooth-scroll, sem mexer em width/margin/left/top. */
+(function() {
+  'use strict';
+  if (window.__v62LayeredTransitionLoaded) return;
+  window.__v62LayeredTransitionLoaded = true;
+
+  const layerSelector = [
+    '.hero-top',
+    '.hero-headline',
+    '.hero-brand-panel',
+    '.hero-stat',
+    '.section-header',
+    '.kpi-grid',
+    '.executive-summary-grid',
+    '.chart-card',
+    '.result-card',
+    '.mom-panel',
+    '.breakdown-grid',
+    '.daily-card',
+    '.critical-alerts-grid',
+    '.methodology-card',
+    '.fixed-page-toolbar',
+    '.fixed-focus-panel',
+    '.fixed-kpi-grid',
+    '.fixed-card',
+    '.insights-grid',
+    '.data-table',
+    '.director-cover',
+    '.director-kpi-grid',
+    '.director-card'
+  ].join(',');
+
+  let cleanupTimer = null;
+  let applyTimer = null;
+
+  function isVisibleLayer(el) {
+    if (!el || !el.isConnected) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 4 || rect.height < 4) return false;
+
+    // Como a troca de página volta ao topo, animamos apenas o que entra no campo visual imediato.
+    return rect.bottom > -20 && rect.top < (window.innerHeight * 1.28);
+  }
+
+  function clearLayers() {
+    document.body.classList.remove('v62-layered-transition');
+    document.querySelectorAll('[data-v62-layer="true"]').forEach(function(el) {
+      el.removeAttribute('data-v62-layer');
+      el.style.removeProperty('--v62-layer-delay');
+      el.style.removeProperty('will-change');
+    });
+  }
+
+  function applyLayeredTransition() {
+    const root = document.querySelector('.dashboard-main');
+    if (!root) return;
+
+    window.clearTimeout(cleanupTimer);
+    clearLayers();
+
+    const elements = Array.from(root.querySelectorAll(layerSelector))
+      .filter(isVisibleLayer)
+      .slice(0, 14);
+
+    if (!elements.length) return;
+
+    elements.forEach(function(el, index) {
+      // Garante que blocos com .reveal não voltem a opacity:0 depois da animação.
+      el.classList.add('in-view');
+
+      el.setAttribute('data-v62-layer', 'true');
+      el.style.setProperty('--v62-layer-delay', Math.min(index, 7) * 42 + 'ms');
+    });
+
+    // Reinicia a animação de forma controlada.
+    void document.body.offsetWidth;
+    document.body.classList.add('v62-layered-transition');
+
+    cleanupTimer = window.setTimeout(function() {
+      clearLayers();
+    }, 980);
+  }
+
+  function scheduleLayeredTransition(delay) {
+    window.clearTimeout(applyTimer);
+    applyTimer = window.setTimeout(applyLayeredTransition, delay || 90);
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function') {
+    window.setDashboardPage = function(page) {
+      const before = document.body.dataset.page;
+      const result = previousSetPage.apply(this, arguments);
+
+      if (page && page !== before) {
+        scheduleLayeredTransition(120);
+      }
+
+      return result;
+    };
+  }
+
+  // Entrada inicial, discreta, quando o dashboard abre.
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    scheduleLayeredTransition(420);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      scheduleLayeredTransition(420);
+    });
+  }
+
+  console.log('[PATCH v62] Transição em camadas ativa.');
+})();
+</script>
+
+
+<style id="patch-v64-feedback-premium-css">
+/* PATCH v64 — Feedback premium em filtros e botões internos.
+   Base: v62. Não altera dados, cálculos, navegação principal, estrutura financeira ou troca de páginas.
+   Objetivo: deixar filtros, botões secundários e controles internos mais vivos e responsivos. */
+
+:root {
+  --v64-feedback-ease: cubic-bezier(.22, 1, .36, 1);
+  --v64-feedback-fast: .18s;
+  --v64-feedback-soft: .28s;
+  --v64-glow-gold: rgba(252, 211, 77, .26);
+  --v64-glow-blue: rgba(56, 189, 248, .18);
+  --v64-border-soft: rgba(148, 163, 184, .18);
+}
+
+/* Escopo seguro: botões e controles internos do conteúdo.
+   A navegação principal .page-switcher/.page-tab fica fora desse patch. */
+.dashboard-main button:not(.page-tab),
+.dashboard-main .btn,
+.dashboard-main .filter-btn,
+.dashboard-main .month-btn,
+.dashboard-main .view-btn,
+.dashboard-main .tab-btn,
+.dashboard-main .segmented-btn,
+.dashboard-main .chip,
+.dashboard-main .pill,
+.dashboard-main [role="button"]:not(.page-tab),
+.dashboard-main select,
+.dashboard-main input[type="button"],
+.dashboard-main input[type="submit"] {
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition:
+    transform var(--v64-feedback-fast) var(--v64-feedback-ease),
+    border-color var(--v64-feedback-soft) ease,
+    background var(--v64-feedback-soft) ease,
+    color var(--v64-feedback-soft) ease,
+    box-shadow var(--v64-feedback-soft) ease,
+    filter var(--v64-feedback-soft) ease !important;
+}
+
+/* Hover discreto: sensação de botão vivo, sem pular layout. */
+.dashboard-main button:not(.page-tab):hover,
+.dashboard-main .btn:hover,
+.dashboard-main .filter-btn:hover,
+.dashboard-main .month-btn:hover,
+.dashboard-main .view-btn:hover,
+.dashboard-main .tab-btn:hover,
+.dashboard-main .segmented-btn:hover,
+.dashboard-main .chip:hover,
+.dashboard-main .pill:hover,
+.dashboard-main [role="button"]:not(.page-tab):hover {
+  transform: translate3d(0, -1px, 0);
+  border-color: rgba(252, 211, 77, .30) !important;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, .18),
+    0 0 0 1px rgba(252, 211, 77, .065),
+    inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+  filter: saturate(1.04);
+}
+
+/* Clique: retorno tátil curto. */
+.dashboard-main button:not(.page-tab):active,
+.dashboard-main .btn:active,
+.dashboard-main .filter-btn:active,
+.dashboard-main .month-btn:active,
+.dashboard-main .view-btn:active,
+.dashboard-main .tab-btn:active,
+.dashboard-main .segmented-btn:active,
+.dashboard-main .chip:active,
+.dashboard-main .pill:active,
+.dashboard-main [role="button"]:not(.page-tab):active {
+  transform: translate3d(0, 0, 0) scale(.985);
+  filter: saturate(1.08) brightness(1.03);
+}
+
+/* Estados ativos internos: mais claros e com acabamento executivo.
+   Inclui padrões comuns: .active, .selected, .is-active e aria-pressed. */
+.dashboard-main button.active:not(.page-tab),
+.dashboard-main button.selected:not(.page-tab),
+.dashboard-main button.is-active:not(.page-tab),
+.dashboard-main button[aria-pressed="true"]:not(.page-tab),
+.dashboard-main .btn.active,
+.dashboard-main .filter-btn.active,
+.dashboard-main .month-btn.active,
+.dashboard-main .view-btn.active,
+.dashboard-main .tab-btn.active,
+.dashboard-main .segmented-btn.active,
+.dashboard-main .chip.active,
+.dashboard-main .pill.active,
+.dashboard-main .selected,
+.dashboard-main .is-active {
+  border-color: rgba(252, 211, 77, .44) !important;
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, .20),
+    0 0 0 1px rgba(252, 211, 77, .12),
+    0 0 22px rgba(252, 211, 77, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
+}
+
+/* Foco por teclado: acessibilidade sem poluir visualmente no mouse. */
+.dashboard-main button:not(.page-tab):focus-visible,
+.dashboard-main .btn:focus-visible,
+.dashboard-main .filter-btn:focus-visible,
+.dashboard-main .month-btn:focus-visible,
+.dashboard-main .view-btn:focus-visible,
+.dashboard-main .tab-btn:focus-visible,
+.dashboard-main .segmented-btn:focus-visible,
+.dashboard-main .chip:focus-visible,
+.dashboard-main .pill:focus-visible,
+.dashboard-main [role="button"]:not(.page-tab):focus-visible,
+.dashboard-main select:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 2px rgba(11, 18, 32, .92),
+    0 0 0 4px rgba(252, 211, 77, .46),
+    0 10px 28px rgba(0, 0, 0, .22) !important;
+}
+
+/* Ripple premium no clique, aplicado via JS apenas nos controles internos. */
+.dashboard-main .v64-premium-ripple {
+  position: absolute !important;
+  border-radius: 999px !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  width: 12px !important;
+  height: 12px !important;
+  left: var(--v64-ripple-x, 50%) !important;
+  top: var(--v64-ripple-y, 50%) !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, .28) 0%, rgba(252, 211, 77, .18) 34%, rgba(252, 211, 77, 0) 72%) !important;
+  animation: v64PremiumRipple .52s var(--v64-feedback-ease) both !important;
+}
+
+@keyframes v64PremiumRipple {
+  0% {
+    opacity: .8;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  72% {
+    opacity: .32;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(18);
+  }
+}
+
+/* Ajuste fino em selects/filtros de formulário, caso existam. */
+.dashboard-main select {
+  cursor: pointer;
+}
+
+.dashboard-main select:hover {
+  border-color: rgba(56, 189, 248, .30) !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, .16),
+    0 0 0 1px rgba(56, 189, 248, .08) !important;
+}
+
+/* Respeita usuários com redução de movimento. */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main button:not(.page-tab),
+  .dashboard-main .btn,
+  .dashboard-main .filter-btn,
+  .dashboard-main .month-btn,
+  .dashboard-main .view-btn,
+  .dashboard-main .tab-btn,
+  .dashboard-main .segmented-btn,
+  .dashboard-main .chip,
+  .dashboard-main .pill,
+  .dashboard-main [role="button"]:not(.page-tab),
+  .dashboard-main select {
+    transition: border-color .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease !important;
+    transform: none !important;
+  }
+
+  .dashboard-main .v64-premium-ripple {
+    display: none !important;
+  }
+}
+</style>
+
+<script id="patch-v64-feedback-premium-js">
+/* PATCH v64 — Ripple e feedback de clique em controles internos.
+   Escopo deliberadamente limitado ao .dashboard-main para não interferir na navegação principal. */
+(function() {
+  'use strict';
+
+  if (window.__v64FeedbackPremiumLoaded) return;
+  window.__v64FeedbackPremiumLoaded = true;
+
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const interactiveSelector = [
+    '.dashboard-main button:not(.page-tab)',
+    '.dashboard-main .btn',
+    '.dashboard-main .filter-btn',
+    '.dashboard-main .month-btn',
+    '.dashboard-main .view-btn',
+    '.dashboard-main .tab-btn',
+    '.dashboard-main .segmented-btn',
+    '.dashboard-main .chip',
+    '.dashboard-main .pill',
+    '.dashboard-main [role="button"]:not(.page-tab)'
+  ].join(',');
+
+  function shouldIgnore(target) {
+    if (!target) return true;
+    if (target.closest('.page-switcher') || target.closest('header.top-site-nav')) return true;
+    if (target.disabled || target.getAttribute('aria-disabled') === 'true') return true;
+    return false;
+  }
+
+  function addRipple(target, event) {
+    if (reducedMotion || shouldIgnore(target)) return;
+
+    const rect = target.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const ripple = document.createElement('span');
+    ripple.className = 'v64-premium-ripple';
+
+    const x = event && typeof event.clientX === 'number'
+      ? event.clientX - rect.left
+      : rect.width / 2;
+
+    const y = event && typeof event.clientY === 'number'
+      ? event.clientY - rect.top
+      : rect.height / 2;
+
+    ripple.style.setProperty('--v64-ripple-x', x + 'px');
+    ripple.style.setProperty('--v64-ripple-y', y + 'px');
+
+    // Garante que o ripple fique contido no botão sem alterar layout.
+    const computed = window.getComputedStyle(target);
+    if (computed.position === 'static') {
+      target.style.position = 'relative';
+    }
+    if (computed.overflow === 'visible') {
+      target.style.overflow = 'hidden';
+    }
+
+    target.appendChild(ripple);
+    window.setTimeout(function() {
+      ripple.remove();
+    }, 560);
+  }
+
+  document.addEventListener('pointerdown', function(event) {
+    const target = event.target && event.target.closest(interactiveSelector);
+    if (!target) return;
+    addRipple(target, event);
+  }, { passive: true });
+
+  console.log('[PATCH v64] Feedback premium em filtros e botões ativo.');
+})();
+</script>
+
+<style id="patch-v65-card-hover-css">
+/* PATCH v65 — Hover executivo nos cards principais.
+   Base: v64. Nao altera dados, calculos, navegacao principal, tabelas grandes ou estrutura financeira.
+   Objetivo: dar resposta premium e discreta aos cards do conteudo sem gerar layout shift. */
+
+:root {
+  --v65-card-hover-ease: cubic-bezier(.22, 1, .36, 1);
+  --v65-card-border: rgba(252, 211, 77, .30);
+  --v65-card-shadow-a: rgba(0, 0, 0, .28);
+  --v65-card-shadow-b: rgba(252, 211, 77, .075);
+}
+
+.dashboard-main :is(
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .director-card,
+  .hero-stat,
+  .kpi-card,
+  .fixed-kpi,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item
+) {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition:
+    transform .24s var(--v65-card-hover-ease),
+    border-color .28s ease,
+    box-shadow .28s ease,
+    filter .28s ease !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ):hover {
+    transform: translate3d(0, -2px, 0) !important;
+    border-color: var(--v65-card-border) !important;
+    box-shadow:
+      0 18px 42px var(--v65-card-shadow-a),
+      0 0 0 1px rgba(252, 211, 77, .075),
+      0 0 26px var(--v65-card-shadow-b),
+      inset 0 1px 0 rgba(255, 255, 255, .055) !important;
+    filter: saturate(1.025) !important;
+  }
+
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ):focus-within {
+    border-color: rgba(252, 211, 77, .24) !important;
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, .22),
+      0 0 0 1px rgba(252, 211, 77, .07),
+      inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ) {
+    transition: border-color .12s ease, box-shadow .12s ease, filter .12s ease !important;
+    transform: none !important;
+  }
+}
+</style>
+
+<style id="patch-v66-page-context-css">
+/* PATCH v66 - Linha de contexto executiva.
+   Camada visual fixa, sem alterar dados, calculos, navegacao principal ou estrutura das paginas. */
+
+:root {
+  --v66-context-bg: rgba(8, 13, 24, .74);
+  --v66-context-border: rgba(214, 169, 79, .24);
+  --v66-context-text: rgba(226, 232, 240, .76);
+  --v66-context-muted: rgba(148, 163, 184, .76);
+  --v66-context-gold: #e8c768;
+}
+
+.v66-context-line {
+  position: fixed;
+  top: 68px;
+  left: clamp(24px, 26vw, 374px);
+  right: clamp(24px, 4vw, 56px);
+  z-index: 78;
+  min-height: 34px;
+  max-width: 1040px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--v66-context-border);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(12, 18, 31, .78), var(--v66-context-bg));
+  color: var(--v66-context-text);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .035);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  opacity: .96;
+}
+
+.v66-context-brand,
+.v66-context-page,
+.v66-context-period,
+.v66-context-updated {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 1.85px;
+  text-transform: uppercase;
+  font-weight: 850;
+}
+
+.v66-context-brand,
+.v66-context-page {
+  color: var(--v66-context-gold);
+}
+
+.v66-context-period {
+  color: var(--v66-context-text);
+}
+
+.v66-context-updated {
+  color: var(--v66-context-muted);
+  margin-left: auto;
+}
+
+.v66-context-dot {
+  width: 3px;
+  height: 3px;
+  flex: 0 0 3px;
+  border-radius: 999px;
+  background: rgba(214, 169, 79, .74);
+  box-shadow: 0 0 10px rgba(214, 169, 79, .2);
+}
+
+@media (max-width: 1024px) {
+  .v66-context-line {
+    left: 20px;
+    right: 20px;
+    top: 66px;
+  }
+}
+
+@media (max-width: 720px) {
+  .v66-context-line {
+    min-height: 32px;
+    gap: 8px;
+    padding: 7px 10px;
+  }
+
+  .v66-context-brand,
+  .v66-context-updated {
+    display: none;
+  }
+
+  .v66-context-page,
+  .v66-context-period {
+    font-size: 9px;
+    letter-spacing: 1.35px;
+  }
+}
+
+@media print {
+  .v66-context-line {
+    display: none !important;
+  }
+}
+</style>
+
+<script id="patch-v66-page-context-js">
+/* PATCH v66 - Atualiza a linha de contexto conforme pagina e periodo ativo. */
+(function() {
+  'use strict';
+  if (window.__v66PageContextLoaded) return;
+  window.__v66PageContextLoaded = true;
+
+  const pageLabels = {
+    cash: 'Fluxo de Caixa',
+    fixed: 'Custos Fixos',
+    director: 'Diretoria'
+  };
+
+  function metaUpdatedDate() {
+    try {
+      const raw = document.getElementById('embedded-data')?.textContent || '';
+      const meta = JSON.parse(raw).meta || {};
+      if (!meta.ultima_atualizacao) return '25/05/2026';
+      const d = new Date(meta.ultima_atualizacao);
+      if (Number.isNaN(d.getTime())) return '25/05/2026';
+      return d.toLocaleDateString('pt-BR');
+    } catch (e) {
+      return '25/05/2026';
+    }
+  }
+
+  function periodText() {
+    try {
+      if (typeof window.getActivePeriod === 'function') {
+        const p = window.getActivePeriod();
+        if (p && (p.short || p.label)) return (p.short || p.label).replace(/\s+/g, ' ').trim();
+      }
+    } catch (e) {}
+
+    const candidates = [
+      document.getElementById('monthSelectLabel')?.textContent,
+      document.getElementById('kpiContext')?.textContent,
+      document.getElementById('activeFilterSummary')?.textContent
+    ].filter(Boolean);
+
+    const found = candidates.find(Boolean) || 'Periodo: 2026';
+    return found
+      .replace(/periodo\s*:/i, '')
+      .replace(/fluxo\s*:/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function ensureLine() {
+    let line = document.getElementById('v66PageContext');
+    if (line) return line;
+
+    line = document.createElement('div');
+    line.id = 'v66PageContext';
+    line.className = 'v66-context-line';
+    line.setAttribute('aria-hidden', 'true');
+    line.innerHTML = [
+      '<span class="v66-context-brand">Marconi Foods</span>',
+      '<span class="v66-context-dot"></span>',
+      '<span class="v66-context-page"></span>',
+      '<span class="v66-context-dot"></span>',
+      '<span class="v66-context-period"></span>',
+      '<span class="v66-context-updated"></span>'
+    ].join('');
+    document.body.appendChild(line);
+    return line;
+  }
+
+  function updateLine() {
+    const line = ensureLine();
+    const page = document.body?.dataset?.page || 'cash';
+    line.querySelector('.v66-context-page').textContent = pageLabels[page] || 'Dashboard';
+    line.querySelector('.v66-context-period').textContent = periodText() || '2026';
+    line.querySelector('.v66-context-updated').textContent = 'Atualizado em ' + metaUpdatedDate();
+  }
+
+  function scheduleUpdate(delay) {
+    window.clearTimeout(window.__v66ContextTimer);
+    window.__v66ContextTimer = window.setTimeout(updateLine, delay || 80);
+  }
+
+  function observeBodyPage() {
+    if (!document.body || window.__v66ContextObserver) return;
+    window.__v66ContextObserver = new MutationObserver(function(mutations) {
+      if (mutations.some(function(m) { return m.type === 'attributes' && m.attributeName === 'data-page'; })) {
+        scheduleUpdate(120);
+      }
+    });
+    try {
+      window.__v66ContextObserver.observe(document.body, { attributes: true, attributeFilter: ['data-page'] });
+    } catch (e) {}
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function') {
+    window.setDashboardPage = function(page) {
+      const result = previousSetPage.apply(this, arguments);
+      scheduleUpdate(180);
+      scheduleUpdate(520);
+      return result;
+    };
+  }
+
+  const previousApplyFilter = window.applyFilter;
+  if (typeof previousApplyFilter === 'function') {
+    window.applyFilter = function() {
+      const result = previousApplyFilter.apply(this, arguments);
+      scheduleUpdate(220);
+      return result;
+    };
+  }
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link], .filter-btn, .month-btn, .flow-pill, .period-row, .month-row, [data-month]')) {
+      scheduleUpdate(260);
+    }
+  }, true);
+
+  window.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link]')) {
+      scheduleUpdate(520);
+      window.setTimeout(updateLine, 980);
+    }
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { observeBodyPage(); scheduleUpdate(220); });
+  } else {
+    observeBodyPage();
+    scheduleUpdate(120);
+  }
+})();
+</script>
+
+<style id="patch-v67-kpi-countup-css">
+/* PATCH v67 - Count-up controlado em KPIs grandes, preservando sempre o valor final exato. */
+
+.dashboard-main .v67-counting {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main .v67-counting {
+    transition: none !important;
+  }
+}
+</style>
+
+<script id="patch-v67-kpi-countup-js">
+/* PATCH v67 - Count-up blindado.
+   Corrige animacoes antigas que podiam formatar valores intermediarios de forma inconsistente. */
+(function() {
+  'use strict';
+  if (window.__v67KpiCountupLoaded) return;
+  window.__v67KpiCountupLoaded = true;
+
+  const selector = [
+    '.dashboard-main .kpi-card .kpi-value',
+    '.dashboard-main .fixed-kpi .val',
+    '.dashboard-main .hero-stat .value',
+    '.dashboard-main .hero-stat-value'
+  ].join(',');
+
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function expectedFromDataset(el) {
+    if (!el || !el.dataset || typeof el.dataset.countTo === 'undefined') return null;
+    const raw = Number(el.dataset.countTo);
+    if (!Number.isFinite(raw)) return null;
+    const prefix = el.dataset.prefix || '';
+    const divisor = Number(el.dataset.divisor || 1) || 1;
+    const suffix = el.dataset.suffix || '';
+    const decimals = Number(el.dataset.decimals || 0) || 0;
+    return prefix + (raw / divisor).toFixed(decimals) + suffix;
+  }
+
+  function parseValue(text) {
+    const final = String(text || '').trim();
+    if (!final) return null;
+    const hasMoney = /R\$/i.test(final);
+    const hasPct = /%/.test(final);
+    const hasM = /M\b/i.test(final);
+    const hasK = /K\b/i.test(final);
+    const plus = /^\s*\+/.test(final);
+    const negative = /(^|\s)-\s*R\$|R\$\s*-|^\s*-/.test(final);
+    const multiplier = hasM ? 1000000 : (hasK ? 1000 : 1);
+    let raw = final.replace(/R\$|%|M\b|K\b|\+/gi, '').replace(/[^\d,.-]/g, '');
+
+    if (raw.includes(',') && raw.includes('.')) {
+      raw = raw.replace(/\./g, '').replace(',', '.');
+    } else if (raw.includes(',')) {
+      raw = raw.replace(',', '.');
+    }
+
+    const value = Number.parseFloat(raw);
+    if (!Number.isFinite(value)) return null;
+    return {
+      value: Math.abs(value) * multiplier * (negative ? -1 : 1),
+      final,
+      hasMoney,
+      hasPct,
+      hasM,
+      hasK,
+      plus,
+      moneyMinusAfterSymbol: /R\$\s*-/.test(final)
+    };
+  }
+
+  function numberBR(value, decimals) {
+    return Number(value).toLocaleString('pt-BR', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function formatLike(parsed, value) {
+    const abs = Math.abs(value);
+    const negative = value < 0;
+    const plus = parsed.plus && value > 0 ? '+' : '';
+
+    if (parsed.hasPct) return (negative ? '-' : plus) + numberBR(abs, 1) + '%';
+
+    let amount;
+    if (parsed.hasM) amount = (abs / 1000000).toFixed(2) + 'M';
+    else if (parsed.hasK) amount = (abs / 1000).toFixed(0) + 'K';
+    else amount = Math.round(abs).toLocaleString('pt-BR');
+
+    if (parsed.hasMoney) {
+      if (negative) return parsed.moneyMinusAfterSymbol ? 'R$ -' + amount : '-R$ ' + amount;
+      return plus + 'R$ ' + amount;
+    }
+
+    return (negative ? '-' : plus) + amount;
+  }
+
+  function visible(el) {
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return rect.width > 4 && rect.height > 4 && rect.bottom > 0 && rect.top < window.innerHeight && style.display !== 'none' && style.visibility !== 'hidden';
+  }
+
+  function lockExactFinal(el, final) {
+    if (!el || !final) return;
+    el.textContent = final;
+    el.dataset.v67Final = final;
+    el.dataset.counterDone = '1';
+    el.dataset.v41Busy = '0';
+    el.classList.remove('v67-counting');
+  }
+
+  function animateOne(el) {
+    if (!el || !visible(el)) return;
+    const final = expectedFromDataset(el) || (el.dataset.v67Final || el.textContent || '').trim();
+    const parsed = parseValue(final);
+    if (!parsed) return;
+
+    el.dataset.v67Final = final;
+    el.dataset.counterDone = '1';
+    el.dataset.v41Busy = '1';
+
+    if (reducedMotion || el.dataset.v67Done === final) {
+      lockExactFinal(el, final);
+      el.dataset.v67Done = final;
+      return;
+    }
+
+    const token = String(Date.now()) + Math.random().toString(16).slice(2);
+    el.dataset.v67Token = token;
+    el.classList.add('v67-counting');
+
+    const start = performance.now();
+    const duration = 760;
+    const from = 0;
+    const to = parsed.value;
+
+    function tick(now) {
+      if (el.dataset.v67Token !== token) return;
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = formatLike(parsed, from + (to - from) * eased);
+      if (progress < 1) {
+        window.requestAnimationFrame(tick);
+      } else {
+        lockExactFinal(el, final);
+        el.dataset.v67Done = final;
+      }
+    }
+
+    window.requestAnimationFrame(tick);
+  }
+
+  function stabilize(scope) {
+    (scope || document).querySelectorAll(selector).forEach(function(el) {
+      const final = expectedFromDataset(el) || el.dataset.v67Final;
+      if (final) lockExactFinal(el, final);
+    });
+  }
+
+  function run(scope) {
+    const root = scope || document;
+    root.querySelectorAll(selector).forEach(animateOne);
+    window.setTimeout(function() { stabilize(root); }, 980);
+    window.setTimeout(function() { stabilize(root); }, 1320);
+  }
+
+  function scheduleRun(delay) {
+    window.clearTimeout(window.__v67RunTimer);
+    window.__v67RunTimer = window.setTimeout(function() { run(document); }, delay || 180);
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function') {
+    window.setDashboardPage = function(page) {
+      const result = previousSetPage.apply(this, arguments);
+      scheduleRun(520);
+      window.setTimeout(function() { stabilize(document); }, 1500);
+      return result;
+    };
+  }
+
+  const previousApplyFilter = window.applyFilter;
+  if (typeof previousApplyFilter === 'function') {
+    window.applyFilter = function() {
+      const result = previousApplyFilter.apply(this, arguments);
+      scheduleRun(240);
+      window.setTimeout(function() { stabilize(document); }, 1300);
+      return result;
+    };
+  }
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('.filter-btn, .month-btn, .flow-pill, .period-row, .month-row, [data-month], [data-page-link]')) {
+      scheduleRun(420);
+      window.setTimeout(function() { stabilize(document); }, 1350);
+    }
+  }, true);
+
+  window.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link]')) {
+      scheduleRun(720);
+      window.setTimeout(function() { stabilize(document); }, 1650);
+    }
+  }, true);
+
+  if (document.readyState === 'complete') {
+    scheduleRun(620);
+  } else {
+    window.addEventListener('load', function() { scheduleRun(620); });
+  }
+})();
+</script>
+
+<style id="patch-v68-palette-refinement-css">
+/* PATCH v68 - Refinamento de paleta e tons.
+   Ajusta contraste, dourado, verde/vermelho financeiros e superficies sem mudar identidade ou layout. */
+
+:root {
+  --gold: #d6a94f !important;
+  --gold-l: #e8c768 !important;
+  --green: #34d399 !important;
+  --red: #f07171 !important;
+  --cyan: #38bdf8 !important;
+  --surface: rgba(15, 22, 36, .92) !important;
+  --surface-2: rgba(12, 18, 31, .88) !important;
+  --border: rgba(70, 83, 112, .58) !important;
+  --border-2: rgba(214, 169, 79, .38) !important;
+}
+
+html body {
+  background:
+    linear-gradient(180deg, #070b12 0%, #0a101b 46%, #080d16 100%) !important;
+}
+
+html body header.top-site-nav,
+html body .control-sidebar {
+  background: rgba(9, 14, 25, .92) !important;
+  border-color: rgba(70, 83, 112, .52) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+.dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+) {
+  background: linear-gradient(145deg, rgba(16, 24, 39, .94), rgba(8, 13, 24, .88)) !important;
+  border-color: rgba(70, 83, 112, .58) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .028) !important;
+}
+
+.dashboard-main :is(.number-gold, .hero-brand-kicker, .section-context, .executive-eyebrow, .rank-num),
+.dashboard-main :is(.kpi-card.gold, .director-card) strong {
+  color: #e8c768 !important;
+}
+
+.dashboard-main :is(.number-green, .positive, .trend.up, .kpi-trend.up, .director-kpi .val.positive) {
+  color: #34d399 !important;
+}
+
+.dashboard-main :is(.number-red, .negative, .trend.down, .kpi-trend.down, .director-kpi .val.negative) {
+  color: #f07171 !important;
+}
+
+.dashboard-main :is(.top-badge, .section-context, .chip.active, .pill.active, .filter-btn.active, .month-btn.active, .view-btn.active) {
+  border-color: rgba(214, 169, 79, .42) !important;
+  background: rgba(214, 169, 79, .07) !important;
+}
+
+.dashboard-main svg text {
+  fill: rgba(203, 213, 225, .72) !important;
+}
+
+.dashboard-main :is(.data-table th, .data-table tr.total-row td) {
+  background: rgba(13, 20, 34, .9) !important;
+  border-color: rgba(70, 83, 112, .55) !important;
+}
+
+.dashboard-main :is(.data-table td) {
+  border-color: rgba(70, 83, 112, .32) !important;
+}
+</style>
+
+<style id="patch-v69-skeleton-shimmer-css">
+/* PATCH v69 - Shimmer discreto em trocas de filtros/paginas.
+   Estado breve, sem delay artificial e sem substituir conteudo real. */
+
+body.v69-ui-pending .dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+) {
+  position: relative;
+  overflow: hidden;
+}
+
+body.v69-ui-pending .dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, .035) 42%, rgba(232, 199, 104, .075) 50%, rgba(255, 255, 255, .032) 58%, transparent 100%);
+  transform: translateX(-115%);
+  animation: v69ExecutiveShimmer .62s cubic-bezier(.22, 1, .36, 1) both;
+  mix-blend-mode: screen;
+}
+
+@keyframes v69ExecutiveShimmer {
+  from { transform: translateX(-115%); opacity: .68; }
+  to { transform: translateX(115%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.v69-ui-pending .dashboard-main :is(
+    .kpi-card,
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .fixed-kpi,
+    .director-card,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item,
+    .mini-alert
+  )::after {
+    display: none !important;
+  }
+}
+</style>
+
+<script id="patch-v69-skeleton-shimmer-js">
+/* PATCH v69 - Estado visual breve para filtros e troca de paginas. */
+(function() {
+  'use strict';
+  if (window.__v69SkeletonShimmerLoaded) return;
+  window.__v69SkeletonShimmerLoaded = true;
+
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function startPending(duration) {
+    if (reducedMotion || !document.body) return;
+    window.clearTimeout(window.__v69PendingTimer);
+    document.body.classList.add('v69-ui-pending');
+    window.__v69PendingTimer = window.setTimeout(function() {
+      document.body.classList.remove('v69-ui-pending');
+    }, duration || 520);
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function') {
+    window.setDashboardPage = function(page) {
+      startPending(620);
+      const result = previousSetPage.apply(this, arguments);
+      window.setTimeout(function() { document.body.classList.remove('v69-ui-pending'); }, 760);
+      return result;
+    };
+  }
+
+  const previousApplyFilter = window.applyFilter;
+  if (typeof previousApplyFilter === 'function') {
+    window.applyFilter = function() {
+      startPending(460);
+      const result = previousApplyFilter.apply(this, arguments);
+      window.setTimeout(function() { document.body.classList.remove('v69-ui-pending'); }, 560);
+      return result;
+    };
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target.closest('.filter-btn, .month-btn, .flow-pill, .period-row, .month-row, [data-month], .fixed-view-tab, .fixed-focus-close');
+    if (!target) return;
+    if (target.closest('.page-switcher') || target.closest('header.top-site-nav')) return;
+    startPending(380);
+  }, true);
+
+  window.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link]')) {
+      startPending(680);
+    }
+  }, true);
+
+  if (document.readyState === 'complete') {
+    window.setTimeout(function() { startPending(420); }, 260);
+  } else {
+    window.addEventListener('load', function() { window.setTimeout(function() { startPending(420); }, 260); });
+  }
+})();
+</script>
+
+<style id="patch-v70-qa-layout-fixes-css">
+/* PATCH v70 - Ajustes de QA visual.
+   Corrige overflow horizontal da topbar e estabiliza layout mobile sem alterar dados ou logica. */
+
+html,
+body {
+  overflow-x: hidden !important;
+}
+
+@media (min-width: 1025px) {
+  html body header.top-site-nav {
+    left: 326px !important;
+    right: 32px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  html body header.top-site-nav {
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html,
+  body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  html body .control-sidebar {
+    display: none !important;
+  }
+
+  html body header.top-site-nav {
+    top: 8px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 92px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+  }
+
+  html body header.top-site-nav .top-site-brand {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body header.top-site-nav .top-site-title,
+  html body header.top-site-nav .top-site-subtitle {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body header.top-site-nav > .page-switcher {
+    position: static !important;
+    display: flex !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    padding: 3px !important;
+  }
+
+  html body header.top-site-nav > .page-switcher::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html body header.top-site-nav > .page-switcher > .page-tab {
+    height: 34px !important;
+    min-width: max-content !important;
+    padding: 0 12px !important;
+    font-size: 8.5px !important;
+    letter-spacing: 1px !important;
+  }
+
+  html body .top-site-links {
+    display: none !important;
+  }
+
+  .v66-context-line {
+    top: 112px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+  }
+
+  html body .dashboard-main,
+  html body main.dashboard-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 158px 18px 42px !important;
+    overflow-x: hidden !important;
+  }
+
+  html body .dashboard-main .container,
+  html body main.dashboard-main .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body .dashboard-main section {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .dashboard-main :is(
+    .kpi-grid,
+    .hero-stats,
+    .executive-summary-grid,
+    .breakdown-grid,
+    .critical-alerts-grid,
+    .fixed-kpi-grid,
+    .fixed-costs-grid,
+    .director-kpi-grid,
+    .director-grid,
+    .insights-grid
+  ) {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html body .dashboard-main :is(
+    .kpi-card,
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .fixed-kpi,
+    .director-card,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body .dashboard-main .hero-headline,
+  html body .dashboard-main h1 {
+    font-size: 44px !important;
+    line-height: .95 !important;
+  }
+}
+</style>
+
+<script id="patch-v70-qa-layout-fixes-js">
+/* PATCH v70 - Complemento JS.
+   Alguns patches antigos gravam left/margin inline com !important; este ajuste regrava apenas medidas responsivas. */
+(function() {
+  'use strict';
+  if (window.__v70QaLayoutFixesLoaded) return;
+  window.__v70QaLayoutFixesLoaded = true;
+
+  if (!window.__v70OriginalSetProperty) {
+    window.__v70OriginalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+    CSSStyleDeclaration.prototype.setProperty = function(prop, value, priority) {
+      const name = String(prop || '').toLowerCase();
+      const val = String(value || '');
+      const isMobile = window.matchMedia('(max-width: 720px)').matches;
+      const isTablet = window.matchMedia('(max-width: 1024px)').matches;
+
+      if (isMobile && (val === '326px' || val === '98px')) {
+        if (name === 'left') return window.__v70OriginalSetProperty.call(this, prop, '12px', priority);
+        if (name === 'margin-left') return window.__v70OriginalSetProperty.call(this, prop, '0', priority);
+      }
+
+      if (!isMobile && isTablet && (val === '326px' || val === '98px')) {
+        if (name === 'left') return window.__v70OriginalSetProperty.call(this, prop, '20px', priority);
+        if (name === 'margin-left') return window.__v70OriginalSetProperty.call(this, prop, '0', priority);
+      }
+
+      return window.__v70OriginalSetProperty.call(this, prop, value, priority);
+    };
+  }
+
+  function setImportant(el, prop, value) {
+    if (el) el.style.setProperty(prop, value, 'important');
+  }
+
+  function applyLayoutFixes() {
+    const topbar = document.querySelector('header.top-site-nav');
+    const main = document.querySelector('.dashboard-main');
+    const isMobile = window.matchMedia('(max-width: 720px)').matches;
+    const isTablet = window.matchMedia('(max-width: 1024px)').matches;
+
+    if (isMobile) {
+      setImportant(topbar, 'top', '8px');
+      setImportant(topbar, 'left', '12px');
+      setImportant(topbar, 'right', '12px');
+      setImportant(topbar, 'width', 'auto');
+      setImportant(topbar, 'height', 'auto');
+      setImportant(topbar, 'min-height', '92px');
+
+      setImportant(main, 'margin-left', '0');
+      setImportant(main, 'width', '100%');
+      setImportant(main, 'max-width', 'none');
+      setImportant(main, 'padding', '158px 18px 42px');
+      return;
+    }
+
+    if (isTablet) {
+      setImportant(topbar, 'left', '20px');
+      setImportant(topbar, 'right', '20px');
+      setImportant(topbar, 'width', 'auto');
+      setImportant(main, 'margin-left', '0');
+      return;
+    }
+
+    setImportant(topbar, 'left', '326px');
+    setImportant(topbar, 'right', '32px');
+    setImportant(topbar, 'width', 'auto');
+  }
+
+  function schedule() {
+    window.clearTimeout(window.__v70LayoutTimer);
+    window.__v70LayoutTimer = window.setTimeout(applyLayoutFixes, 60);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', schedule);
+  } else {
+    schedule();
+  }
+
+  window.addEventListener('load', schedule);
+  window.addEventListener('resize', schedule, { passive: true });
+  window.addEventListener('orientationchange', schedule);
+  window.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link]')) {
+      window.setTimeout(applyLayoutFixes, 360);
+      window.setTimeout(applyLayoutFixes, 900);
+    }
+  }, true);
+})();
+</script>
+
+<style id="patch-v71-topbar-stability-css">
+/* PATCH v71 - Topbar fixa e sem "gelatina" na troca de paginas.
+   Bloqueia transicoes de left/right/width/grid e deixa a navegacao principal em uma geometria unica. */
+
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav,
+html body.sidebar-collapsed header.top-site-nav,
+html body:not(.sidebar-collapsed) header.top-site-nav {
+  transform: translateZ(0) !important;
+  animation: none !important;
+  will-change: auto !important;
+  backface-visibility: hidden !important;
+  transition:
+    background-color .22s ease,
+    background .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease !important;
+}
+
+@media (min-width: 1025px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav,
+  html body.sidebar-collapsed header.top-site-nav,
+  html body:not(.sidebar-collapsed) header.top-site-nav {
+    left: 326px !important;
+    right: 32px !important;
+    width: auto !important;
+    max-width: none !important;
+    grid-template-columns: minmax(220px, .8fr) auto minmax(0, .8fr) !important;
+    gap: 12px !important;
+  }
+
+  html body header.top-site-nav > .page-switcher {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate3d(-50%, -50%, 0) !important;
+    justify-self: auto !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 721px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav {
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+</style>
+
+<script id="patch-v71-topbar-stability-js">
+/* PATCH v71 - Trava temporaria da geometria da topbar durante navegacao. */
+(function() {
+  'use strict';
+  if (window.__v71TopbarStabilityLoaded) return;
+  window.__v71TopbarStabilityLoaded = true;
+
+  function setImportant(el, prop, value) {
+    if (el) el.style.setProperty(prop, value, 'important');
+  }
+
+  function applyTopbarGeometry() {
+    const topbar = document.querySelector('header.top-site-nav');
+    const switcher = topbar && topbar.querySelector('.page-switcher');
+    if (!topbar) return;
+
+    const isMobile = window.matchMedia('(max-width: 720px)').matches;
+    const isTablet = window.matchMedia('(max-width: 1024px)').matches;
+
+    setImportant(topbar, 'transition', 'background-color .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease');
+    setImportant(topbar, 'animation', 'none');
+    setImportant(topbar, 'transform', 'translateZ(0)');
+    setImportant(topbar, 'will-change', 'auto');
+
+    if (isMobile) {
+      setImportant(topbar, 'left', '12px');
+      setImportant(topbar, 'right', '12px');
+      setImportant(topbar, 'width', 'auto');
+      if (switcher) {
+        setImportant(switcher, 'position', 'static');
+        setImportant(switcher, 'transform', 'none');
+        setImportant(switcher, 'transition', 'none');
+      }
+      return;
+    }
+
+    if (isTablet) {
+      setImportant(topbar, 'left', '20px');
+      setImportant(topbar, 'right', '20px');
+      setImportant(topbar, 'width', 'auto');
+      if (switcher) setImportant(switcher, 'transition', 'none');
+      return;
+    }
+
+    setImportant(topbar, 'left', '326px');
+    setImportant(topbar, 'right', '32px');
+    setImportant(topbar, 'width', 'auto');
+    setImportant(topbar, 'grid-template-columns', 'minmax(220px, .8fr) auto minmax(0, .8fr)');
+
+    if (switcher) {
+      setImportant(switcher, 'position', 'absolute');
+      setImportant(switcher, 'left', '50%');
+      setImportant(switcher, 'top', '50%');
+      setImportant(switcher, 'transform', 'translate3d(-50%, -50%, 0)');
+      setImportant(switcher, 'transition', 'none');
+    }
+  }
+
+  function lockTopbar(ms) {
+    const end = performance.now() + (ms || 900);
+    function tick() {
+      applyTopbarGeometry();
+      if (performance.now() < end) window.requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  function scheduleLock(ms) {
+    window.clearTimeout(window.__v71TopbarTimer);
+    lockTopbar(ms || 900);
+    window.__v71TopbarTimer = window.setTimeout(applyTopbarGeometry, (ms || 900) + 80);
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function') {
+    window.setDashboardPage = function(page) {
+      scheduleLock(1200);
+      const result = previousSetPage.apply(this, arguments);
+      scheduleLock(1200);
+      return result;
+    };
+  }
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link]')) {
+      scheduleLock(1300);
+    }
+  }, true);
+
+  if (document.body) {
+    try {
+      new MutationObserver(function(mutations) {
+        if (mutations.some(function(m) { return m.type === 'attributes' && m.attributeName === 'data-page'; })) {
+          scheduleLock(1100);
+        }
+      }).observe(document.body, { attributes: true, attributeFilter: ['data-page'] });
+    } catch (e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { scheduleLock(900); });
+  } else {
+    scheduleLock(900);
+  }
+
+  window.addEventListener('load', function() { scheduleLock(900); });
+  window.addEventListener('resize', function() { scheduleLock(520); }, { passive: true });
 })();
 </script>
 
