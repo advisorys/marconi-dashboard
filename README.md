@@ -49,8 +49,10 @@ Os dados ficam em `/data/financeiro.json`. Para atualizar:
 
 ## 🚀 Tecnologia
 
-- HTML5 + CSS3 + JavaScript vanilla (sem build, sem dependências)
-- Dados externos via JSON (separação layout/dados)
+- HTML5 + CSS3 + JavaScript vanilla
+- CSS e JavaScript separados em `/assets`
+- Dados externos via JSON em `/data/financeiro.json`
+- Bootstrap assíncrono com `fetch`, sem fallback JSON gigante dentro do HTML
 - Hospedagem: GitHub Pages
 - Deploy: automático no push para `main`
 
@@ -58,7 +60,11 @@ Os dados ficam em `/data/financeiro.json`. Para atualizar:
 
 ```
 marconi-dashboard/
-├── index.html              ← Layout e lógica
+├── index.html              ← Estrutura HTML leve
+├── assets/
+│   ├── bootstrap.js        ← Carrega dados e inicia o app
+│   ├── app.js              ← Lógica e interações
+│   └── styles.css          ← Estilos do dashboard
 ├── data/
 │   └── financeiro.json     ← Dados (atualizar este arquivo)
 └── README.md               ← Esta documentação
