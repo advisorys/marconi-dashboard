@@ -21,7 +21,7 @@ Dashboard executivo de fluxo de caixa e controle orçamentário desenvolvido par
 | `C` | Custos Fixos |
 | `S` | Colapsar/expandir painel |
 | `←` `→` | Próxima/anterior página |
-| `P` | Imprimir / Exportar PDF |
+| `P` | Exportar apresentação |
 | `?` | Ver ajuda |
 
 ## 🔄 Como atualizar os dados
@@ -53,6 +53,7 @@ Os dados ficam em `/data/financeiro.json`. Para atualizar:
 - CSS e JavaScript separados em `/assets`
 - Dados externos via JSON em `/data/financeiro.json`
 - Bootstrap assíncrono com `fetch`, sem fallback JSON gigante dentro do HTML
+- Exportação PDF/PPTX carregada sob demanda, fora do bundle inicial
 - Hospedagem: GitHub Pages
 - Deploy: automático no push para `main`
 
@@ -64,6 +65,8 @@ marconi-dashboard/
 ├── assets/
 │   ├── bootstrap.js        ← Carrega dados e inicia o app
 │   ├── app.js              ← Lógica e interações
+│   ├── export.js           ← Exportação sob demanda
+│   ├── export.css          ← Estilos de exportação sob demanda
 │   └── styles.css          ← Estilos do dashboard
 ├── data/
 │   └── financeiro.json     ← Dados (atualizar este arquivo)

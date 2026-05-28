@@ -3,8 +3,14 @@
 (function () {
   'use strict';
 
+  const ASSET_VERSION = '20260528-phase2';
   const DATA_URL = 'data/financeiro.json';
   const APP_URL = 'assets/app.js';
+  window.DASHBOARD_ASSET_VERSION = ASSET_VERSION;
+
+  function versionedAsset(url) {
+    return url + '?v=' + encodeURIComponent(ASSET_VERSION);
+  }
 
   function exposeData(payload) {
     const safePayload = payload && typeof payload === 'object' ? payload : {};
@@ -57,14 +63,14 @@
 
   async function bootstrapDashboard() {
     try {
-      const response = await fetch(DATA_URL, { cache: 'no-cache' });
+      const response = await fetch(DATA_URL);
       if (!response.ok) {
         throw new Error('HTTP ' + response.status + ' ao buscar ' + DATA_URL);
       }
       const payload = await response.json();
       exposeData(payload);
       syncLastUpdate();
-      await loadScript(APP_URL);
+      await loadScript(versionedAsset(APP_URL));
       console.log('[Bootstrap] Dados carregados de:', DATA_URL);
     } catch (error) {
       exposeData({});
