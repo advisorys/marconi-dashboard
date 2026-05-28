@@ -998,12 +998,15 @@ function forceVisibleDynamicBlocks() {
 
 function applyFilter() {
   updateControls();
-  const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderMoMAnalysis, renderCriticalAlerts, renderDailyChart, renderDonut, renderRanking, renderTable, renderInsights];
-  renderSteps.forEach(fn => {
-    try { fn(); }
-    catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
-  });
-  forceVisibleDynamicBlocks();
+  const currentPage = document.body?.dataset?.page || 'cash';
+  if (currentPage === 'cash') {
+    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderMoMAnalysis, renderCriticalAlerts, renderDailyChart, renderDonut, renderRanking, renderTable, renderInsights];
+    renderSteps.forEach(fn => {
+      try { fn(); }
+      catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
+    });
+    forceVisibleDynamicBlocks();
+  }
 }
 
 // ─── TOOLTIP ───
@@ -1996,7 +1999,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     window.__fixedCostsApplyWrapped = true;
     window.applyFilter = applyFilter = function() {
       prevApplyFilter();
-      try { renderFixedCosts(); } catch(err) { console.error('Erro ao renderizar Custos Fixos:', err); }
+      if (document.body.dataset.page === 'fixed') {
+        try { renderFixedCosts(); } catch(err) { console.error('Erro ao renderizar Custos Fixos:', err); }
+      }
     };
   }
   const prevDecorate = window.decorateAfterRender;
@@ -2005,12 +2010,16 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const originalDecorate = decorateAfterRender;
     decorateAfterRender = function() {
       originalDecorate();
-      try { renderFixedCosts(); } catch(err) {}
+      if (document.body.dataset.page === 'fixed') {
+        try { renderFixedCosts(); } catch(err) {}
+      }
     };
   }
   requestAnimationFrame(() => {
     wireFixedCostsPage();
-    try { renderFixedCosts(); } catch(err) { console.error('Erro inicial Custos Fixos:', err); }
+    if (document.body.dataset.page === 'fixed') {
+      try { renderFixedCosts(); } catch(err) { console.error('Erro inicial Custos Fixos:', err); }
+    }
   });
 })();
 
@@ -2203,7 +2212,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
   }
   window.renderDirectorPage = render;
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(render,120));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
 })();
 
 /* ===== script-10 ===== */
@@ -3858,12 +3867,12 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       setImportant(topbar, 'right', '12px');
       setImportant(topbar, 'width', 'auto');
       setImportant(topbar, 'height', 'auto');
-      setImportant(topbar, 'min-height', '92px');
+      setImportant(topbar, 'min-height', '124px');
 
       setImportant(main, 'margin-left', '0');
       setImportant(main, 'width', '100%');
       setImportant(main, 'max-width', 'none');
-      setImportant(main, 'padding', '158px 18px 42px');
+      setImportant(main, 'padding', '198px 16px 42px');
       return;
     }
 
@@ -4009,4 +4018,151 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   window.addEventListener('load', function() { scheduleLock(900); });
   window.addEventListener('resize', function() { scheduleLock(520); }, { passive: true });
+})();
+
+/* ===== phase3-performance-ux-js ===== */
+/* Finalizacao de performance/UX: cache leve, pagina ativa e dedupe de navegacao. */
+(function() {
+  'use strict';
+  if (window.__phase3PerformanceUxLoaded) return;
+  window.__phase3PerformanceUxLoaded = true;
+
+  const CACHE_LIMIT = 80;
+  const CASH_SECTION_IDS = [
+    'home', 'kpis', 'executive', 'monthly', 'result', 'mom',
+    'alerts', 'daily', 'categories', 'table', 'insights', 'methodology'
+  ];
+
+  function normalizedMonthsKey(months) {
+    try {
+      return normalizeMonths(months).join(',');
+    } catch (e) {
+      return Array.isArray(months) ? months.slice().sort((a, b) => a - b).join(',') : String(months || '');
+    }
+  }
+
+  function trimCache(cache, limit) {
+    while (cache.size > limit) cache.delete(cache.keys().next().value);
+  }
+
+  function memoizeByMonths(fn, label) {
+    if (typeof fn !== 'function' || fn.__phase3Memoized) return fn;
+    const cache = new Map();
+    const wrapped = function(months) {
+      const key = normalizedMonthsKey(months);
+      if (cache.has(key)) return cache.get(key);
+      const value = fn.apply(this, arguments);
+      cache.set(key, value);
+      trimCache(cache, CACHE_LIMIT);
+      return value;
+    };
+    wrapped.__phase3Memoized = true;
+    wrapped.__phase3Cache = cache;
+    wrapped.__phase3Label = label;
+    return wrapped;
+  }
+
+  try {
+    aggregate = window.aggregate = memoizeByMonths(window.aggregate || aggregate, 'aggregate');
+  } catch (e) {}
+
+  try {
+    getCategoryBreakdown = window.getCategoryBreakdown = memoizeByMonths(window.getCategoryBreakdown || getCategoryBreakdown, 'categoryBreakdown');
+  } catch (e) {}
+
+  try {
+    const monthBreakdown = window.monthCategoryBreakdown || monthCategoryBreakdown;
+    if (typeof monthBreakdown === 'function' && !monthBreakdown.__phase3Memoized) {
+      const cache = new Map();
+      const wrappedMonthBreakdown = function(month) {
+        const key = String(month);
+        if (cache.has(key)) return cache.get(key);
+        const value = monthBreakdown.apply(this, arguments);
+        cache.set(key, value);
+        trimCache(cache, 24);
+        return value;
+      };
+      wrappedMonthBreakdown.__phase3Memoized = true;
+      wrappedMonthBreakdown.__phase3Cache = cache;
+      monthCategoryBreakdown = window.monthCategoryBreakdown = wrappedMonthBreakdown;
+    }
+  } catch (e) {}
+
+  function setInactiveState(elements, active) {
+    elements.forEach(function(el) {
+      if (!el) return;
+      el.toggleAttribute('aria-hidden', !active);
+      if ('inert' in el) {
+        try { el.inert = !active; } catch (e) {}
+      }
+    });
+  }
+
+  function syncActivePageState() {
+    const page = document.body && document.body.dataset.page ? document.body.dataset.page : 'cash';
+    setInactiveState(CASH_SECTION_IDS.map(function(id) { return document.getElementById(id); }), page === 'cash');
+    setInactiveState([document.getElementById('directoria')], page === 'director');
+    setInactiveState([document.getElementById('fixed-costs')], page === 'fixed');
+    document.documentElement.classList.toggle(
+      'is-reduced-motion',
+      !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    );
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function' && !previousSetPage.__phase3Wrapped) {
+    let lastPage = null;
+    let lastAt = 0;
+    const finalSetPage = function(page) {
+      const now = performance.now();
+      if (page === lastPage && now - lastAt < 140) {
+        syncActivePageState();
+        return;
+      }
+      lastPage = page;
+      lastAt = now;
+      const result = previousSetPage.apply(this, arguments);
+      requestAnimationFrame(syncActivePageState);
+      window.setTimeout(syncActivePageState, 430);
+      return result;
+    };
+    finalSetPage.__phase3Wrapped = true;
+    window.setDashboardPage = finalSetPage;
+  }
+
+  const previousApplyFilter = window.applyFilter || (typeof applyFilter === 'function' ? applyFilter : null);
+  if (typeof previousApplyFilter === 'function' && !previousApplyFilter.__phase3Wrapped) {
+    const finalApplyFilter = function() {
+      const result = previousApplyFilter.apply(this, arguments);
+      requestAnimationFrame(syncActivePageState);
+      return result;
+    };
+    finalApplyFilter.__phase3Wrapped = true;
+    try { applyFilter = window.applyFilter = finalApplyFilter; } catch (e) { window.applyFilter = finalApplyFilter; }
+  }
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link], .filter-btn, .month-btn, .flow-pill, .period-row, .month-row, [data-month], .fixed-view-tab')) {
+      window.setTimeout(syncActivePageState, 80);
+    }
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncActivePageState);
+  } else {
+    syncActivePageState();
+  }
+  window.addEventListener('load', syncActivePageState);
+  window.addEventListener('resize', syncActivePageState, { passive: true });
+
+  window.__MARCONI_PHASE3_QA = {
+    cache: function() {
+      return {
+        aggregate: aggregate && aggregate.__phase3Cache ? aggregate.__phase3Cache.size : null,
+        categories: getCategoryBreakdown && getCategoryBreakdown.__phase3Cache ? getCategoryBreakdown.__phase3Cache.size : null,
+        monthlyCategories: monthCategoryBreakdown && monthCategoryBreakdown.__phase3Cache ? monthCategoryBreakdown.__phase3Cache.size : null
+      };
+    },
+    syncActivePageState: syncActivePageState
+  };
 })();
