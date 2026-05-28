@@ -372,6 +372,41 @@ async function run() {
           state.fixedKpiValues.length >= 4 && state.fixedKpiValues.every(item => !item.final || item.text === item.final),
           JSON.stringify(state.fixedKpiValues)
         );
+        const fixedViews = await evaluate(`(async () => {
+          const views = ['overview', 'control', 'matrix'];
+          const states = [];
+          for (const view of views) {
+            document.querySelector('.fixed-view-tab[data-fixed-view="' + view + '"]')?.click();
+            await new Promise(resolve => setTimeout(resolve, 220));
+            const visibleSlots = [...document.querySelectorAll('.fixed-costs-grid > [data-fixed-panel]')]
+              .filter(el => {
+                const style = getComputedStyle(el);
+                const rect = el.getBoundingClientRect();
+                return style.display !== 'none' && rect.width > 1 && rect.height > 1;
+              })
+              .map(el => el.dataset.fixedSlot || el.dataset.fixedPanel || '');
+            states.push({
+              target: view,
+              view: document.body.dataset.fixedView || '',
+              active: document.querySelector('.fixed-view-tab.active')?.dataset.fixedView || '',
+              visibleSlots
+            });
+          }
+          return states;
+        })()`);
+        const fixedExpectations = {
+          overview: { show: ['kpis', 'chart', 'composition', 'analysis'], hide: ['deviations', 'sensitive', 'matrix'] },
+          control: { show: ['kpis', 'deviations', 'sensitive', 'analysis'], hide: ['chart', 'composition', 'matrix'] },
+          matrix: { show: ['kpis', 'matrix', 'analysis'], hide: ['chart', 'composition', 'deviations', 'sensitive'] }
+        };
+        const fixedTabsOk = fixedViews.every(item => item.view === item.target && item.active === item.target);
+        const fixedPanelsOk = fixedViews.every(item => {
+          const expected = fixedExpectations[item.target];
+          return expected.show.every(slot => item.visibleSlots.includes(slot)) &&
+            expected.hide.every(slot => !item.visibleSlots.includes(slot));
+        });
+        pushResult('fixed_internal_tabs_state', fixedTabsOk, JSON.stringify(fixedViews));
+        pushResult('fixed_internal_tabs_panels', fixedPanelsOk, JSON.stringify(fixedViews));
       }
       if (target === 'director') pushResult('director_render_on_active', state.directorKpis >= 1, `directorKpis=${state.directorKpis}`);
     }

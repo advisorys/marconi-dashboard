@@ -4664,6 +4664,90 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   window.addEventListener('resize', scheduleAccessibility, { passive: true });
 })();
 
+/* ===== phase5-fixed-tabs-repair-js ===== */
+/* Restores deterministic internal tabs for the fixed-costs page. */
+(function() {
+  'use strict';
+  if (window.__phase5FixedTabsRepairLoaded) return;
+  window.__phase5FixedTabsRepairLoaded = true;
+
+  const VALID_VIEWS = new Set(['overview', 'control', 'matrix']);
+  const VIEW_HINTS = {
+    overview: 'Visao sintetica dos custos fixos no periodo selecionado.',
+    control: 'Clique em uma rubrica para abrir evolucao mensal e desvios.',
+    matrix: 'Mapa tecnico de desvios por rubrica e mes.'
+  };
+  const PANEL_TARGETS = [
+    ['#fixedCostsKpis', 'kpis', 'kpis', 'self'],
+    ['#fixedCostsMonthlyChart', 'overview', 'chart'],
+    ['#fixedCostsComposition', 'overview', 'composition'],
+    ['#fixedCostsDeviations', 'control', 'deviations'],
+    ['#fixedCostsSensitive', 'control', 'sensitive'],
+    ['#fixedCostsHeatmap', 'matrix', 'matrix'],
+    ['#fixedCostsAnalysis', 'analysis', 'analysis']
+  ];
+
+  function normalizeView(view) {
+    return VALID_VIEWS.has(view) ? view : 'overview';
+  }
+
+  function tagFixedPanels() {
+    PANEL_TARGETS.forEach(function(entry) {
+      const target = document.querySelector(entry[0]);
+      const panel = entry[3] === 'self' ? target : target?.closest('.fixed-card');
+      if (!panel) return;
+      panel.dataset.fixedPanel = entry[1];
+      panel.dataset.fixedSlot = entry[2];
+    });
+  }
+
+  function syncFixedTabState(view) {
+    const current = normalizeView(view || document.body?.dataset.fixedView);
+    if (document.body && document.body.dataset.fixedView !== current) document.body.dataset.fixedView = current;
+    tagFixedPanels();
+    document.querySelectorAll('.fixed-view-tab[data-fixed-view]').forEach(function(tab) {
+      const active = tab.dataset.fixedView === current;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.tabIndex = active ? 0 : -1;
+    });
+    const hint = document.getElementById('fixedPageHint');
+    if (hint && hint.textContent !== VIEW_HINTS[current]) hint.textContent = VIEW_HINTS[current];
+  }
+
+  const previousSetFixedCostView = window.setFixedCostView;
+  window.setFixedCostView = function(view) {
+    if (typeof previousSetFixedCostView === 'function') {
+      try { previousSetFixedCostView.call(this, normalizeView(view)); } catch (e) {}
+    }
+    syncFixedTabState(view);
+  };
+
+  document.addEventListener('click', function(event) {
+    const tab = event.target.closest('.fixed-view-tab[data-fixed-view]');
+    if (!tab) return;
+    event.preventDefault();
+    event.stopPropagation();
+    syncFixedTabState(tab.dataset.fixedView);
+  }, true);
+
+  try {
+    new MutationObserver(function(mutations) {
+      const shouldSync = mutations.some(function(mutation) {
+        return mutation.attributeName === 'data-fixed-view' || mutation.attributeName === 'data-page';
+      });
+      if (shouldSync) syncFixedTabState(document.body?.dataset.fixedView);
+    }).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-page', 'data-fixed-view']
+    });
+  } catch (e) {}
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { syncFixedTabState(); });
+  else syncFixedTabState();
+  window.addEventListener('load', function() { syncFixedTabState(); });
+})();
+
 /* ===== phase5-fixed-kpi-replay-js ===== */
 /* Replays fixed-cost KPIs when the page becomes visible, avoiding hidden pre-render lock. */
 (function() {
