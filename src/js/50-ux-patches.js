@@ -446,7 +446,6 @@
 
   const selector = [
     '.dashboard-main .kpi-card .kpi-value',
-    '.dashboard-main .fixed-kpi .val',
     '.dashboard-main .hero-stat .value',
     '.dashboard-main .hero-stat-value'
   ].join(',');
@@ -474,12 +473,14 @@
     const plus = /^\s*\+/.test(final);
     const negative = /(^|\s)-\s*R\$|R\$\s*-|^\s*-/.test(final);
     const multiplier = hasM ? 1000000 : (hasK ? 1000 : 1);
-    let raw = final.replace(/R\$|%|M\b|K\b|\+/gi, '').replace(/[^\d,.-]/g, '');
+    let raw = final.replace(/R\$|%|M\b|K\b|\+/gi, '').replace(/\u00a0/g, ' ').replace(/[^\d,.-]/g, '');
 
     if (raw.includes(',') && raw.includes('.')) {
       raw = raw.replace(/\./g, '').replace(',', '.');
     } else if (raw.includes(',')) {
       raw = raw.replace(',', '.');
+    } else {
+      raw = raw.replace(/\.(?=\d{3}(?:\D|$))/g, '');
     }
 
     const value = Number.parseFloat(raw);

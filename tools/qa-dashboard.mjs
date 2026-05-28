@@ -266,9 +266,54 @@ async function run() {
 
     const topbarRects = [];
     for (const target of ['director', 'cash', 'fixed', 'cash']) {
+      let fixedAnimationProbe = null;
       await evaluate(`document.querySelector('[data-page-link="${target}"]')?.click()`);
+      if (target === 'fixed') {
+        await page('Runtime.evaluate', {
+          expression: `new Promise(resolve => {
+            const started = performance.now();
+            function poll() {
+              if (document.body.dataset.page === 'fixed') {
+                setTimeout(resolve, 180);
+                return;
+              }
+              if (performance.now() - started > 2200) {
+                resolve();
+                return;
+              }
+              setTimeout(poll, 30);
+            }
+            poll();
+          })`,
+          awaitPromise: true
+        });
+        fixedAnimationProbe = await evaluate(`new Promise(resolve => {
+          const samples = [];
+          function snap(label) {
+            samples.push({
+              label,
+              page: document.body.dataset.page || '',
+              token: window.__fixedKpiCountupToken || '',
+              phase4: !!window.__phase4FixedKpiCountupLoaded,
+              values: [...document.querySelectorAll('.fixed-kpi .val')].map(el => ({
+                text: (el.textContent || '').trim(),
+                final: el.dataset.v41Final || el.dataset.v67Final || '',
+                active: el.dataset.phase4FixedKpiActive || '',
+                done: el.dataset.phase4FixedKpiDone || '',
+                v41Done: el.dataset.v41Done || '',
+                v41Busy: el.dataset.v41Busy || '',
+                reduced: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              }))
+            });
+          }
+          snap('body-fixed+180ms');
+          setTimeout(() => snap('body-fixed+260ms'), 80);
+          setTimeout(() => snap('body-fixed+420ms'), 240);
+          setTimeout(() => resolve(samples), 260);
+        })`);
+      }
       await page('Runtime.evaluate', {
-        expression: 'new Promise(resolve => setTimeout(resolve, 950))',
+        expression: `new Promise(resolve => setTimeout(resolve, ${target === 'fixed' ? 1350 : 950}))`,
         awaitPromise: true
       });
       const state = await evaluate(`(() => {
@@ -286,6 +331,10 @@ async function run() {
           topbar: topbar ? { left: topbar.left, width: topbar.width } : null,
           overflow: document.documentElement.scrollWidth - window.innerWidth,
           fixedKpis: document.querySelectorAll('.fixed-kpi').length,
+          fixedKpiValues: [...document.querySelectorAll('.fixed-kpi .val')].map(el => ({
+            text: (el.textContent || '').trim(),
+            final: el.dataset.v41Final || el.dataset.v67Final || ''
+          })),
           directorKpis: document.querySelectorAll('.director-kpi').length,
           cache: window.__MARCONI_PHASE3_QA ? window.__MARCONI_PHASE3_QA.cache() : null
         };
@@ -294,7 +343,19 @@ async function run() {
       pushResult(`nav_${target}`, state.page === target && state.active === target, JSON.stringify(state));
       pushResult(`visible_${target}`, state.visible[target] === true, JSON.stringify(state.visible));
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
-      if (target === 'fixed') pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
+      if (target === 'fixed') {
+        pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
+        pushResult(
+          'fixed_kpi_countup_starts_before_final',
+          Array.isArray(fixedAnimationProbe) && fixedAnimationProbe.some(sample => Array.isArray(sample.values) && sample.values.some(item => item.final && item.text !== item.final)),
+          JSON.stringify(fixedAnimationProbe)
+        );
+        pushResult(
+          'fixed_kpi_countup_finishes_at_final',
+          state.fixedKpiValues.length >= 4 && state.fixedKpiValues.every(item => !item.final || item.text === item.final),
+          JSON.stringify(state.fixedKpiValues)
+        );
+      }
       if (target === 'director') pushResult('director_render_on_active', state.directorKpis >= 1, `directorKpis=${state.directorKpis}`);
     }
 
