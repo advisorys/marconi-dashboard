@@ -1,0 +1,1399 @@
+/* ===== patch-v44-final ===== */
+/* =================================================================
+   PATCH v44 - VENCE TODAS AS REGRAS ANTERIORES
+   Posicionado no FINAL do body para máxima precedência
+   ================================================================= */
+
+:root {
+  --container-max: 1320px;
+  --container-pad: 48px;
+}
+body.sidebar-collapsed {
+  --container-max: 1548px;
+  --container-pad: 36px;
+}
+
+/* SIDEBAR — width dinâmico */
+html body .control-sidebar,
+html body[data-page] .control-sidebar,
+html body[data-page="director"] .control-sidebar,
+html body[data-page="cash"] .control-sidebar,
+html body[data-page="fixed"] .control-sidebar {
+  width: var(--sidebar-w) !important;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* MAIN — vence todas as regras antigas com seletor super específico por data-page */
+html body[data-page="director"] .dashboard-main,
+html body[data-page="cash"] .dashboard-main,
+html body[data-page="fixed"] .dashboard-main,
+html body[data-page] main.dashboard-main,
+html body main.dashboard-main {
+  margin-left: var(--sidebar-offset) !important;
+  transition: margin-left 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* TOPBAR — left dinâmico por data-page */
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav,
+html body[data-page] header.top-site-nav.top-site-nav {
+  left: var(--sidebar-offset) !important;
+  transition: left 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s ease, background 0.4s ease !important;
+}
+
+/* CONTAINER — expande quando sidebar colapsa */
+html body[data-page="director"] .dashboard-main .container,
+html body[data-page="cash"] .dashboard-main .container,
+html body[data-page="fixed"] .dashboard-main .container,
+html body main.dashboard-main .container,
+html body .dashboard-main .container {
+  max-width: var(--container-max) !important;
+  padding-left: var(--container-pad) !important;
+  padding-right: var(--container-pad) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transition: max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Responsive */
+@media (min-width: 1920px) {
+  body.sidebar-collapsed { --container-max: 1700px; }
+}
+@media (min-width: 2400px) {
+  body.sidebar-collapsed { --container-max: 1900px; }
+}
+@media (max-width: 1280px) {
+  :root { --container-pad: 32px; }
+  body.sidebar-collapsed { --container-pad: 28px; }
+}
+@media print {
+  html body .dashboard-main,
+  html body main.dashboard-main { margin-left: 0 !important; }
+  html body header.top-site-nav { left: 0 !important; right: 0 !important; }
+}
+
+/* ===== patch-v55-no-submenus ===== */
+/* =================================================================
+   PATCH v55 - REMOVER TODOS OS SUBMENUS DA TOPBAR
+   Em TODAS as páginas, os links secundários (.top-site-links) somem
+   ================================================================= */
+
+html body header.top-site-nav .top-site-links,
+html body[data-page="director"] header.top-site-nav .top-site-links,
+html body[data-page="cash"] header.top-site-nav .top-site-links,
+html body[data-page="fixed"] header.top-site-nav .top-site-links {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ===== patch-v59-topbar-consistent ===== */
+/* PATCH v59 - Topbar IGUAL em todas as páginas: sempre left:0 */
+
+/* Especificidade máxima sem ID: 3 tags + 2 classes + 1 attr */
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav,
+html body.sidebar-collapsed header.top-site-nav,
+html body:not(.sidebar-collapsed) header.top-site-nav {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  top: 0 !important;
+}
+
+/* Sidebar: começa ABAIXO da topbar em todas as páginas */
+html body[data-page="cash"] .control-sidebar,
+html body[data-page="fixed"] .control-sidebar,
+html body.sidebar-collapsed .control-sidebar {
+  top: 72px !important;
+}
+
+/* Conteúdo: padding-top consistente em todas as páginas */
+html body[data-page="director"] .dashboard-main,
+html body[data-page="cash"] .dashboard-main,
+html body[data-page="fixed"] .dashboard-main,
+html body[data-page="director"] main.dashboard-main,
+html body[data-page="cash"] main.dashboard-main,
+html body[data-page="fixed"] main.dashboard-main {
+  padding-top: 80px !important;
+}
+
+/* ===== patch-v60-smooth-ux ===== */
+/* PATCH v60 — fluidez e estabilidade de troca de páginas
+   Objetivo: reduzir layout shift/tremida sem alterar os dados nem os cálculos. */
+
+html {
+  scroll-behavior: auto !important;
+}
+
+/* Mantém a barra de rolagem reservada e evita micro deslocamento horizontal. */
+body {
+  overflow-y: scroll !important;
+}
+
+/* Topbar: posição final única; sem animação de left/width/top durante navegação. */
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav {
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  contain: layout paint !important;
+  transition: background-color .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease !important;
+}
+
+/* Main renderizado em camada própria. Evita tremida causada por transform no elemento inteiro. */
+html body .dashboard-main,
+html body main.dashboard-main {
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: opacity !important;
+}
+
+/* Durante a troca, congelar propriedades de layout que antes animavam margin-left/left/width. */
+html body.page-switching-lite .dashboard-main,
+html body.page-switching-lite main.dashboard-main,
+html body.page-switching-lite .control-sidebar,
+html body.page-switching-lite header.top-site-nav,
+html body.page-switching-lite .dashboard-main .container {
+  transition: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+/* Desativa o fade antigo no <main>, que aplicava blur/translate no layout inteiro. */
+body.page-changing main,
+body.page-changing > section,
+body.page-changing > .container > section,
+body.page-entered main,
+body.page-entered > section,
+body.page-entered > .container > section,
+body.page-entered .reveal {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Transição nova: só opacidade curta, sem mexer em geometria. */
+body.page-switching-lite .dashboard-main {
+  opacity: .86 !important;
+  pointer-events: none !important;
+}
+
+body.page-settled-lite .dashboard-main {
+  animation: v60PageIn .38s cubic-bezier(.22, 1, .36, 1) both !important;
+}
+
+@keyframes v60PageIn {
+  from { opacity: .86; }
+  to   { opacity: 1; }
+}
+
+/* Pulse leve nos números sem alterar texto/medidas, evitando reflow. */
+.v60-kpi-pulse {
+  animation: v60KpiPulse .34s ease both !important;
+}
+
+@keyframes v60KpiPulse {
+  from { opacity: .84; }
+  to   { opacity: 1; }
+}
+
+/* Respeita usuários/navegadores com redução de movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== patch-v62-layered-transition-css ===== */
+/* PATCH v62 — transição em camadas.
+   Objetivo: sensação premium na troca de páginas sem alterar layout, dados, cálculos ou navegação. */
+:root {
+  --v62-layer-duration: .52s;
+  --v62-layer-ease: cubic-bezier(.22, 1, .36, 1);
+  --v62-layer-shift: 7px;
+}
+
+[data-v62-layer="true"] {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+body.v62-layered-transition [data-v62-layer="true"] {
+  animation: v62LayeredIn var(--v62-layer-duration) var(--v62-layer-ease) both !important;
+  animation-delay: var(--v62-layer-delay, 0ms) !important;
+  will-change: opacity, transform, filter;
+}
+
+@keyframes v62LayeredIn {
+  0% {
+    opacity: .72;
+    transform: translate3d(0, var(--v62-layer-shift), 0) scale(.997);
+    filter: blur(.35px);
+  }
+  62% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.v62-layered-transition [data-v62-layer="true"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* ===== patch-v64-feedback-premium-css ===== */
+/* PATCH v64 — Feedback premium em filtros e botões internos.
+   Base: v62. Não altera dados, cálculos, navegação principal, estrutura financeira ou troca de páginas.
+   Objetivo: deixar filtros, botões secundários e controles internos mais vivos e responsivos. */
+
+:root {
+  --v64-feedback-ease: cubic-bezier(.22, 1, .36, 1);
+  --v64-feedback-fast: .18s;
+  --v64-feedback-soft: .28s;
+  --v64-glow-gold: rgba(252, 211, 77, .26);
+  --v64-glow-blue: rgba(56, 189, 248, .18);
+  --v64-border-soft: rgba(148, 163, 184, .18);
+}
+
+/* Escopo seguro: botões e controles internos do conteúdo.
+   A navegação principal .page-switcher/.page-tab fica fora desse patch. */
+.dashboard-main button:not(.page-tab),
+.dashboard-main .btn,
+.dashboard-main .filter-btn,
+.dashboard-main .month-btn,
+.dashboard-main .view-btn,
+.dashboard-main .tab-btn,
+.dashboard-main .segmented-btn,
+.dashboard-main .chip,
+.dashboard-main .pill,
+.dashboard-main [role="button"]:not(.page-tab),
+.dashboard-main select,
+.dashboard-main input[type="button"],
+.dashboard-main input[type="submit"] {
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition:
+    transform var(--v64-feedback-fast) var(--v64-feedback-ease),
+    border-color var(--v64-feedback-soft) ease,
+    background var(--v64-feedback-soft) ease,
+    color var(--v64-feedback-soft) ease,
+    box-shadow var(--v64-feedback-soft) ease,
+    filter var(--v64-feedback-soft) ease !important;
+}
+
+/* Hover discreto: sensação de botão vivo, sem pular layout. */
+.dashboard-main button:not(.page-tab):hover,
+.dashboard-main .btn:hover,
+.dashboard-main .filter-btn:hover,
+.dashboard-main .month-btn:hover,
+.dashboard-main .view-btn:hover,
+.dashboard-main .tab-btn:hover,
+.dashboard-main .segmented-btn:hover,
+.dashboard-main .chip:hover,
+.dashboard-main .pill:hover,
+.dashboard-main [role="button"]:not(.page-tab):hover {
+  transform: translate3d(0, -1px, 0);
+  border-color: rgba(252, 211, 77, .30) !important;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, .18),
+    0 0 0 1px rgba(252, 211, 77, .065),
+    inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+  filter: saturate(1.04);
+}
+
+/* Clique: retorno tátil curto. */
+.dashboard-main button:not(.page-tab):active,
+.dashboard-main .btn:active,
+.dashboard-main .filter-btn:active,
+.dashboard-main .month-btn:active,
+.dashboard-main .view-btn:active,
+.dashboard-main .tab-btn:active,
+.dashboard-main .segmented-btn:active,
+.dashboard-main .chip:active,
+.dashboard-main .pill:active,
+.dashboard-main [role="button"]:not(.page-tab):active {
+  transform: translate3d(0, 0, 0) scale(.985);
+  filter: saturate(1.08) brightness(1.03);
+}
+
+/* Estados ativos internos: mais claros e com acabamento executivo.
+   Inclui padrões comuns: .active, .selected, .is-active e aria-pressed. */
+.dashboard-main button.active:not(.page-tab),
+.dashboard-main button.selected:not(.page-tab),
+.dashboard-main button.is-active:not(.page-tab),
+.dashboard-main button[aria-pressed="true"]:not(.page-tab),
+.dashboard-main .btn.active,
+.dashboard-main .filter-btn.active,
+.dashboard-main .month-btn.active,
+.dashboard-main .view-btn.active,
+.dashboard-main .tab-btn.active,
+.dashboard-main .segmented-btn.active,
+.dashboard-main .chip.active,
+.dashboard-main .pill.active,
+.dashboard-main .selected,
+.dashboard-main .is-active {
+  border-color: rgba(252, 211, 77, .44) !important;
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, .20),
+    0 0 0 1px rgba(252, 211, 77, .12),
+    0 0 22px rgba(252, 211, 77, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
+}
+
+/* Foco por teclado: acessibilidade sem poluir visualmente no mouse. */
+.dashboard-main button:not(.page-tab):focus-visible,
+.dashboard-main .btn:focus-visible,
+.dashboard-main .filter-btn:focus-visible,
+.dashboard-main .month-btn:focus-visible,
+.dashboard-main .view-btn:focus-visible,
+.dashboard-main .tab-btn:focus-visible,
+.dashboard-main .segmented-btn:focus-visible,
+.dashboard-main .chip:focus-visible,
+.dashboard-main .pill:focus-visible,
+.dashboard-main [role="button"]:not(.page-tab):focus-visible,
+.dashboard-main select:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 2px rgba(11, 18, 32, .92),
+    0 0 0 4px rgba(252, 211, 77, .46),
+    0 10px 28px rgba(0, 0, 0, .22) !important;
+}
+
+/* Ripple premium no clique, aplicado via JS apenas nos controles internos. */
+.dashboard-main .v64-premium-ripple {
+  position: absolute !important;
+  border-radius: 999px !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  width: 12px !important;
+  height: 12px !important;
+  left: var(--v64-ripple-x, 50%) !important;
+  top: var(--v64-ripple-y, 50%) !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, .28) 0%, rgba(252, 211, 77, .18) 34%, rgba(252, 211, 77, 0) 72%) !important;
+  animation: v64PremiumRipple .52s var(--v64-feedback-ease) both !important;
+}
+
+@keyframes v64PremiumRipple {
+  0% {
+    opacity: .8;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  72% {
+    opacity: .32;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(18);
+  }
+}
+
+/* Ajuste fino em selects/filtros de formulário, caso existam. */
+.dashboard-main select {
+  cursor: pointer;
+}
+
+.dashboard-main select:hover {
+  border-color: rgba(56, 189, 248, .30) !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, .16),
+    0 0 0 1px rgba(56, 189, 248, .08) !important;
+}
+
+/* Respeita usuários com redução de movimento. */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main button:not(.page-tab),
+  .dashboard-main .btn,
+  .dashboard-main .filter-btn,
+  .dashboard-main .month-btn,
+  .dashboard-main .view-btn,
+  .dashboard-main .tab-btn,
+  .dashboard-main .segmented-btn,
+  .dashboard-main .chip,
+  .dashboard-main .pill,
+  .dashboard-main [role="button"]:not(.page-tab),
+  .dashboard-main select {
+    transition: border-color .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease !important;
+    transform: none !important;
+  }
+
+  .dashboard-main .v64-premium-ripple {
+    display: none !important;
+  }
+}
+
+/* ===== patch-v65-card-hover-css ===== */
+/* PATCH v65 — Hover executivo nos cards principais.
+   Base: v64. Nao altera dados, calculos, navegacao principal, tabelas grandes ou estrutura financeira.
+   Objetivo: dar resposta premium e discreta aos cards do conteudo sem gerar layout shift. */
+
+:root {
+  --v65-card-hover-ease: cubic-bezier(.22, 1, .36, 1);
+  --v65-card-border: rgba(252, 211, 77, .30);
+  --v65-card-shadow-a: rgba(0, 0, 0, .28);
+  --v65-card-shadow-b: rgba(252, 211, 77, .075);
+}
+
+.dashboard-main :is(
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .director-card,
+  .hero-stat,
+  .kpi-card,
+  .fixed-kpi,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item
+) {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition:
+    transform .24s var(--v65-card-hover-ease),
+    border-color .28s ease,
+    box-shadow .28s ease,
+    filter .28s ease !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ):hover {
+    transform: translate3d(0, -2px, 0) !important;
+    border-color: var(--v65-card-border) !important;
+    box-shadow:
+      0 18px 42px var(--v65-card-shadow-a),
+      0 0 0 1px rgba(252, 211, 77, .075),
+      0 0 26px var(--v65-card-shadow-b),
+      inset 0 1px 0 rgba(255, 255, 255, .055) !important;
+    filter: saturate(1.025) !important;
+  }
+
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ):focus-within {
+    border-color: rgba(252, 211, 77, .24) !important;
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, .22),
+      0 0 0 1px rgba(252, 211, 77, .07),
+      inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main :is(
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .director-card,
+    .hero-stat,
+    .kpi-card,
+    .fixed-kpi,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item
+  ) {
+    transition: border-color .12s ease, box-shadow .12s ease, filter .12s ease !important;
+    transform: none !important;
+  }
+}
+
+/* ===== patch-v66-page-context-css ===== */
+/* PATCH v66 - Linha de contexto executiva.
+   Camada visual fixa, sem alterar dados, calculos, navegacao principal ou estrutura das paginas. */
+
+:root {
+  --v66-context-bg: rgba(8, 13, 24, .74);
+  --v66-context-border: rgba(214, 169, 79, .24);
+  --v66-context-text: rgba(226, 232, 240, .76);
+  --v66-context-muted: rgba(148, 163, 184, .76);
+  --v66-context-gold: #e8c768;
+}
+
+.v66-context-line {
+  position: fixed;
+  top: 68px;
+  left: clamp(24px, 26vw, 374px);
+  right: clamp(24px, 4vw, 56px);
+  z-index: 78;
+  min-height: 34px;
+  max-width: 1040px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--v66-context-border);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(12, 18, 31, .78), var(--v66-context-bg));
+  color: var(--v66-context-text);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .035);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  opacity: .96;
+}
+
+.v66-context-brand,
+.v66-context-page,
+.v66-context-period,
+.v66-context-updated {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 1.85px;
+  text-transform: uppercase;
+  font-weight: 850;
+}
+
+.v66-context-brand,
+.v66-context-page {
+  color: var(--v66-context-gold);
+}
+
+.v66-context-period {
+  color: var(--v66-context-text);
+}
+
+.v66-context-updated {
+  color: var(--v66-context-muted);
+  margin-left: auto;
+}
+
+.v66-context-dot {
+  width: 3px;
+  height: 3px;
+  flex: 0 0 3px;
+  border-radius: 999px;
+  background: rgba(214, 169, 79, .74);
+  box-shadow: 0 0 10px rgba(214, 169, 79, .2);
+}
+
+@media (max-width: 1024px) {
+  .v66-context-line {
+    left: 20px;
+    right: 20px;
+    top: 66px;
+  }
+}
+
+@media (max-width: 720px) {
+  .v66-context-line {
+    min-height: 32px;
+    gap: 8px;
+    padding: 7px 10px;
+  }
+
+  .v66-context-brand,
+  .v66-context-updated {
+    display: none;
+  }
+
+  .v66-context-page,
+  .v66-context-period {
+    font-size: 9px;
+    letter-spacing: 1.35px;
+  }
+}
+
+@media print {
+  .v66-context-line {
+    display: none !important;
+  }
+}
+
+/* ===== patch-v67-kpi-countup-css ===== */
+/* PATCH v67 - Count-up controlado em KPIs grandes, preservando sempre o valor final exato. */
+
+.dashboard-main .v67-counting {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-main .v67-counting {
+    transition: none !important;
+  }
+}
+
+/* ===== patch-v68-palette-refinement-css ===== */
+/* PATCH v68 - Refinamento de paleta e tons.
+   Ajusta contraste, dourado, verde/vermelho financeiros e superficies sem mudar identidade ou layout. */
+
+:root {
+  --gold: #d6a94f !important;
+  --gold-l: #e8c768 !important;
+  --green: #34d399 !important;
+  --red: #f07171 !important;
+  --cyan: #38bdf8 !important;
+  --surface: rgba(15, 22, 36, .92) !important;
+  --surface-2: rgba(12, 18, 31, .88) !important;
+  --border: rgba(70, 83, 112, .58) !important;
+  --border-2: rgba(214, 169, 79, .38) !important;
+}
+
+html body {
+  background:
+    linear-gradient(180deg, #070b12 0%, #0a101b 46%, #080d16 100%) !important;
+}
+
+html body header.top-site-nav,
+html body .control-sidebar {
+  background: rgba(9, 14, 25, .92) !important;
+  border-color: rgba(70, 83, 112, .52) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+.dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+) {
+  background: linear-gradient(145deg, rgba(16, 24, 39, .94), rgba(8, 13, 24, .88)) !important;
+  border-color: rgba(70, 83, 112, .58) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .028) !important;
+}
+
+.dashboard-main :is(.number-gold, .hero-brand-kicker, .section-context, .executive-eyebrow, .rank-num),
+.dashboard-main :is(.kpi-card.gold, .director-card) strong {
+  color: #e8c768 !important;
+}
+
+.dashboard-main :is(.number-green, .positive, .trend.up, .kpi-trend.up, .director-kpi .val.positive) {
+  color: #34d399 !important;
+}
+
+.dashboard-main :is(.number-red, .negative, .trend.down, .kpi-trend.down, .director-kpi .val.negative) {
+  color: #f07171 !important;
+}
+
+.dashboard-main :is(.top-badge, .section-context, .chip.active, .pill.active, .filter-btn.active, .month-btn.active, .view-btn.active) {
+  border-color: rgba(214, 169, 79, .42) !important;
+  background: rgba(214, 169, 79, .07) !important;
+}
+
+.dashboard-main svg text {
+  fill: rgba(203, 213, 225, .72) !important;
+}
+
+.dashboard-main :is(.data-table th, .data-table tr.total-row td) {
+  background: rgba(13, 20, 34, .9) !important;
+  border-color: rgba(70, 83, 112, .55) !important;
+}
+
+.dashboard-main :is(.data-table td) {
+  border-color: rgba(70, 83, 112, .32) !important;
+}
+
+/* ===== patch-v69-skeleton-shimmer-css ===== */
+/* PATCH v69 - Shimmer discreto em trocas de filtros/paginas.
+   Estado breve, sem delay artificial e sem substituir conteudo real. */
+
+body.v69-ui-pending .dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+) {
+  position: relative;
+  overflow: hidden;
+}
+
+body.v69-ui-pending .dashboard-main :is(
+  .kpi-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .executive-card,
+  .critical-alert-card,
+  .donut-card,
+  .heatmap-card,
+  .rank-item,
+  .mini-alert
+)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, .035) 42%, rgba(232, 199, 104, .075) 50%, rgba(255, 255, 255, .032) 58%, transparent 100%);
+  transform: translateX(-115%);
+  animation: v69ExecutiveShimmer .62s cubic-bezier(.22, 1, .36, 1) both;
+  mix-blend-mode: screen;
+}
+
+@keyframes v69ExecutiveShimmer {
+  from { transform: translateX(-115%); opacity: .68; }
+  to { transform: translateX(115%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.v69-ui-pending .dashboard-main :is(
+    .kpi-card,
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .fixed-kpi,
+    .director-card,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card,
+    .donut-card,
+    .heatmap-card,
+    .rank-item,
+    .mini-alert
+  )::after {
+    display: none !important;
+  }
+}
+
+/* ===== patch-v70-qa-layout-fixes-css ===== */
+/* PATCH v70 - Ajustes de QA visual.
+   Corrige overflow horizontal da topbar e estabiliza layout mobile sem alterar dados ou logica. */
+
+html,
+body {
+  overflow-x: hidden !important;
+}
+
+@media (min-width: 1025px) {
+  html body header.top-site-nav {
+    left: 326px !important;
+    right: 32px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  html body header.top-site-nav {
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html,
+  body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  html body .control-sidebar {
+    display: none !important;
+  }
+
+  html body header.top-site-nav {
+    top: 8px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 92px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+  }
+
+  html body header.top-site-nav .top-site-brand {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body header.top-site-nav .top-site-title,
+  html body header.top-site-nav .top-site-subtitle {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body header.top-site-nav > .page-switcher {
+    position: static !important;
+    display: flex !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    padding: 3px !important;
+  }
+
+  html body header.top-site-nav > .page-switcher::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html body header.top-site-nav > .page-switcher > .page-tab {
+    height: 34px !important;
+    min-width: max-content !important;
+    padding: 0 12px !important;
+    font-size: 8.5px !important;
+    letter-spacing: 1px !important;
+  }
+
+  html body .top-site-links {
+    display: none !important;
+  }
+
+  .v66-context-line {
+    top: 112px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+  }
+
+  html body .dashboard-main,
+  html body main.dashboard-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 158px 18px 42px !important;
+    overflow-x: hidden !important;
+  }
+
+  html body .dashboard-main .container,
+  html body main.dashboard-main .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body .dashboard-main section {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .dashboard-main :is(
+    .kpi-grid,
+    .hero-stats,
+    .executive-summary-grid,
+    .breakdown-grid,
+    .critical-alerts-grid,
+    .fixed-kpi-grid,
+    .fixed-costs-grid,
+    .director-kpi-grid,
+    .director-grid,
+    .insights-grid
+  ) {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html body .dashboard-main :is(
+    .kpi-card,
+    .chart-card,
+    .result-card,
+    .daily-card,
+    .methodology-card,
+    .fixed-card,
+    .fixed-kpi,
+    .director-card,
+    .director-kpi,
+    .executive-card,
+    .critical-alert-card
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body .dashboard-main .hero-headline,
+  html body .dashboard-main h1 {
+    font-size: 44px !important;
+    line-height: .95 !important;
+  }
+}
+
+/* ===== patch-v71-topbar-stability-css ===== */
+/* PATCH v71 - Topbar fixa e sem "gelatina" na troca de paginas.
+   Bloqueia transicoes de left/right/width/grid e deixa a navegacao principal em uma geometria unica. */
+
+html body header.top-site-nav,
+html body[data-page] header.top-site-nav,
+html body[data-page="director"] header.top-site-nav,
+html body[data-page="cash"] header.top-site-nav,
+html body[data-page="fixed"] header.top-site-nav,
+html body.sidebar-collapsed header.top-site-nav,
+html body:not(.sidebar-collapsed) header.top-site-nav {
+  transform: translateZ(0) !important;
+  animation: none !important;
+  will-change: auto !important;
+  backface-visibility: hidden !important;
+  transition:
+    background-color .22s ease,
+    background .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease !important;
+}
+
+@media (min-width: 1025px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav,
+  html body.sidebar-collapsed header.top-site-nav,
+  html body:not(.sidebar-collapsed) header.top-site-nav {
+    left: 326px !important;
+    right: 32px !important;
+    width: auto !important;
+    max-width: none !important;
+    grid-template-columns: minmax(220px, .8fr) auto minmax(0, .8fr) !important;
+    gap: 12px !important;
+  }
+
+  html body header.top-site-nav > .page-switcher {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate3d(-50%, -50%, 0) !important;
+    justify-self: auto !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 721px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav {
+    left: 20px !important;
+    right: 20px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+/* ===== phase3-performance-ux-css ===== */
+/* Camada final: estabilidade, leitura executiva, mobile e motion budget. */
+:root {
+  --phase3-surface: rgba(15, 22, 36, .94);
+  --phase3-surface-soft: rgba(18, 27, 43, .82);
+  --phase3-border: rgba(70, 83, 112, .50);
+  --phase3-border-soft: rgba(70, 83, 112, .34);
+  --phase3-gold: #d6a94f;
+  --phase3-green: #34d399;
+  --phase3-red: #f07171;
+}
+
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.dashboard-main section {
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
+}
+
+body[data-page="cash"] .dashboard-main section:not(#fixed-costs):not(#directoria),
+body[data-page="director"] #directoria,
+body[data-page="fixed"] #fixed-costs {
+  content-visibility: visible;
+}
+
+html body .page-tab.active {
+  color: var(--phase3-gold) !important;
+  background: rgba(214, 169, 79, .13) !important;
+  border-color: rgba(214, 169, 79, .48) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 24px rgba(214,169,79,.10) !important;
+  text-shadow: none !important;
+}
+
+html body .page-tab:hover {
+  color: var(--text) !important;
+  border-color: rgba(214, 169, 79, .38) !important;
+  background: rgba(214, 169, 79, .08) !important;
+}
+
+.dashboard-main :is(
+  .kpi-card,
+  .executive-card,
+  .chart-card,
+  .result-card,
+  .daily-card,
+  .methodology-card,
+  .fixed-card,
+  .fixed-kpi,
+  .director-card,
+  .director-kpi,
+  .director-health-card,
+  .critical-alert-card,
+  .rank-item
+) {
+  border-color: var(--phase3-border-soft);
+  background-color: var(--phase3-surface);
+}
+
+.dashboard-main :is(.fixed-card, .director-card, .chart-card, .result-card, .daily-card) {
+  box-shadow: 0 16px 48px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.number-green,
+.fixed-good,
+.status-pill.surplus {
+  color: var(--phase3-green) !important;
+}
+
+.number-red,
+.fixed-bad,
+.status-pill.deficit {
+  color: var(--phase3-red) !important;
+}
+
+.fixed-status.critical.below-budget,
+.fixed-status.good,
+.fixed-dev-item.below-budget .fixed-dev-status {
+  color: var(--phase3-green) !important;
+  border-color: rgba(52,211,153,.42) !important;
+  background: rgba(52,211,153,.10) !important;
+}
+
+.dashboard-main :is(.data-table-wrap, .fixed-heatmap-wrap, .fixed-table-wrap) {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+  }
+
+  .mouse-glow,
+  .v64-premium-ripple,
+  .hero-bg-orb,
+  .scroll-progress {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-main :is(.fixed-costs-grid, .director-grid, .executive-summary-grid, .breakdown-grid) {
+    grid-template-columns: 1fr !important;
+  }
+
+  body[data-page="director"] .director-cover {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: "copy" "brand" "verdict" !important;
+    min-height: auto !important;
+    gap: 24px !important;
+  }
+
+  body[data-page="director"] .director-brand-card {
+    max-width: 420px !important;
+    width: 100% !important;
+    justify-self: center !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .dashboard-main,
+  html body main.dashboard-main,
+  body[data-page="director"] .dashboard-main,
+  body[data-page="fixed"] .dashboard-main {
+    margin-left: 0 !important;
+    padding: 158px 16px 40px !important;
+    width: 100% !important;
+  }
+
+  .dashboard-main section {
+    contain-intrinsic-size: 560px;
+  }
+
+  .dashboard-main :is(
+    .kpi-grid,
+    .hero-stats,
+    .executive-summary-grid,
+    .breakdown-grid,
+    .critical-alerts-grid,
+    .fixed-kpi-grid,
+    .fixed-costs-grid,
+    .fixed-deviation-list,
+    .fixed-sensitive-grid,
+    .director-kpi-grid,
+    .director-grid,
+    .insights-grid
+  ) {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .dashboard-main :is(.kpi-card, .chart-card, .fixed-card, .director-card, .director-kpi, .fixed-kpi) {
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  html body .dashboard-main .hero-headline,
+  html body .dashboard-main h1,
+  body[data-page="director"] .director-cover h1 {
+    font-size: clamp(36px, 12vw, 54px) !important;
+    line-height: .98 !important;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-page="fixed"] .fixed-row,
+  body[data-page="fixed"] .fixed-dev-item,
+  body[data-page="fixed"] .fixed-sensitive-card {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  body[data-page="fixed"] .fixed-kpi-grid > *,
+  body[data-page="fixed"] .fixed-costs-grid > *,
+  body[data-page="director"] .director-grid > * {
+    grid-column: 1 / -1 !important;
+  }
+
+  .fixed-view-tabs,
+  .page-switcher {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ===== phase3-visual-qa-fixes ===== */
+body[data-page="fixed"] .sidebar-brand .brand-kicker {
+  max-width: calc(100% - 44px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body[data-page="fixed"] .sidebar-brand .brand-kicker::after {
+  content: "" !important;
+}
+
+@media (max-width: 720px) {
+  html body header.top-site-nav,
+  html body[data-page] header.top-site-nav,
+  html body[data-page="director"] header.top-site-nav,
+  html body[data-page="cash"] header.top-site-nav,
+  html body[data-page="fixed"] header.top-site-nav {
+    min-height: 124px !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-content: center !important;
+    gap: 10px !important;
+  }
+
+  html body header.top-site-nav .top-site-title {
+    display: block !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+  }
+
+  html body header.top-site-nav > .page-switcher {
+    grid-row: 2 !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+    justify-content: flex-start !important;
+    padding: 3px !important;
+  }
+
+  html body header.top-site-nav > .page-switcher > .page-tab {
+    flex: 0 0 auto !important;
+    min-width: 104px !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 8.5px !important;
+    letter-spacing: 1px !important;
+  }
+
+  .v66-context-line {
+    top: 146px !important;
+  }
+
+  html body .dashboard-main,
+  html body main.dashboard-main,
+  body[data-page="director"] .dashboard-main,
+  body[data-page="fixed"] .dashboard-main {
+    padding-top: 198px !important;
+  }
+}
+
+/* ===== phase4-accessibility-export-polish ===== */
+.page-tab[aria-current="page"] {
+  outline: 0;
+}
+
+.page-tab:focus-visible,
+.sidebar-action:focus-visible,
+.month-select-btn:focus-visible,
+.period-row:focus-visible,
+.month-row:focus-visible,
+.flow-pill:focus-visible,
+.fixed-view-tab:focus-visible,
+.fixed-focus-close:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(214, 169, 79, .86) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px rgba(214, 169, 79, .13) !important;
+}
+
+#printDashboard[aria-busy="true"] {
+  cursor: progress !important;
+  opacity: .78 !important;
+}
+
+.dashboard-main :is(.kpi-card, .fixed-kpi, .director-kpi) {
+  contain: layout paint;
+}
+
+.dashboard-main :is(.chart-card, .fixed-card, .director-card) {
+  backdrop-filter: none !important;
+}
+
+@media print {
+  .page-tab:focus-visible,
+  .sidebar-action:focus-visible,
+  a:focus-visible {
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+}

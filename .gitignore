@@ -9,6 +9,7 @@ Thumbs.db
 
 # Logs
 *.log
+.qa-output/
 
 # Backups
 *.bak

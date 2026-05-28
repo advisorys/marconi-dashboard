@@ -1,3 +1,7 @@
+/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs */
+
+/* ===== src/css/00-theme-base.css ===== */
+
 /* Marconi Dashboard styles
    Extracted from index.html to reduce HTML weight and consolidate the cascade.
    Keep block order stable while the legacy patch layers are being merged. */
@@ -3523,6 +3527,7 @@
     .rank-item.v35-sorted { grid-template-columns:36px minmax(220px,1fr) minmax(118px,132px) 72px 30px 28px !important; }
   }
 
+/* ===== src/css/20-fixed-director.css ===== */
 
 /* ━━━ V36 · Custos Fixos / central financeira executiva ━━━ */
 .fixed-costs-section { padding-top: 86px; }
@@ -4488,6 +4493,7 @@ body[data-page="fixed"] .fixed-monthly-svg .bar-over{fill:rgba(239,68,68,.82)!im
 .pdf-comp-row b { color:#FFFFFF; font-size:6pt; }
 .pdf-comp-row span { color:#FCD34D; font-weight:900; text-align:right; white-space:nowrap; }
 
+/* ===== src/css/30-executive-interactions.css ===== */
 
 /* ===== v23-advanced-interactions-style ===== */
 :root { --v23-hot:#FCD34D; --v23-glass: rgba(8,12,24,.72); --v23-panel: rgba(19,24,41,.90); }
@@ -6611,6 +6617,8 @@ body.sidebar-collapsed .control-sidebar::after {
   }
 }
 
+/* ===== src/css/40-ux-patches.css ===== */
+
 /* ===== patch-v44-final ===== */
 /* =================================================================
    PATCH v44 - VENCE TODAS AS REGRAS ANTERIORES
@@ -7967,5 +7975,46 @@ body[data-page="fixed"] .sidebar-brand .brand-kicker::after {
   body[data-page="director"] .dashboard-main,
   body[data-page="fixed"] .dashboard-main {
     padding-top: 198px !important;
+  }
+}
+
+/* ===== phase4-accessibility-export-polish ===== */
+.page-tab[aria-current="page"] {
+  outline: 0;
+}
+
+.page-tab:focus-visible,
+.sidebar-action:focus-visible,
+.month-select-btn:focus-visible,
+.period-row:focus-visible,
+.month-row:focus-visible,
+.flow-pill:focus-visible,
+.fixed-view-tab:focus-visible,
+.fixed-focus-close:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(214, 169, 79, .86) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px rgba(214, 169, 79, .13) !important;
+}
+
+#printDashboard[aria-busy="true"] {
+  cursor: progress !important;
+  opacity: .78 !important;
+}
+
+.dashboard-main :is(.kpi-card, .fixed-kpi, .director-kpi) {
+  contain: layout paint;
+}
+
+.dashboard-main :is(.chart-card, .fixed-card, .director-card) {
+  backdrop-filter: none !important;
+}
+
+@media print {
+  .page-tab:focus-visible,
+  .sidebar-action:focus-visible,
+  a:focus-visible {
+    outline: 0 !important;
+    box-shadow: none !important;
   }
 }

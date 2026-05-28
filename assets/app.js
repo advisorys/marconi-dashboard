@@ -1,3 +1,7 @@
+/* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs */
+
+/* ===== src/js/00-foundation.js ===== */
+
 /* Marconi Dashboard application scripts
    Extracted from index.html. Blocks remain in original order to preserve behavior.
    Data is exposed by assets/bootstrap.js as window.DASHBOARD_DATA and legacy aliases. */
@@ -21,6 +25,8 @@
   };
 })();
 
+/* ===== src/js/10-cashflow.js ===== */
+
 /* ===== script-3 ===== */
 (function syncHeroBrandLogo(){
   function applyLogo(){
@@ -31,6 +37,7 @@
 
 /* ===== script-4 ===== */
 const DATA = window.__DATA__ || {};
+const PRECOMPUTED = DATA.precomputed || {};
 
 
 
@@ -137,8 +144,22 @@ function periodLabelFor(months, mode = activePeriodMode) {
   const suffix = hasReal && hasProj ? ' · REAL + PROJEÇÃO' : (hasProj ? ' · PROJEÇÃO' : ' · REALIZADO');
   return `${months.map(m => MONTH_NAMES_SHORT[m]).join(' + ')} / 2026${suffix}`;
 }
+
+function precomputedMonthsKey(months) {
+  return normalizeMonths(months).join(',');
+}
 function aggregate(months) {
   months = normalizeMonths(months);
+  const cached = PRECOMPUTED.aggregates && PRECOMPUTED.aggregates[precomputedMonthsKey(months)];
+  if (cached) {
+    return {
+      entradas: Number(cached.entradas || 0),
+      saidas: Number(cached.saidas || 0),
+      resultado: Number(cached.resultado || 0),
+      margem: Number(cached.margem || 0),
+      months
+    };
+  }
   const entradas = months.reduce((s, m) => s + DATA.monthly[m].entradas, 0);
   const saidas = months.reduce((s, m) => s + DATA.monthly[m].saidas, 0);
   return { entradas, saidas, resultado: entradas - saidas, margem: entradas > 0 ? (entradas - saidas) / entradas * 100 : 0, months };
@@ -153,6 +174,14 @@ function fmtDeltaPct(current, previous) {
   return (current - previous >= 0 ? '+' : '') + fmtPct(((current - previous) / Math.abs(previous)) * 100);
 }
 function monthCategoryBreakdown(month) {
+  const cached = PRECOMPUTED.monthCategoryBreakdown && PRECOMPUTED.monthCategoryBreakdown[String(month)];
+  if (Array.isArray(cached)) {
+    return cached.map(c => ({
+      name: c.name,
+      value: Number(c.value || 0),
+      pct: Number(c.pct || 0)
+    }));
+  }
   const items = (DATA.categoryMonthly || DATA.categories).map(c => ({
     name: c.name,
     value: c.months ? (Number(c.months[month]) || 0) : 0
@@ -173,6 +202,14 @@ function getMonthCriticalReading(m) {
 
 function getCategoryBreakdown(months) {
   months = normalizeMonths(months);
+  const cached = PRECOMPUTED.categoryBreakdown && PRECOMPUTED.categoryBreakdown[precomputedMonthsKey(months)];
+  if (Array.isArray(cached)) {
+    return cached.map(c => ({
+      name: c.name,
+      value: Number(c.value || 0),
+      pct: Number(c.pct || 0)
+    }));
+  }
   const items = (DATA.categoryMonthly || DATA.categories).map(c => {
     const value = months.reduce((sum, m) => sum + (c.months ? (c.months[m] || 0) : 0), 0);
     return { name: c.name, value };
@@ -1115,6 +1152,8 @@ function init() {
 }
 document.addEventListener('DOMContentLoaded', init);
 
+/* ===== src/js/20-interactions.js ===== */
+
 /* ===== v23-advanced-interactions-script ===== */
 (function(){
   'use strict';
@@ -1647,6 +1686,8 @@ function renderOutliers(){
   document.addEventListener('DOMContentLoaded', () => { setTimeout(decorateAfterRender, 180); });
 })();
 
+/* ===== src/js/30-export-loader.js ===== */
+
 /* ===== export-lazy-loader ===== */
 (function() {
   'use strict';
@@ -1732,10 +1773,18 @@ function renderOutliers(){
     if (!btn || btn.dataset.lazyExportReady === 'true') return;
     btn.dataset.lazyExportReady = 'true';
     btn.innerHTML = btn.innerHTML.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTA\u00c7\u00c3O');
+    btn.setAttribute('aria-label', 'Exportar apresentacao executiva');
     btn.addEventListener('click', runDashboardExport, true);
     btn.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
     }, true);
+    const warmExport = function() {
+      loadExportModule().catch(function(error) {
+        console.warn('[Export] Preload adiado:', error);
+      });
+    };
+    btn.addEventListener('pointerenter', warmExport, { once: true, passive: true });
+    btn.addEventListener('focus', warmExport, { once: true });
   }
 
   window.loadDashboardExportModule = loadExportModule;
@@ -1743,6 +1792,8 @@ function renderOutliers(){
   window.prepareDashboardExportButton = prepareExportButton;
   document.addEventListener('DOMContentLoaded', prepareExportButton);
 })();
+
+/* ===== src/js/40-fixed-director.js ===== */
 
 /* ===== script-7 ===== */
 /* ━━━ V36 · Dados e renderização de Custos Fixos ━━━ */
@@ -3122,6 +3173,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   console.log('[PATCH v55] Submenus secundários ocultados em todas as páginas');
 })();
 
+/* ===== src/js/50-ux-patches.js ===== */
+
 /* ===== patch-v60-smooth-ux-js ===== */
 /* PATCH v60 — controlador único de navegação.
    Evita múltiplos wrappers brigando entre si e remove smooth-scroll na troca de página. */
@@ -4103,6 +4156,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     setInactiveState(CASH_SECTION_IDS.map(function(id) { return document.getElementById(id); }), page === 'cash');
     setInactiveState([document.getElementById('directoria')], page === 'director');
     setInactiveState([document.getElementById('fixed-costs')], page === 'fixed');
+    const switcher = document.querySelector('.page-switcher');
+    if (switcher) switcher.setAttribute('role', 'tablist');
+    document.querySelectorAll('[data-page-link]').forEach(function(tab) {
+      const active = tab.dataset.pageLink === page;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      if (active) tab.setAttribute('aria-current', 'page');
+      else tab.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('.dashboard-main section[id]').forEach(function(section) {
+      section.setAttribute('tabindex', '-1');
+    });
     document.documentElement.classList.toggle(
       'is-reduced-motion',
       !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)

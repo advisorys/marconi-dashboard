@@ -2,84 +2,67 @@
 
 Dashboard executivo de fluxo de caixa e controle orçamentário desenvolvido para apresentação à diretoria.
 
-## 🌐 Acesso
+## Acesso
 
 **URL pública:** https://advisorys.github.io/marconi-dashboard/
 
-## 📊 O que mostra
+## O que mostra
 
-- **Diretoria** — Visão executiva resumida (saúde, riscos, recomendações)
-- **Fluxo de Caixa** — Análise operacional detalhada por mês e categoria  
-- **Custos Fixos** — Controle orçamentário real vs orçado
+- **Diretoria** — visão executiva resumida: saúde, riscos e recomendações
+- **Fluxo de Caixa** — análise operacional por mês e categoria
+- **Custos Fixos** — controle orçamentário real vs. orçado
 
-## ⌨️ Atalhos de teclado
+## Como atualizar
 
-| Tecla | Ação |
-|-------|------|
-| `D` | Diretoria |
-| `F` | Fluxo de Caixa |
-| `C` | Custos Fixos |
-| `S` | Colapsar/expandir painel |
-| `←` `→` | Próxima/anterior página |
-| `P` | Exportar apresentação |
-| `?` | Ver ajuda |
+1. Atualize `data/financeiro.json`.
+2. Rode `node tools/precompute-data.mjs` para recalcular dados pré-computados.
+3. Rode `node tools/build.mjs` para rebuildar os bundles.
+4. Rode `node tools/qa-dashboard.mjs` para validar desktop/mobile, console, overflow e navegação.
+5. Faça commit e push para `main`.
 
-## 🔄 Como atualizar os dados
+O GitHub Pages publica automaticamente no mesmo link.
 
-Os dados ficam em `/data/financeiro.json`. Para atualizar:
+## Estrutura
 
-1. Edite o arquivo `financeiro.json` com os novos números
-2. Faça commit e push para a branch `main`
-3. GitHub Pages publica automaticamente (~30 segundos)
-4. Cliente vê os dados novos no mesmo link
-
-### Estrutura do JSON
-
-```json
-{
-  "meta": {
-    "empresa": "Marconi Foods",
-    "periodo": "2026",
-    "ultima_atualizacao": "2026-05-25T01:50:00-03:00"
-  },
-  "fluxo_caixa": { ... },
-  "custos_fixos": { ... }
-}
-```
-
-## 🚀 Tecnologia
-
-- HTML5 + CSS3 + JavaScript vanilla
-- CSS e JavaScript separados em `/assets`
-- Dados externos via JSON em `/data/financeiro.json`
-- Bootstrap assíncrono com `fetch`, sem fallback JSON gigante dentro do HTML
-- Exportação PDF/PPTX carregada sob demanda, fora do bundle inicial
-- Hospedagem: GitHub Pages
-- Deploy: automático no push para `main`
-
-## 📁 Estrutura
-
-```
+```text
 marconi-dashboard/
-├── index.html              ← Estrutura HTML leve
+├── index.html
 ├── assets/
-│   ├── bootstrap.js        ← Carrega dados e inicia o app
-│   ├── app.js              ← Lógica e interações
-│   ├── export.js           ← Exportação sob demanda
-│   ├── export.css          ← Estilos de exportação sob demanda
-│   └── styles.css          ← Estilos do dashboard
+│   ├── bootstrap.js          # carrega data/financeiro.json e inicia o app
+│   ├── app.js                # bundle gerado a partir de src/js
+│   ├── styles.css            # bundle gerado a partir de src/css
+│   ├── export.js             # exportação carregada sob demanda
+│   └── export.css
 ├── data/
-│   └── financeiro.json     ← Dados (atualizar este arquivo)
-└── README.md               ← Esta documentação
+│   └── financeiro.json       # dados e agregados pré-computados
+├── src/
+│   ├── js/                   # código-fonte dividido por responsabilidade
+│   └── css/                  # estilos divididos por camada
+├── tools/
+│   ├── precompute-data.mjs
+│   ├── build.mjs
+│   └── qa-dashboard.mjs
+└── package.json
 ```
 
-## ⚖️ Confidencialidade
+## Scripts
 
-Os dados aqui são de uso interno e estritamente confidenciais.
-Não compartilhe o link com terceiros não autorizados.
+```bash
+node tools/precompute-data.mjs
+node tools/build.mjs
+node tools/qa-dashboard.mjs
+```
 
----
+Também existe `package.json` com scripts equivalentes para quem tiver `npm` disponível. O QA usa Chrome ou Edge local; se necessário, informe outro executável com `CHROME_PATH`.
 
-**Consultoria:** Felipe — Consultoria Financeira  
-**Versão:** 1.0 (MVP)  
-**Última atualização:** Maio/2026
+## Arquitetura
+
+- HTML estático para GitHub Pages.
+- Dados externos em `data/financeiro.json`, sem fallback JSON gigante no HTML.
+- Agregados principais pré-computados no JSON para reduzir cálculo no navegador.
+- Exportação PDF/PPTX carregada apenas por intenção do usuário.
+- Código-fonte editável em `src`; bundles públicos em `assets`.
+
+## Confidencialidade
+
+Os dados são de uso interno e confidenciais. Não compartilhe o link com terceiros não autorizados.

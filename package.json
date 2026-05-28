@@ -1,0 +1,12 @@
+{
+  "name": "marconi-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "precompute": "node tools/precompute-data.mjs",
+    "build": "node tools/build.mjs",
+    "qa": "node tools/qa-dashboard.mjs",
+    "prepare-dashboard": "node tools/precompute-data.mjs && node tools/build.mjs"
+  }
+}

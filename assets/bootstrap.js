@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const ASSET_VERSION = '20260528-phase3';
+  const ASSET_VERSION = '20260528-phase4';
   const DATA_URL = 'data/financeiro.json';
   const APP_URL = 'assets/app.js';
   window.DASHBOARD_ASSET_VERSION = ASSET_VERSION;
@@ -21,20 +21,22 @@
   }
 
   function syncLastUpdate() {
-    document.addEventListener('DOMContentLoaded', function () {
+    const update = function () {
       const ts = document.getElementById('lastUpdateTime');
       const updatedAt = window.__META__ && window.__META__.ultima_atualizacao;
       if (!ts || !updatedAt) return;
       const date = new Date(updatedAt);
       if (!Number.isNaN(date.getTime())) {
-        ts.textContent = date.toLocaleString('pt-BR');
+          ts.textContent = date.toLocaleString('pt-BR');
       }
-    });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', update);
+    else update();
   }
 
   function showDataError(error) {
     console.error('[Bootstrap] Erro ao carregar dados:', error);
-    document.addEventListener('DOMContentLoaded', function () {
+    const renderError = function () {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'dashboard-data-error';
       errorDiv.innerHTML =
@@ -45,7 +47,9 @@
         'No GitHub Pages isso deve funcionar automaticamente. Para teste local, abra a pasta por um servidor local.' +
         '</div>';
       document.body.appendChild(errorDiv);
-    });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderError);
+    else renderError();
   }
 
   function loadScript(src) {
