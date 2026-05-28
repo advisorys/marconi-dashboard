@@ -25,6 +25,98 @@
   };
 })();
 
+/* Shared motion helpers for final UI polish. */
+(function () {
+  'use strict';
+  if (window.MarconiMotion) return;
+
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function easeOutCubic(progress) {
+    const t = Math.max(0, Math.min(1, Number(progress) || 0));
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function countUpGroup(entries, options) {
+    const list = (entries || []).filter(function (entry) {
+      return entry && entry.element && typeof entry.render === 'function';
+    });
+    if (!list.length) return '';
+
+    const opts = options || {};
+    const duration = Math.max(120, Number(opts.duration) || 850);
+    const className = opts.className || 'v67-counting';
+    const tokenKey = opts.tokenKey || '__marconiCountUpToken';
+    const token = String(Date.now()) + Math.random().toString(16).slice(2);
+    window[tokenKey] = token;
+
+    if (prefersReducedMotion()) {
+      list.forEach(function (entry) {
+        entry.element.textContent = entry.final != null ? entry.final : entry.render(entry.to || 0);
+        entry.element.classList.remove(className);
+        if (typeof entry.done === 'function') entry.done(entry.element);
+      });
+      return token;
+    }
+
+    list.forEach(function (entry) {
+      entry.element.classList.add(className);
+      entry.element.textContent = entry.render(Number(entry.from) || 0);
+    });
+
+    const started = performance.now();
+    let finished = false;
+    let fallbackTimer = 0;
+
+    function clearFallback() {
+      if (fallbackTimer) {
+        window.clearInterval(fallbackTimer);
+        fallbackTimer = 0;
+      }
+    }
+
+    function tick(now) {
+      if (finished) return;
+      if (window[tokenKey] !== token) {
+        clearFallback();
+        return;
+      }
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = easeOutCubic(progress);
+
+      list.forEach(function (entry) {
+        if (!document.documentElement.contains(entry.element)) return;
+        const from = Number(entry.from) || 0;
+        const to = Number(entry.to) || 0;
+        const value = from + (to - from) * eased;
+        entry.element.textContent = progress >= 1 && entry.final != null ? entry.final : entry.render(value);
+        if (progress >= 1) {
+          entry.element.classList.remove(className);
+          if (typeof entry.done === 'function') entry.done(entry.element);
+        }
+      });
+
+      if (progress < 1) {
+        window.requestAnimationFrame(tick);
+      } else {
+        finished = true;
+        clearFallback();
+      }
+    }
+    fallbackTimer = window.setInterval(function() { tick(performance.now()); }, 48);
+    window.requestAnimationFrame(tick);
+    return token;
+  }
+
+  window.MarconiMotion = {
+    prefersReducedMotion,
+    easeOutCubic,
+    countUpGroup
+  };
+})();
+
 /* ===== src/js/10-cashflow.js ===== */
 
 /* ===== script-3 ===== */
@@ -1692,7 +1784,7 @@ function renderOutliers(){
 (function() {
   'use strict';
 
-  const EXPORT_VERSION = window.DASHBOARD_ASSET_VERSION || '20260528-phase2';
+  const EXPORT_VERSION = window.DASHBOARD_ASSET_VERSION || 'local';
   const EXPORT_SCRIPT_URL = 'assets/export.js?v=' + encodeURIComponent(EXPORT_VERSION);
   const EXPORT_STYLE_URL = 'assets/export.css?v=' + encodeURIComponent(EXPORT_VERSION);
   let exportModulePromise = null;
@@ -1826,7 +1918,6 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (!root || !kpis || !kpis.length) return;
     const values = [...root.querySelectorAll('.fixed-kpi .val')];
     if (!values.length) return;
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const token = String(Date.now()) + Math.random().toString(16).slice(2);
     window.__fixedKpiCountupToken = token;
 
@@ -1840,13 +1931,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       el.dataset.v67Done = final;
       el.dataset.counterDone = '1';
       el.dataset.v41Busy = '0';
-      el.classList.toggle('v67-counting', !reducedMotion);
-      el.textContent = reducedMotion ? final : fixedKpiAnimatedValue(k, 0);
+      el.textContent = fixedKpiAnimatedValue(k, 0);
     });
 
-    if (reducedMotion) return;
-
-    const duration = 880;
     function rootIsVisible() {
       const section = root.closest('#fixed-costs') || root;
       const rect = root.getBoundingClientRect();
@@ -1854,25 +1941,50 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       return document.body.dataset.page === 'fixed' && rect.width > 4 && rect.height > 4 && style.display !== 'none' && style.visibility !== 'hidden';
     }
     function startAnimation() {
-      const start = performance.now();
-      function tick(now) {
-        if (window.__fixedKpiCountupToken !== token) return;
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        values.forEach((el, index) => {
-          const k = kpis[index];
-          if (!k || !document.documentElement.contains(el)) return;
-          const final = fixedKpiFinal(k);
-          el.textContent = progress >= 1 ? final : fixedKpiAnimatedValue(k, k.value * eased);
-          if (progress >= 1) el.classList.remove('v67-counting');
+      if (window.__fixedKpiCountupToken !== token) return;
+      const entries = values.map((el, index) => {
+        const k = kpis[index];
+        const final = fixedKpiFinal(k);
+        return {
+          element: el,
+          from: 0,
+          to: k ? k.value : 0,
+          final,
+          render: value => fixedKpiAnimatedValue(k, value),
+          done: node => {
+            node.dataset.v41Done = final;
+            node.dataset.v67Done = final;
+          }
+        };
+      }).filter(entry => entry.element);
+      if (window.MarconiMotion && typeof window.MarconiMotion.countUpGroup === 'function') {
+        const activeToken = window.MarconiMotion.countUpGroup(entries, {
+          duration: 880,
+          className: 'v67-counting',
+          tokenKey: '__fixedKpiCountupToken'
         });
-        if (progress < 1) requestAnimationFrame(tick);
+        const finalizeIfCurrent = () => {
+          if (window.__fixedKpiCountupToken !== activeToken || document.body.dataset.page !== 'fixed') return;
+          entries.forEach(entry => {
+            if (!document.documentElement.contains(entry.element)) return;
+            entry.element.textContent = entry.final;
+            entry.element.classList.remove('v67-counting');
+            entry.done(entry.element);
+          });
+        };
+        window.setTimeout(finalizeIfCurrent, 980);
+        window.setTimeout(finalizeIfCurrent, 1400);
+        return;
       }
-      requestAnimationFrame(tick);
+      entries.forEach(entry => {
+        entry.element.textContent = entry.final;
+        entry.element.classList.remove('v67-counting');
+        entry.done(entry.element);
+      });
     }
     function waitForVisible(attempt = 0) {
       if (window.__fixedKpiCountupToken !== token) return;
-      if (!rootIsVisible()) {
+      if (!rootIsVisible() && attempt < 3) {
         if (attempt < 24) window.setTimeout(() => waitForVisible(attempt + 1), 80);
         return;
       }
@@ -1950,10 +2062,59 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
   function healthStatus(diff, est) {
     const pct = est ? Math.abs(diff) / Math.abs(est) * 100 : (Math.abs(diff)>0 ? 100 : 0);
-    if (pct <= 5) return {cls:'ok', text:'OK'};
     if (diff < 0) return {cls:'econ', text:'Economia'};
+    if (pct <= 5) return {cls:'ok', text:'OK'};
     if (pct <= 15) return {cls:'att', text:'Atenção'};
     return {cls:'crit', text:'Crítico'};
+  }
+
+  function ensureFixedExecutiveSummary() {
+    let el = document.getElementById('fixedCostsExecutiveSummary');
+    if (el) return el;
+    const grid = document.querySelector('#fixed-costs .fixed-costs-grid');
+    if (!grid || !grid.parentNode) return null;
+    el = document.createElement('div');
+    el.id = 'fixedCostsExecutiveSummary';
+    el.className = 'fixed-exec-summary';
+    grid.parentNode.insertBefore(el, grid);
+    return el;
+  }
+
+  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly) {
+    const el = ensureFixedExecutiveSummary();
+    if (!el) return;
+    const months = (period.months || []).slice().sort((a,b)=>a-b);
+    const group = rowsByGroup(months, projectionOnly ? 'est' : 'basis')[0];
+    const diff = projectionOnly ? 0 : totals.diff;
+    const budgetTone = projectionOnly ? 'neutral' : diff > 0 ? 'risk' : diff < 0 ? 'good' : 'neutral';
+    const budgetTitle = projectionOnly ? 'Base projetada' : diff > 0 ? 'Acima do orcado' : diff < 0 ? 'Economia contra orcado' : 'Dentro do orcado';
+    const pressureTone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'good';
+    const pressureTitle = pctSaidas > 14 ? 'Pressao alta' : pctSaidas > 9 ? 'Monitorar peso' : 'Peso controlado';
+    const entries = [
+      {
+        tone: budgetTone,
+        label: 'Leitura orcamentaria',
+        value: projectionOnly ? fixedMoney(totals.est) : `${diff >= 0 ? '+' : ''}${fixedMoney(diff)}`,
+        text: budgetTitle
+      },
+      {
+        tone: pressureTone,
+        label: 'Peso no caixa',
+        value: fixedPct(pctSaidas),
+        text: `${pressureTitle} nas saidas gerenciais`
+      },
+      {
+        tone: 'neutral',
+        label: 'Maior grupo',
+        value: escHtml(group?.name || '-'),
+        text: `${fixedPct((group?.value || 0) / (fixedBase || 1) * 100)} do custo fixo`
+      }
+    ];
+    el.innerHTML = entries.map(item => `<div class="fixed-exec-card" data-tone="${item.tone}" tabindex="0" role="group" aria-label="${escHtml(item.label)}: ${escHtml(item.text)}">
+      <div class="fixed-exec-label">${item.label}</div>
+      <div class="fixed-exec-value">${item.value}</div>
+      <div class="fixed-exec-text">${item.text}</div>
+    </div>`).join('');
   }
 
   window.renderFixedCosts = function renderFixedCosts() {
@@ -1982,6 +2143,12 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : totals.diff, sub: projectionOnly ? 'Sem fechamento real para projeção' : `${totals.diff >= 0 ? 'Acima' : 'Abaixo'} do orçamento realizado`, color: projectionOnly ? '#94A0B8' : (totals.diff >= 0 ? '#EF4444' : '#10B981'), signed: !projectionOnly},
       {label:'Peso nas saídas', value:pctSaidas, sub:`${fixedPct(pctEntradas)} das entradas do período`, color:'#06B6D4', pct:true}
     ];
+    kpis[0].tone = 'base';
+    kpis[1].tone = 'neutral';
+    kpis[2].tone = projectionOnly ? 'neutral' : (totals.diff > 0 ? 'risk' : totals.diff < 0 ? 'good' : 'neutral');
+    kpis[3].tone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'info';
+    window.__lastFixedKpis = kpis;
+
     const kpiEl = document.getElementById('fixedCostsKpis');
     if (kpiEl) kpiEl.innerHTML = kpis.map(k => {
       const final = fixedKpiFinal(k);
@@ -1989,7 +2156,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       const cls = k.pct ? '' : (k.signed && k.value > 0 ? 'number-red' : k.signed && k.value < 0 ? 'number-green' : '');
       return `<div class="fixed-kpi" style="--kpi-color:${k.color}"><div class="lbl">${k.label}</div><div class="val ${cls}" data-v41-final="${escHtml(final)}" data-v67-final="${escHtml(final)}">${initial}</div><div class="sub">${k.sub}</div></div>`;
     }).join('');
+    if (kpiEl) {
+      [...kpiEl.querySelectorAll('.fixed-kpi')].forEach((card, index) => {
+        const k = kpis[index];
+        const final = k ? fixedKpiFinal(k) : '';
+        card.dataset.tone = k?.tone || 'neutral';
+        card.setAttribute('role', 'group');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `${k?.label || ''}: ${final}. ${k?.sub || ''}`);
+      });
+    }
     animateFixedKpiCards(kpiEl, kpis);
+    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);
@@ -1997,6 +2175,27 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     renderFixedSensitive(realRows, projectionOnly);
     renderFixedDeviationHeatmap(months, projectionOnly);
     renderFixedAnalysis(months, period, totals, rows, flowAgg, projectionOnly);
+  };
+
+  window.replayFixedKpiAnimation = function replayFixedKpiAnimation() {
+    const kpiEl = document.getElementById('fixedCostsKpis');
+    const kpis = window.__lastFixedKpis;
+    if (!kpiEl || !Array.isArray(kpis) || !kpis.length) return;
+    const values = [...kpiEl.querySelectorAll('.fixed-kpi .val')];
+    const token = String(Date.now()) + Math.random().toString(16).slice(2);
+    window.__fixedKpiManualReplayToken = token;
+    window.__fixedKpiCountupToken = token;
+    values.forEach((el, index) => {
+      const k = kpis[index];
+      if (!k) return;
+      el.textContent = fixedKpiAnimatedValue(k, 0);
+      el.classList.add('v67-counting');
+    });
+    window.setTimeout(() => {
+      if (window.__fixedKpiManualReplayToken !== token) return;
+      animateFixedKpiCards(kpiEl, kpis);
+    }, 60);
+    return true;
   };
 
   function renderFixedMonthlyChart(months, projectionOnly) {
@@ -4308,4 +4507,202 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     },
     syncActivePageState: syncActivePageState
   };
+})();
+
+/* ===== phase5-accessibility-keyboard-js ===== */
+/* Final pass: ARIA, keyboard navigation and mobile QA hooks. */
+(function() {
+  'use strict';
+  if (window.__phase5AccessibilityLoaded) return;
+  window.__phase5AccessibilityLoaded = true;
+
+  const PAGE_LABELS = {
+    director: 'Diretoria',
+    cash: 'Fluxo de Caixa',
+    fixed: 'Custos Fixos'
+  };
+  const PAGE_CONTROLS = {
+    director: 'directoria',
+    cash: 'kpis',
+    fixed: 'fixed-costs'
+  };
+
+  function textOf(el, selector) {
+    return (el.querySelector(selector)?.textContent || '').trim().replace(/\s+/g, ' ');
+  }
+
+  function setButtonType() {
+    document.querySelectorAll('button:not([type])').forEach(function(button) {
+      button.type = 'button';
+    });
+  }
+
+  function syncPageTabs() {
+    const current = document.body?.dataset.page || 'cash';
+    const tabs = [...document.querySelectorAll('[data-page-link]')];
+    const switcher = document.querySelector('.page-switcher');
+    if (switcher) {
+      switcher.setAttribute('role', 'tablist');
+      switcher.setAttribute('aria-label', 'Paginas do dashboard');
+    }
+    tabs.forEach(function(tab) {
+      const page = tab.dataset.pageLink;
+      const active = page === current;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-label', PAGE_LABELS[page] || tab.textContent.trim());
+      tab.setAttribute('aria-controls', PAGE_CONTROLS[page] || '');
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.tabIndex = active ? 0 : -1;
+      if (active) tab.setAttribute('aria-current', 'page');
+      else tab.removeAttribute('aria-current');
+    });
+  }
+
+  function syncFixedTabs() {
+    const current = document.body?.dataset.fixedView || 'overview';
+    document.querySelectorAll('.fixed-view-tab').forEach(function(tab) {
+      const active = tab.dataset.fixedView === current;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.tabIndex = active ? 0 : -1;
+    });
+  }
+
+  function labelCards() {
+    document.querySelectorAll('.dashboard-main :is(.kpi-card, .director-kpi, .fixed-kpi, .fixed-exec-card)').forEach(function(card) {
+      if (!card.hasAttribute('tabindex')) card.setAttribute('tabindex', '0');
+      if (!card.hasAttribute('role')) card.setAttribute('role', 'group');
+      if (!card.hasAttribute('aria-label')) {
+        const label = textOf(card, '.lbl, .fixed-exec-label, .kpi-label') || card.textContent.trim().replace(/\s+/g, ' ');
+        const value = textOf(card, '.val, .fixed-exec-value, .kpi-value');
+        const sub = textOf(card, '.sub, .fixed-exec-text, .kpi-sub');
+        card.setAttribute('aria-label', [label, value, sub].filter(Boolean).join('. '));
+      }
+    });
+
+    document.querySelectorAll('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)').forEach(function(row) {
+      const name = textOf(row, '.fixed-row-name, .name');
+      if (!name || /Sem registros/i.test(name)) return;
+      row.setAttribute('tabindex', '0');
+      row.setAttribute('role', 'button');
+      if (!row.hasAttribute('aria-label')) row.setAttribute('aria-label', 'Abrir detalhe de ' + name);
+    });
+  }
+
+  function labelScrollableRegions() {
+    document.querySelectorAll('.data-table, .fixed-heatmap-wrap, .fixed-table-wrap').forEach(function(region) {
+      region.setAttribute('tabindex', '0');
+      region.setAttribute('role', 'region');
+      if (!region.hasAttribute('aria-label')) {
+        region.setAttribute('aria-label', region.classList.contains('data-table') ? 'Tabela financeira com rolagem horizontal' : 'Tabela de custos fixos com rolagem horizontal');
+      }
+    });
+  }
+
+  function applyAccessibility() {
+    setButtonType();
+    syncPageTabs();
+    syncFixedTabs();
+    labelCards();
+    labelScrollableRegions();
+  }
+
+  function scheduleAccessibility() {
+    window.clearTimeout(window.__phase5A11yTimer);
+    window.__phase5A11yTimer = window.setTimeout(applyAccessibility, 40);
+  }
+
+  function rovingTabKeydown(event, selector) {
+    const current = event.target.closest(selector);
+    if (!current) return false;
+    const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (!keys.includes(event.key)) return false;
+    const tabs = [...document.querySelectorAll(selector)].filter(function(tab) {
+      return tab.offsetParent !== null;
+    });
+    const index = tabs.indexOf(current);
+    if (index < 0) return false;
+    event.preventDefault();
+    let nextIndex = index;
+    if (event.key === 'ArrowLeft') nextIndex = Math.max(0, index - 1);
+    if (event.key === 'ArrowRight') nextIndex = Math.min(tabs.length - 1, index + 1);
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    tabs[nextIndex]?.focus();
+    tabs[nextIndex]?.click();
+    return true;
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (rovingTabKeydown(event, '.page-tab')) return;
+    if (rovingTabKeydown(event, '.fixed-view-tab')) return;
+    const actionable = event.target.closest('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)[role="button"]');
+    if (!actionable) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    actionable.click();
+  });
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link], .fixed-view-tab, .filter-btn, .month-btn, .flow-pill, .period-row, .month-row')) {
+      scheduleAccessibility();
+    }
+  }, true);
+
+  try {
+    new MutationObserver(scheduleAccessibility).observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-page', 'data-fixed-view', 'class']
+    });
+  } catch (e) {}
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyAccessibility);
+  else applyAccessibility();
+  window.addEventListener('load', applyAccessibility);
+  window.addEventListener('resize', scheduleAccessibility, { passive: true });
+})();
+
+/* ===== phase5-fixed-kpi-replay-js ===== */
+/* Replays fixed-cost KPIs when the page becomes visible, avoiding hidden pre-render lock. */
+(function() {
+  'use strict';
+  if (window.__phase5FixedKpiReplayLoaded) return;
+  window.__phase5FixedKpiReplayLoaded = true;
+
+  function replaySoon(delay) {
+    window.clearTimeout(window.__phase5FixedReplayTimer);
+    window.__phase5FixedReplayTimer = window.setTimeout(function() {
+      if (document.body?.dataset.page !== 'fixed') return;
+      if (typeof window.replayFixedKpiAnimation !== 'function') return;
+      window.__phase5FixedReplayAt = Date.now();
+      window.replayFixedKpiAnimation();
+    }, delay || 110);
+  }
+
+  document.addEventListener('click', function(event) {
+    if (event.target.closest('[data-page-link="fixed"]')) replaySoon(340);
+  }, true);
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function' && !previousSetPage.__phase5FixedReplayWrapped) {
+    const wrappedSetPage = function(page) {
+      const result = previousSetPage.apply(this, arguments);
+      if (page === 'fixed') replaySoon(520);
+      return result;
+    };
+    wrappedSetPage.__phase5FixedReplayWrapped = true;
+    window.setDashboardPage = wrappedSetPage;
+  }
+
+  try {
+    new MutationObserver(function(mutations) {
+      if (mutations.some(function(mutation) { return mutation.attributeName === 'data-page'; }) && document.body?.dataset.page === 'fixed') {
+        replaySoon(90);
+      }
+    }).observe(document.body, { attributes: true, attributeFilter: ['data-page'] });
+  } catch (e) {}
+
+  if (document.body?.dataset.page === 'fixed') replaySoon(160);
 })();

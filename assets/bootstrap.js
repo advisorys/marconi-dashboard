@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const ASSET_VERSION = '20260528-phase4';
+  const ASSET_VERSION = '20260528185503';
   const DATA_URL = 'data/financeiro.json';
   const APP_URL = 'assets/app.js';
   window.DASHBOARD_ASSET_VERSION = ASSET_VERSION;
@@ -67,7 +67,7 @@
 
   async function bootstrapDashboard() {
     try {
-      const response = await fetch(DATA_URL);
+      const response = await fetch(versionedAsset(DATA_URL));
       if (!response.ok) {
         throw new Error('HTTP ' + response.status + ' ao buscar ' + DATA_URL);
       }
@@ -75,7 +75,7 @@
       exposeData(payload);
       syncLastUpdate();
       await loadScript(versionedAsset(APP_URL));
-      console.log('[Bootstrap] Dados carregados de:', DATA_URL);
+      console.log('[Bootstrap] Dados carregados de:', versionedAsset(DATA_URL));
     } catch (error) {
       exposeData({});
       showDataError(error);

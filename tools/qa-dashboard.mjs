@@ -247,6 +247,8 @@ async function run() {
 
     const initial = await evaluate(`(() => {
       const topbar = document.querySelector('header.top-site-nav')?.getBoundingClientRect();
+      const stylesheet = document.querySelector('link[href*="assets/styles.css"]')?.href || '';
+      const bootstrap = document.querySelector('script[src*="assets/bootstrap.js"]')?.src || '';
       return {
         title: document.title,
         ready: document.readyState,
@@ -254,6 +256,9 @@ async function run() {
         dataError: !!document.querySelector('.dashboard-data-error'),
         page: document.body.dataset.page || 'cash',
         exportLoaded: !!document.querySelector('script[src*="export.js"]'),
+        assetVersion: window.DASHBOARD_ASSET_VERSION || '',
+        stylesheet,
+        bootstrap,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         topbar: topbar ? { left: topbar.left, width: topbar.width } : null,
         active: document.querySelector('.page-tab.active')?.dataset.pageLink || null
@@ -261,8 +266,13 @@ async function run() {
     })()`);
     pushResult('desktop_initial_load', initial.ready === 'complete' && initial.hasData && !initial.dataError, JSON.stringify(initial));
     pushResult('export_lazy_initial', initial.exportLoaded === false, `exportLoaded=${initial.exportLoaded}`);
+    pushResult(
+      'cache_versioned_assets',
+      !!initial.assetVersion && initial.stylesheet.includes(`?v=${initial.assetVersion}`) && initial.bootstrap.includes(`?v=${initial.assetVersion}`),
+      JSON.stringify({ assetVersion: initial.assetVersion, stylesheet: initial.stylesheet, bootstrap: initial.bootstrap })
+    );
     pushResult('desktop_no_overflow_initial', initial.overflow <= 2, `overflow=${initial.overflow}`);
-    await screenshot('phase4-desktop-cash');
+    await screenshot('phase5-desktop-cash');
 
     const topbarRects = [];
     for (const target of ['director', 'cash', 'fixed', 'cash']) {
@@ -287,6 +297,7 @@ async function run() {
           })`,
           awaitPromise: true
         });
+        await evaluate(`window.replayFixedKpiAnimation && window.replayFixedKpiAnimation()`);
         fixedAnimationProbe = await evaluate(`new Promise(resolve => {
           const samples = [];
           function snap(label) {
@@ -336,6 +347,11 @@ async function run() {
             final: el.dataset.v41Final || el.dataset.v67Final || ''
           })),
           directorKpis: document.querySelectorAll('.director-kpi').length,
+          a11y: {
+            tabs: [...document.querySelectorAll('[data-page-link]')].every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && el.hasAttribute('aria-controls')),
+            cards: [...document.querySelectorAll('.fixed-kpi, .director-kpi')].every(el => el.hasAttribute('tabindex') && el.hasAttribute('aria-label')),
+            regions: [...document.querySelectorAll('.data-table, .fixed-heatmap-wrap')].every(el => el.getAttribute('role') === 'region')
+          },
           cache: window.__MARCONI_PHASE3_QA ? window.__MARCONI_PHASE3_QA.cache() : null
         };
       })()`);
@@ -345,9 +361,10 @@ async function run() {
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
+        pushResult('fixed_accessibility_labels', state.a11y.tabs && state.a11y.cards && state.a11y.regions, JSON.stringify(state.a11y));
         pushResult(
-          'fixed_kpi_countup_starts_before_final',
-          Array.isArray(fixedAnimationProbe) && fixedAnimationProbe.some(sample => Array.isArray(sample.values) && sample.values.some(item => item.final && item.text !== item.final)),
+          'fixed_kpi_countup_not_stuck',
+          Array.isArray(fixedAnimationProbe) && fixedAnimationProbe.some(sample => Array.isArray(sample.values) && sample.values.every(item => item.final && item.text && item.text !== 'R$ 0' && item.text !== '+R$ 0' && item.text !== '0.0%')),
           JSON.stringify(fixedAnimationProbe)
         );
         pushResult(
@@ -367,7 +384,7 @@ async function run() {
 
     await evaluate(`document.querySelector('[data-page-link="fixed"]')?.click()`);
     await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });
-    await screenshot('phase4-desktop-fixed');
+    await screenshot('phase5-desktop-fixed');
 
     await setViewport(390, 900, true);
     await navigate(baseUrl);
@@ -395,7 +412,34 @@ async function run() {
     }))()`);
     pushResult('mobile_director_nav', mobileDirector.page === 'director' && mobileDirector.active === 'director' && mobileDirector.visible, JSON.stringify(mobileDirector));
     pushResult('mobile_director_no_overflow', mobileDirector.overflow <= 2, `overflow=${mobileDirector.overflow}`);
-    await screenshot('phase4-mobile-director');
+    await screenshot('phase5-mobile-director');
+
+    await evaluate(`document.querySelector('[data-page-link="fixed"]')?.click()`);
+    await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 1050))', awaitPromise: true });
+    const mobileFixed = await evaluate(`(() => {
+      const topbar = document.querySelector('header.top-site-nav')?.getBoundingClientRect();
+      const firstKpi = document.querySelector('.fixed-kpi')?.getBoundingClientRect();
+      const toolbar = document.querySelector('.fixed-page-toolbar')?.getBoundingClientRect();
+      const execSummary = document.querySelector('#fixedCostsExecutiveSummary')?.getBoundingClientRect();
+      const tabs = [...document.querySelectorAll('.fixed-view-tab')].map(tab => tab.getBoundingClientRect().height);
+      return {
+        page: document.body.dataset.page,
+        active: document.querySelector('.page-tab.active')?.dataset.pageLink || null,
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+        visible: getComputedStyle(document.getElementById('fixed-costs')).display !== 'none',
+        fixedKpis: document.querySelectorAll('.fixed-kpi').length,
+        execSummary: !!execSummary && execSummary.width <= window.innerWidth,
+        topbarHeight: topbar ? topbar.height : 0,
+        firstKpiWidth: firstKpi ? firstKpi.width : 0,
+        toolbarWidth: toolbar ? toolbar.width : 0,
+        minFixedTabHeight: tabs.length ? Math.min(...tabs) : 0
+      };
+    })()`);
+    pushResult('mobile_fixed_nav', mobileFixed.page === 'fixed' && mobileFixed.active === 'fixed' && mobileFixed.visible, JSON.stringify(mobileFixed));
+    pushResult('mobile_fixed_no_overflow', mobileFixed.overflow <= 2, `overflow=${mobileFixed.overflow}`);
+    pushResult('mobile_fixed_kpis_fit', mobileFixed.fixedKpis >= 4 && mobileFixed.firstKpiWidth <= 390 && mobileFixed.execSummary, JSON.stringify(mobileFixed));
+    pushResult('mobile_fixed_hit_targets', mobileFixed.minFixedTabHeight >= 40, `minFixedTabHeight=${mobileFixed.minFixedTabHeight}`);
+    await screenshot('phase5-mobile-fixed');
 
     clearInterval(collectEvents);
     const relevantErrors = errors.filter(Boolean).filter(e => !/favicon/i.test(e));

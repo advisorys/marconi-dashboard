@@ -29,7 +29,6 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (!root || !kpis || !kpis.length) return;
     const values = [...root.querySelectorAll('.fixed-kpi .val')];
     if (!values.length) return;
-    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const token = String(Date.now()) + Math.random().toString(16).slice(2);
     window.__fixedKpiCountupToken = token;
 
@@ -43,13 +42,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       el.dataset.v67Done = final;
       el.dataset.counterDone = '1';
       el.dataset.v41Busy = '0';
-      el.classList.toggle('v67-counting', !reducedMotion);
-      el.textContent = reducedMotion ? final : fixedKpiAnimatedValue(k, 0);
+      el.textContent = fixedKpiAnimatedValue(k, 0);
     });
 
-    if (reducedMotion) return;
-
-    const duration = 880;
     function rootIsVisible() {
       const section = root.closest('#fixed-costs') || root;
       const rect = root.getBoundingClientRect();
@@ -57,25 +52,50 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       return document.body.dataset.page === 'fixed' && rect.width > 4 && rect.height > 4 && style.display !== 'none' && style.visibility !== 'hidden';
     }
     function startAnimation() {
-      const start = performance.now();
-      function tick(now) {
-        if (window.__fixedKpiCountupToken !== token) return;
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        values.forEach((el, index) => {
-          const k = kpis[index];
-          if (!k || !document.documentElement.contains(el)) return;
-          const final = fixedKpiFinal(k);
-          el.textContent = progress >= 1 ? final : fixedKpiAnimatedValue(k, k.value * eased);
-          if (progress >= 1) el.classList.remove('v67-counting');
+      if (window.__fixedKpiCountupToken !== token) return;
+      const entries = values.map((el, index) => {
+        const k = kpis[index];
+        const final = fixedKpiFinal(k);
+        return {
+          element: el,
+          from: 0,
+          to: k ? k.value : 0,
+          final,
+          render: value => fixedKpiAnimatedValue(k, value),
+          done: node => {
+            node.dataset.v41Done = final;
+            node.dataset.v67Done = final;
+          }
+        };
+      }).filter(entry => entry.element);
+      if (window.MarconiMotion && typeof window.MarconiMotion.countUpGroup === 'function') {
+        const activeToken = window.MarconiMotion.countUpGroup(entries, {
+          duration: 880,
+          className: 'v67-counting',
+          tokenKey: '__fixedKpiCountupToken'
         });
-        if (progress < 1) requestAnimationFrame(tick);
+        const finalizeIfCurrent = () => {
+          if (window.__fixedKpiCountupToken !== activeToken || document.body.dataset.page !== 'fixed') return;
+          entries.forEach(entry => {
+            if (!document.documentElement.contains(entry.element)) return;
+            entry.element.textContent = entry.final;
+            entry.element.classList.remove('v67-counting');
+            entry.done(entry.element);
+          });
+        };
+        window.setTimeout(finalizeIfCurrent, 980);
+        window.setTimeout(finalizeIfCurrent, 1400);
+        return;
       }
-      requestAnimationFrame(tick);
+      entries.forEach(entry => {
+        entry.element.textContent = entry.final;
+        entry.element.classList.remove('v67-counting');
+        entry.done(entry.element);
+      });
     }
     function waitForVisible(attempt = 0) {
       if (window.__fixedKpiCountupToken !== token) return;
-      if (!rootIsVisible()) {
+      if (!rootIsVisible() && attempt < 3) {
         if (attempt < 24) window.setTimeout(() => waitForVisible(attempt + 1), 80);
         return;
       }
@@ -153,10 +173,59 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
   function healthStatus(diff, est) {
     const pct = est ? Math.abs(diff) / Math.abs(est) * 100 : (Math.abs(diff)>0 ? 100 : 0);
-    if (pct <= 5) return {cls:'ok', text:'OK'};
     if (diff < 0) return {cls:'econ', text:'Economia'};
+    if (pct <= 5) return {cls:'ok', text:'OK'};
     if (pct <= 15) return {cls:'att', text:'Atenção'};
     return {cls:'crit', text:'Crítico'};
+  }
+
+  function ensureFixedExecutiveSummary() {
+    let el = document.getElementById('fixedCostsExecutiveSummary');
+    if (el) return el;
+    const grid = document.querySelector('#fixed-costs .fixed-costs-grid');
+    if (!grid || !grid.parentNode) return null;
+    el = document.createElement('div');
+    el.id = 'fixedCostsExecutiveSummary';
+    el.className = 'fixed-exec-summary';
+    grid.parentNode.insertBefore(el, grid);
+    return el;
+  }
+
+  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly) {
+    const el = ensureFixedExecutiveSummary();
+    if (!el) return;
+    const months = (period.months || []).slice().sort((a,b)=>a-b);
+    const group = rowsByGroup(months, projectionOnly ? 'est' : 'basis')[0];
+    const diff = projectionOnly ? 0 : totals.diff;
+    const budgetTone = projectionOnly ? 'neutral' : diff > 0 ? 'risk' : diff < 0 ? 'good' : 'neutral';
+    const budgetTitle = projectionOnly ? 'Base projetada' : diff > 0 ? 'Acima do orcado' : diff < 0 ? 'Economia contra orcado' : 'Dentro do orcado';
+    const pressureTone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'good';
+    const pressureTitle = pctSaidas > 14 ? 'Pressao alta' : pctSaidas > 9 ? 'Monitorar peso' : 'Peso controlado';
+    const entries = [
+      {
+        tone: budgetTone,
+        label: 'Leitura orcamentaria',
+        value: projectionOnly ? fixedMoney(totals.est) : `${diff >= 0 ? '+' : ''}${fixedMoney(diff)}`,
+        text: budgetTitle
+      },
+      {
+        tone: pressureTone,
+        label: 'Peso no caixa',
+        value: fixedPct(pctSaidas),
+        text: `${pressureTitle} nas saidas gerenciais`
+      },
+      {
+        tone: 'neutral',
+        label: 'Maior grupo',
+        value: escHtml(group?.name || '-'),
+        text: `${fixedPct((group?.value || 0) / (fixedBase || 1) * 100)} do custo fixo`
+      }
+    ];
+    el.innerHTML = entries.map(item => `<div class="fixed-exec-card" data-tone="${item.tone}" tabindex="0" role="group" aria-label="${escHtml(item.label)}: ${escHtml(item.text)}">
+      <div class="fixed-exec-label">${item.label}</div>
+      <div class="fixed-exec-value">${item.value}</div>
+      <div class="fixed-exec-text">${item.text}</div>
+    </div>`).join('');
   }
 
   window.renderFixedCosts = function renderFixedCosts() {
@@ -185,6 +254,12 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : totals.diff, sub: projectionOnly ? 'Sem fechamento real para projeção' : `${totals.diff >= 0 ? 'Acima' : 'Abaixo'} do orçamento realizado`, color: projectionOnly ? '#94A0B8' : (totals.diff >= 0 ? '#EF4444' : '#10B981'), signed: !projectionOnly},
       {label:'Peso nas saídas', value:pctSaidas, sub:`${fixedPct(pctEntradas)} das entradas do período`, color:'#06B6D4', pct:true}
     ];
+    kpis[0].tone = 'base';
+    kpis[1].tone = 'neutral';
+    kpis[2].tone = projectionOnly ? 'neutral' : (totals.diff > 0 ? 'risk' : totals.diff < 0 ? 'good' : 'neutral');
+    kpis[3].tone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'info';
+    window.__lastFixedKpis = kpis;
+
     const kpiEl = document.getElementById('fixedCostsKpis');
     if (kpiEl) kpiEl.innerHTML = kpis.map(k => {
       const final = fixedKpiFinal(k);
@@ -192,7 +267,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       const cls = k.pct ? '' : (k.signed && k.value > 0 ? 'number-red' : k.signed && k.value < 0 ? 'number-green' : '');
       return `<div class="fixed-kpi" style="--kpi-color:${k.color}"><div class="lbl">${k.label}</div><div class="val ${cls}" data-v41-final="${escHtml(final)}" data-v67-final="${escHtml(final)}">${initial}</div><div class="sub">${k.sub}</div></div>`;
     }).join('');
+    if (kpiEl) {
+      [...kpiEl.querySelectorAll('.fixed-kpi')].forEach((card, index) => {
+        const k = kpis[index];
+        const final = k ? fixedKpiFinal(k) : '';
+        card.dataset.tone = k?.tone || 'neutral';
+        card.setAttribute('role', 'group');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `${k?.label || ''}: ${final}. ${k?.sub || ''}`);
+      });
+    }
     animateFixedKpiCards(kpiEl, kpis);
+    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);
@@ -200,6 +286,27 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     renderFixedSensitive(realRows, projectionOnly);
     renderFixedDeviationHeatmap(months, projectionOnly);
     renderFixedAnalysis(months, period, totals, rows, flowAgg, projectionOnly);
+  };
+
+  window.replayFixedKpiAnimation = function replayFixedKpiAnimation() {
+    const kpiEl = document.getElementById('fixedCostsKpis');
+    const kpis = window.__lastFixedKpis;
+    if (!kpiEl || !Array.isArray(kpis) || !kpis.length) return;
+    const values = [...kpiEl.querySelectorAll('.fixed-kpi .val')];
+    const token = String(Date.now()) + Math.random().toString(16).slice(2);
+    window.__fixedKpiManualReplayToken = token;
+    window.__fixedKpiCountupToken = token;
+    values.forEach((el, index) => {
+      const k = kpis[index];
+      if (!k) return;
+      el.textContent = fixedKpiAnimatedValue(k, 0);
+      el.classList.add('v67-counting');
+    });
+    window.setTimeout(() => {
+      if (window.__fixedKpiManualReplayToken !== token) return;
+      animateFixedKpiCards(kpiEl, kpis);
+    }, 60);
+    return true;
   };
 
   function renderFixedMonthlyChart(months, projectionOnly) {

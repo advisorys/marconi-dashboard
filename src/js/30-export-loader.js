@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  const EXPORT_VERSION = window.DASHBOARD_ASSET_VERSION || '20260528-phase2';
+  const EXPORT_VERSION = window.DASHBOARD_ASSET_VERSION || 'local';
   const EXPORT_SCRIPT_URL = 'assets/export.js?v=' + encodeURIComponent(EXPORT_VERSION);
   const EXPORT_STYLE_URL = 'assets/export.css?v=' + encodeURIComponent(EXPORT_VERSION);
   let exportModulePromise = null;

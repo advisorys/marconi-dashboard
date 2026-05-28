@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
+const buildVersion = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
 
 const jsFiles = [
   'src/js/00-foundation.js',
@@ -31,6 +32,26 @@ async function concat(files, target, banner) {
   console.log(`Built ${target} from ${files.length} source files`);
 }
 
+async function updateVersionedReferences(version) {
+  const indexPath = path.join(repoRoot, 'index.html');
+  const bootstrapPath = path.join(repoRoot, 'assets/bootstrap.js');
+  const index = await fs.readFile(indexPath, 'utf8');
+  const bootstrap = await fs.readFile(bootstrapPath, 'utf8');
+
+  const nextIndex = index
+    .replace(/assets\/styles\.css(?:\?v=[^"']*)?/g, `assets/styles.css?v=${version}`)
+    .replace(/assets\/bootstrap\.js(?:\?v=[^"']*)?/g, `assets/bootstrap.js?v=${version}`);
+
+  const nextBootstrap = bootstrap.replace(
+    /const ASSET_VERSION = ['"][^'"]+['"];/,
+    `const ASSET_VERSION = '${version}';`
+  );
+
+  await fs.writeFile(indexPath, nextIndex, 'utf8');
+  await fs.writeFile(bootstrapPath, nextBootstrap, 'utf8');
+  console.log(`Updated asset version to ${version}`);
+}
+
 await concat(
   jsFiles,
   'assets/app.js',
@@ -42,3 +63,5 @@ await concat(
   'assets/styles.css',
   '/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs */'
 );
+
+await updateVersionedReferences(buildVersion);

@@ -95,7 +95,7 @@ for (const month of ALL_MONTHS) {
 }
 
 fluxo.precomputed = {
-  version: '20260528-phase4',
+  version: '20260528-phase5',
   generated_at: payload.meta?.ultima_atualizacao || null,
   periodAliases,
   aggregates,
@@ -104,7 +104,7 @@ fluxo.precomputed = {
 };
 
 fixed.precomputed = {
-  version: '20260528-phase4',
+  version: '20260528-phase5',
   generated_at: payload.meta?.ultima_atualizacao || null,
   periodAliases,
   periodTotals: fixedPeriodTotals
