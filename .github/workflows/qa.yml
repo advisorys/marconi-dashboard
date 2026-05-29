@@ -1,0 +1,37 @@
+name: Dashboard QA
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  qa:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare dashboard
+        run: npm run prepare-dashboard
+
+      - name: Run dashboard QA
+        run: npm run qa
+
+      - name: Upload QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-output
+          path: .qa-output
+          if-no-files-found: ignore

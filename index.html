@@ -4,17 +4,22 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="description" content="Dashboard financeiro executivo da Marconi Foods com visao de fluxo de caixa, custos fixos e indicadores gerenciais de 2026."/>
+<meta name="theme-color" content="#0A0E1A"/>
+<meta property="og:title" content="Marconi Foods · Dashboard Financeiro 2026"/>
+<meta property="og:description" content="Visao executiva de fluxo de caixa, custos fixos e indicadores gerenciais."/>
+<meta property="og:type" content="website"/>
 <title>Marconi Foods · Dashboard Executivo</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FCD34D'/%3E%3Cstop offset='100%25' style='stop-color:%23DFA447'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='%230A0E1A'/%3E%3Crect x='6' y='6' width='88' height='88' rx='18' fill='url(%23g)'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-size='52' font-weight='900' fill='%230A0E1A' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/styles.css?v=20260528190733"/>
-<script defer src="assets/bootstrap.js?v=20260528190733"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260528235624"/>
+<script defer src="assets/bootstrap.js?v=20260528235624"></script>
 
 </head>
 <body>
 <div class="mouse-glow" id="mouseGlow"></div>
 <div class="scroll-progress" id="scrollProgress"></div>
 <!-- ━━━━━━━━━━━━━━━━━━━━ TOP NAVIGATION ━━━━━━━━━━━━━━━━━━━━ -->
-<header aria-label="Navegação principal do dashboard" class="top-site-nav" id="topNav">
+<header aria-label="Navegação principal do dashboard" class="top-site-nav" id="topNav" role="banner">
 <div class="top-site-title">
 <span>MARCONI FOODS</span>
 <small>Fluxo de Caixa 2026</small>
@@ -98,7 +103,7 @@
 </div>
 </aside>
 <button class="presentation-exit" id="presentationExit" type="button">Sair do modo apresentação</button>
-<main class="dashboard-main">
+<main class="dashboard-main" id="main-content" role="main">
 <!-- ━━━━━━━━━━━━━━━━━━━━ HERO ━━━━━━━━━━━━━━━━━━━━ -->
 <section class="hero" id="home">
 <div class="hero-bg-orb"></div>
@@ -307,8 +312,8 @@
 </div>
 <div aria-live="polite" class="fixed-focus-panel" id="fixedFocusPanel"></div>
 <div class="fixed-costs-grid">
-<div class="fixed-kpi-grid" id="fixedCostsKpis"></div>
-<div class="fixed-card fixed-chart-card">
+<div class="fixed-kpi-grid" data-fixed-panel="kpis" data-fixed-slot="kpis" id="fixedCostsKpis"></div>
+<div class="fixed-card fixed-chart-card" data-fixed-panel="overview" data-fixed-slot="chart">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Estimado vs realizado</div>
@@ -318,7 +323,7 @@
 </div>
 <div class="fixed-monthly-chart" id="fixedCostsMonthlyChart"></div>
 </div>
-<div class="fixed-card">
+<div class="fixed-card" data-fixed-panel="overview" data-fixed-slot="composition">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Composição</div>
@@ -327,7 +332,7 @@
 </div>
 <div id="fixedCostsComposition"></div>
 </div>
-<div class="fixed-card">
+<div class="fixed-card" data-fixed-panel="control" data-fixed-slot="deviations">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Desvios</div>
@@ -336,7 +341,7 @@
 </div>
 <div id="fixedCostsDeviations"></div>
 </div>
-<div class="fixed-card fixed-wide">
+<div class="fixed-card fixed-wide" data-fixed-panel="control" data-fixed-slot="sensitive">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Linhas sensíveis</div>
@@ -345,7 +350,7 @@
 </div>
 <div id="fixedCostsSensitive"></div>
 </div>
-<div class="fixed-card fixed-wide">
+<div class="fixed-card fixed-wide" data-fixed-panel="matrix" data-fixed-slot="matrix">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Mapa de desvios</div>
@@ -355,7 +360,7 @@
 </div>
 <div id="fixedCostsHeatmap"></div>
 </div>
-<div class="fixed-card fixed-wide fixed-analysis-card">
+<div class="fixed-card fixed-wide fixed-analysis-card" data-fixed-panel="analysis" data-fixed-slot="analysis">
 <div class="fixed-card-head">
 <div>
 <div class="fixed-mini-label">Leitura automática</div>

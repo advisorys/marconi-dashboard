@@ -131,7 +131,20 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   function sumRows(rows, months, kind='basis') {
     return rows.reduce((s,it)=>s + sumItem(it,months,kind), 0);
   }
+  function fixedPrecomputedKey(months) {
+    try { return normalizeMonths(months).join(','); }
+    catch(e) { return [...new Set((months || []).map(Number).filter(m => m >= 1 && m <= 12))].sort((a,b)=>a-b).join(','); }
+  }
   function totalsFor(months) {
+    const cached = FIXED_COST_DATA.precomputed?.periodTotals?.[fixedPrecomputedKey(months)];
+    if (cached) {
+      return {
+        est: Number(cached.est || 0),
+        real: Number(cached.real || 0),
+        basis: Number(cached.basis || 0),
+        diff: Number(cached.diff || 0)
+      };
+    }
     const totalRows = FIXED_COST_DATA.totals || [];
     const items = FIXED_COST_DATA.items || [];
     const rows = totalRows.length ? totalRows : items;
@@ -564,7 +577,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       return result;
     };
   }
-  document.addEventListener('DOMContentLoaded', function(){
+  onDashboardReady(function(){
     document.body.dataset.page = document.body.dataset.page || 'cash';
     document.body.dataset.fixedView = document.body.dataset.fixedView || 'overview';
     document.querySelectorAll('[data-page-link]').forEach(b => b.classList.toggle('active', b.dataset.pageLink === document.body.dataset.page));
@@ -650,7 +663,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
   }
   window.renderDirectorPage = render;
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
+  onDashboardReady(()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
 })();
 
 /* ===== script-10 ===== */
@@ -668,7 +681,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const director=switcher.querySelector('[data-page-link="director"]');
     if(director && switcher.firstElementChild!==director) switcher.insertBefore(director, switcher.firstElementChild);
   }
-  document.addEventListener('DOMContentLoaded', ()=>{initDirectorCoverLogo(); ensureDirectorFirst();});
+  onDashboardReady(()=>{initDirectorCoverLogo(); ensureDirectorFirst();});
   setTimeout(()=>{initDirectorCoverLogo(); ensureDirectorFirst();},250);
 
   const originalSetPage=window.setDashboardPage;
@@ -903,7 +916,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     window.__v40PageWrapped=true;
     window.setDashboardPage=function(page){ const out=oldSet.apply(this,arguments); setTimeout(afterAnyRender,60); return out; };
   }
-  document.addEventListener('DOMContentLoaded',()=>{
+  onDashboardReady(()=>{
     setupStableNavigation();
     normalizeHeatmapZeros();
     setTimeout(afterAnyRender,250);
@@ -1039,9 +1052,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     };
   }
   document.addEventListener('click',()=>setTimeout(afterRender,120),true);
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(afterRender,350));
+  onDashboardReady(()=>setTimeout(afterRender,350));
   const mo = new MutationObserver(()=>{ clearTimeout(window.__v41MoT); window.__v41MoT=setTimeout(afterRender,180); });
-  document.addEventListener('DOMContentLoaded',()=>{ try{ mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){} });
+  onDashboardReady(()=>{ try{ mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){} });
 })();
 
 /* ===== script-13 ===== */
@@ -1476,16 +1489,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }, true); // useCapture true para vir antes do v41
   }
 
-  // Inicializar
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setupSidebarToggle();
-      updateHelpToast();
-    });
-  } else {
+  onDashboardReady(() => {
     setupSidebarToggle();
     updateHelpToast();
-  }
+  });
 })();
 
 /* ===== script-16 ===== */
@@ -1529,11 +1536,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     console.log('[PATCH v44] Layout enforcement ativo');
   }
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  onDashboardReady(init);
 })();
 
 /* ===== script-17 ===== */
@@ -1547,11 +1550,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     });
   }
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hideSubmenus);
-  } else {
-    hideSubmenus();
-  }
+  onDashboardReady(hideSubmenus);
   
   // Re-aplicar quando muda de página
   var obs = new MutationObserver(hideSubmenus);

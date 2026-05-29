@@ -100,5 +100,5 @@
   window.loadDashboardExportModule = loadExportModule;
   window.runDashboardExport = runDashboardExport;
   window.prepareDashboardExportButton = prepareExportButton;
-  document.addEventListener('DOMContentLoaded', prepareExportButton);
+  onDashboardReady(prepareExportButton);
 })();

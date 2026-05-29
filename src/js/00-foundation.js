@@ -2,22 +2,86 @@
    Extracted from index.html. Blocks remain in original order to preserve behavior.
    Data is exposed by assets/bootstrap.js as window.DASHBOARD_DATA and legacy aliases. */
 
-/* Compatibility bridge: app.js is loaded after async data fetch, so legacy
-   DOMContentLoaded callbacks must still run when the DOM is already ready. */
+/* Explicit ready helper: app.js is loaded after async data fetch, so modules
+   must run init callbacks even when DOMContentLoaded already fired. */
 (function () {
   'use strict';
-  if (window.__dashboardReadyBridgeInstalled) return;
-  window.__dashboardReadyBridgeInstalled = true;
+  if (window.onDashboardReady) return;
 
-  const nativeAddEventListener = document.addEventListener.bind(document);
-  document.addEventListener = function (type, listener, options) {
-    if (type === 'DOMContentLoaded' && document.readyState !== 'loading' && typeof listener === 'function') {
+  window.onDashboardReady = function onDashboardReady(callback) {
+    if (typeof callback !== 'function') return;
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', callback, { once: true });
+    } else {
       queueMicrotask(function () {
-        listener.call(document, new Event('DOMContentLoaded'));
+        callback(new Event('DOMContentLoaded'));
       });
-      return undefined;
     }
-    return nativeAddEventListener(type, listener, options);
+  };
+})();
+
+/* Shared formatting and parsing helpers. */
+(function () {
+  'use strict';
+  if (window.MarconiFormat) return;
+
+  const BRL_FULL_FORMATTER = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0
+  });
+  const BRL_EXACT_FORMATTER = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  function moneyShort(value) {
+    const number = Number(value) || 0;
+    if (Math.abs(number) >= 1000000) return (number >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(number) / 1000000).toFixed(2) + 'M';
+    if (Math.abs(number) >= 1000) return (number >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(number) / 1000).toFixed(0) + 'K';
+    return 'R$ ' + Math.round(number).toLocaleString('pt-BR');
+  }
+
+  function pct(value, decimals = 1) {
+    const number = Number(value);
+    return (Number.isFinite(number) ? number.toFixed(decimals) : (0).toFixed(decimals)) + '%';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function (match) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[match];
+    });
+  }
+
+  function normalizeMonths(months) {
+    const source = Array.isArray(months) ? months : [];
+    const normalized = [...new Set(source.map(Number).filter(month => month >= 1 && month <= 12))].sort((a, b) => a - b);
+    return normalized.length ? normalized : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+
+  function parseMoneyNumber(value) {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+    const raw = String(value || '')
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  window.MarconiFormat = {
+    BRL_FULL_FORMATTER,
+    BRL_EXACT_FORMATTER,
+    moneyShort,
+    moneyFull: value => BRL_FULL_FORMATTER.format(value),
+    moneyExact: value => BRL_EXACT_FORMATTER.format(value),
+    pct,
+    escapeHtml,
+    normalizeMonths,
+    isProjectionMonth: month => Number(month) >= 7,
+    parseMoneyNumber
   };
 })();
 

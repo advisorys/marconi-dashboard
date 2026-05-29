@@ -24,6 +24,89 @@ for (const month of ALL_MONTHS) {
   PERIODS[`m${month}`] = [month];
 }
 
+function fail(message) {
+  throw new Error(`[precompute] ERRO: ${message}`);
+}
+
+function isObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function assertObject(value, pathLabel) {
+  if (!isObject(value)) fail(`${pathLabel} invalido ou ausente`);
+}
+
+function assertText(value, pathLabel) {
+  if (typeof value !== 'string' || !value.trim()) fail(`${pathLabel} invalido ou ausente`);
+}
+
+function assertFiniteNumber(value, pathLabel) {
+  if (!Number.isFinite(Number(value))) fail(`${pathLabel} invalido`);
+}
+
+function monthlyRow(month) {
+  return fluxo.monthly?.[month] || fluxo.monthly?.[String(month)];
+}
+
+function validateFluxoCaixa() {
+  assertObject(fluxo, 'fluxo_caixa');
+  assertObject(fluxo.monthly, 'fluxo_caixa.monthly');
+  for (const month of ALL_MONTHS) {
+    const row = monthlyRow(month);
+    assertObject(row, `fluxo_caixa.monthly[${month}]`);
+    assertText(row.name, `fluxo_caixa.monthly[${month}].name`);
+    assertFiniteNumber(row.entradas, `fluxo_caixa.monthly[${month}].entradas`);
+    assertFiniteNumber(row.saidas, `fluxo_caixa.monthly[${month}].saidas`);
+    assertFiniteNumber(row.resultado, `fluxo_caixa.monthly[${month}].resultado`);
+    const expected = Number(row.entradas) - Number(row.saidas);
+    if (Math.abs(expected - Number(row.resultado)) > 0.02) {
+      fail(`fluxo_caixa.monthly[${month}].resultado inconsistente`);
+    }
+  }
+
+  const categories = fluxo.categoryMonthly || fluxo.categories;
+  if (!Array.isArray(categories) || !categories.length) fail('fluxo_caixa.categories vazio');
+  categories.forEach((category, index) => {
+    assertObject(category, `fluxo_caixa.categories[${index}]`);
+    assertText(category.name, `fluxo_caixa.categories[${index}].name`);
+    assertObject(category.months, `fluxo_caixa.categories[${index}].months`);
+    for (const month of ALL_MONTHS) {
+      assertFiniteNumber(category.months[month] ?? category.months[String(month)] ?? 0, `fluxo_caixa.categories[${index}].months[${month}]`);
+    }
+    if ('value' in category) assertFiniteNumber(category.value, `fluxo_caixa.categories[${index}].value`);
+  });
+}
+
+function validateCustosFixos() {
+  assertObject(fixed, 'custos_fixos');
+  if (!Array.isArray(fixed.items) || !fixed.items.length) fail('custos_fixos.items vazio');
+  fixed.items.forEach((item, index) => {
+    assertObject(item, `custos_fixos.items[${index}]`);
+    assertText(item.name, `custos_fixos.items[${index}].name`);
+    assertText(item.group, `custos_fixos.items[${index}].group`);
+    if (!Array.isArray(item.months) || item.months.length < 12) fail(`custos_fixos.items[${index}].months invalido`);
+    for (const monthIndex of ALL_MONTHS.map(month => month - 1)) {
+      const row = item.months[monthIndex];
+      if (!Array.isArray(row) || row.length < 3) fail(`custos_fixos.items[${index}].months[${monthIndex}] invalido`);
+      assertFiniteNumber(row[0], `custos_fixos.items[${index}].months[${monthIndex}][0]`);
+      assertFiniteNumber(row[1], `custos_fixos.items[${index}].months[${monthIndex}][1]`);
+      assertFiniteNumber(row[2], `custos_fixos.items[${index}].months[${monthIndex}][2]`);
+      if (row.length > 3) assertFiniteNumber(row[3], `custos_fixos.items[${index}].months[${monthIndex}][3]`);
+    }
+  });
+}
+
+function validatePayload() {
+  assertObject(payload, 'payload');
+  assertObject(payload.meta, 'meta');
+  assertText(payload.meta.empresa, 'meta.empresa');
+  assertText(payload.meta.periodo, 'meta.periodo');
+  assertText(payload.meta.ultima_atualizacao, 'meta.ultima_atualizacao');
+  validateFluxoCaixa();
+  validateCustosFixos();
+  console.log('[precompute] JSON validado com sucesso');
+}
+
 function normalizeMonths(months) {
   return [...new Set(months.map(Number).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
 }
@@ -34,8 +117,8 @@ function keyFor(months) {
 
 function aggregate(months) {
   const normalized = normalizeMonths(months);
-  const entradas = normalized.reduce((sum, month) => sum + Number(fluxo.monthly?.[month]?.entradas || 0), 0);
-  const saidas = normalized.reduce((sum, month) => sum + Number(fluxo.monthly?.[month]?.saidas || 0), 0);
+  const entradas = normalized.reduce((sum, month) => sum + Number(monthlyRow(month)?.entradas || 0), 0);
+  const saidas = normalized.reduce((sum, month) => sum + Number(monthlyRow(month)?.saidas || 0), 0);
   const resultado = entradas - saidas;
   return {
     entradas,
@@ -63,18 +146,25 @@ function categoryBreakdown(months) {
 
 function fixedTotals(months) {
   const normalized = normalizeMonths(months);
+  const realizedMonths = normalized.filter(month => month <= 6);
   const projectionOnly = normalized.every(month => month >= 7);
-  return (fixed.items || []).reduce((acc, item) => {
+  const rows = Array.isArray(fixed.totals) && fixed.totals.length ? fixed.totals : fixed.items || [];
+  return rows.reduce((acc, item) => {
     for (const month of normalized) {
       const row = item.months?.[month - 1] || [0, 0, 0, 0];
       acc.est += Number(row[0] || 0);
+      acc.basis += projectionOnly ? Number(row[0] || 0) : (month <= 6 ? Number(row[1] || 0) : Number(row[0] || 0));
+    }
+    for (const month of realizedMonths) {
+      const row = item.months?.[month - 1] || [0, 0, 0, 0];
       acc.real += Number(row[1] || 0);
       acc.diff += Number(row[2] || 0);
-      acc.basis += projectionOnly ? Number(row[0] || 0) : (month <= 6 ? Number(row[1] || 0) : Number(row[0] || 0));
     }
     return acc;
   }, { est: 0, real: 0, diff: 0, basis: 0 });
 }
+
+validatePayload();
 
 const periodAliases = {};
 const aggregates = {};

@@ -1,4 +1,7 @@
-/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs */
+/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
+ * Build: 20260528235624
+ * Mode: production
+ */
 
 /* ===== src/css/00-theme-base.css ===== */
 
@@ -7835,6 +7838,12 @@ html body .page-tab:hover {
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  .mouse-glow {
+    display: none !important;
+  }
+}
+
 @media (max-width: 1024px) {
   .dashboard-main :is(.fixed-costs-grid, .director-grid, .executive-summary-grid, .breakdown-grid) {
     grid-template-columns: 1fr !important;
@@ -7988,6 +7997,11 @@ body[data-page="fixed"] .sidebar-brand .brand-kicker::after {
 }
 
 /* ===== phase4-accessibility-export-polish ===== */
+:focus-visible {
+  outline: 2px solid var(--gold-l, #FCD34D) !important;
+  outline-offset: 3px !important;
+}
+
 .page-tab[aria-current="page"] {
   outline: 0;
 }

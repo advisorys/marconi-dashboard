@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const repoRoot = process.cwd();
 const buildVersion = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+const isProd = process.argv.includes('--prod');
 
 const jsFiles = [
   'src/js/00-foundation.js',
@@ -20,16 +21,74 @@ const cssFiles = [
   'src/css/40-ux-patches.css'
 ];
 
-async function concat(files, target, banner) {
+const sizeTargets = {
+  js: { dev: 350 * 1024, prod: 220 * 1024 },
+  css: { dev: 300 * 1024, prod: 180 * 1024 }
+};
+
+function kb(bytes) {
+  return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+function warnIfOversized(target, bytes, type) {
+  const limit = sizeTargets[type][isProd ? 'prod' : 'dev'];
+  if (bytes > limit) {
+    console.warn(`[build] Warning: ${target} acima do alvo recomendado (${kb(bytes)} > ${kb(limit)})`);
+  }
+}
+
+async function optionalMinifyJs(code, target) {
+  if (!isProd) return code;
+  try {
+    const { minify } = await import('terser');
+    const result = await minify(code, {
+      compress: { passes: 2 },
+      mangle: false,
+      format: { comments: false }
+    });
+    return result.code || code;
+  } catch (error) {
+    console.warn(`[build] Warning: ${target} nao minificado; dependencia opcional terser indisponivel.`);
+    return code;
+  }
+}
+
+async function optionalMinifyCss(code, target) {
+  if (!isProd) return code;
+  try {
+    const { transform } = await import('lightningcss');
+    const result = transform({
+      filename: target,
+      code: Buffer.from(code),
+      minify: true
+    });
+    return result.code.toString();
+  } catch (error) {
+    console.warn(`[build] Warning: ${target} nao minificado; dependencia opcional lightningcss indisponivel.`);
+    return code;
+  }
+}
+
+async function concat(files, target, banner, type) {
   const chunks = [];
   for (const file of files) {
     const fullPath = path.join(repoRoot, file);
     const body = await fs.readFile(fullPath, 'utf8');
     chunks.push(`/* ===== ${file.replaceAll('\\', '/')} ===== */\n\n${body.trimEnd()}`);
   }
-  const output = `${banner}\n\n${chunks.join('\n\n')}\n`;
-  await fs.writeFile(path.join(repoRoot, target), output, 'utf8');
-  console.log(`Built ${target} from ${files.length} source files`);
+
+  const readableOutput = `${banner}\n * Build: ${buildVersion}
+ * Mode: ${isProd ? 'production' : 'development'}
+ */\n\n${chunks.join('\n\n')}\n`;
+  const output = type === 'js'
+    ? await optionalMinifyJs(readableOutput, target)
+    : await optionalMinifyCss(readableOutput, target);
+
+  const targetPath = path.join(repoRoot, target);
+  await fs.writeFile(targetPath, `${output.trimEnd()}\n`, 'utf8');
+  const stats = await fs.stat(targetPath);
+  console.log(`Built ${target} from ${files.length} source files - ${kb(stats.size)}`);
+  warnIfOversized(target, stats.size, type);
 }
 
 async function updateVersionedReferences(version) {
@@ -55,13 +114,15 @@ async function updateVersionedReferences(version) {
 await concat(
   jsFiles,
   'assets/app.js',
-  '/* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs */'
+  '/* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs',
+  'js'
 );
 
 await concat(
   cssFiles,
   'assets/styles.css',
-  '/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs */'
+  '/* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs',
+  'css'
 );
 
 await updateVersionedReferences(buildVersion);

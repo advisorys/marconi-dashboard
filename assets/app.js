@@ -1,4 +1,7 @@
-/* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs */
+/* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
+ * Build: 20260528235624
+ * Mode: production
+ */
 
 /* ===== src/js/00-foundation.js ===== */
 
@@ -6,22 +9,86 @@
    Extracted from index.html. Blocks remain in original order to preserve behavior.
    Data is exposed by assets/bootstrap.js as window.DASHBOARD_DATA and legacy aliases. */
 
-/* Compatibility bridge: app.js is loaded after async data fetch, so legacy
-   DOMContentLoaded callbacks must still run when the DOM is already ready. */
+/* Explicit ready helper: app.js is loaded after async data fetch, so modules
+   must run init callbacks even when DOMContentLoaded already fired. */
 (function () {
   'use strict';
-  if (window.__dashboardReadyBridgeInstalled) return;
-  window.__dashboardReadyBridgeInstalled = true;
+  if (window.onDashboardReady) return;
 
-  const nativeAddEventListener = document.addEventListener.bind(document);
-  document.addEventListener = function (type, listener, options) {
-    if (type === 'DOMContentLoaded' && document.readyState !== 'loading' && typeof listener === 'function') {
+  window.onDashboardReady = function onDashboardReady(callback) {
+    if (typeof callback !== 'function') return;
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', callback, { once: true });
+    } else {
       queueMicrotask(function () {
-        listener.call(document, new Event('DOMContentLoaded'));
+        callback(new Event('DOMContentLoaded'));
       });
-      return undefined;
     }
-    return nativeAddEventListener(type, listener, options);
+  };
+})();
+
+/* Shared formatting and parsing helpers. */
+(function () {
+  'use strict';
+  if (window.MarconiFormat) return;
+
+  const BRL_FULL_FORMATTER = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0
+  });
+  const BRL_EXACT_FORMATTER = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  function moneyShort(value) {
+    const number = Number(value) || 0;
+    if (Math.abs(number) >= 1000000) return (number >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(number) / 1000000).toFixed(2) + 'M';
+    if (Math.abs(number) >= 1000) return (number >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(number) / 1000).toFixed(0) + 'K';
+    return 'R$ ' + Math.round(number).toLocaleString('pt-BR');
+  }
+
+  function pct(value, decimals = 1) {
+    const number = Number(value);
+    return (Number.isFinite(number) ? number.toFixed(decimals) : (0).toFixed(decimals)) + '%';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function (match) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[match];
+    });
+  }
+
+  function normalizeMonths(months) {
+    const source = Array.isArray(months) ? months : [];
+    const normalized = [...new Set(source.map(Number).filter(month => month >= 1 && month <= 12))].sort((a, b) => a - b);
+    return normalized.length ? normalized : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+
+  function parseMoneyNumber(value) {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+    const raw = String(value || '')
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  window.MarconiFormat = {
+    BRL_FULL_FORMATTER,
+    BRL_EXACT_FORMATTER,
+    moneyShort,
+    moneyFull: value => BRL_FULL_FORMATTER.format(value),
+    moneyExact: value => BRL_EXACT_FORMATTER.format(value),
+    pct,
+    escapeHtml,
+    normalizeMonths,
+    isProjectionMonth: month => Number(month) >= 7,
+    parseMoneyNumber
   };
 })();
 
@@ -119,14 +186,6 @@
 
 /* ===== src/js/10-cashflow.js ===== */
 
-/* ===== script-3 ===== */
-(function syncHeroBrandLogo(){
-  function applyLogo(){
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyLogo, { once: true });
-  else applyLogo();
-})();
-
 /* ===== script-4 ===== */
 const DATA = window.__DATA__ || {};
 const PRECOMPUTED = DATA.precomputed || {};
@@ -153,14 +212,16 @@ const MONTH_NAMES_LONG = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio',
 const MONTH_NAMES_SHORT = ['', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
 // ─── FORMATTERS ───
-const fmtMoney = (v) => {
+const fmtMoney = window.MarconiFormat?.moneyShort || ((v) => {
   if (Math.abs(v) >= 1000000) return (v >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(v) / 1000000).toFixed(2) + 'M';
   if (Math.abs(v) >= 1000) return (v >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(v) / 1000).toFixed(0) + 'K';
   return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-};
-const fmtMoneyFull = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
-const fmtMoneyExact = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
-const fmtPct = (v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%';
+});
+const BRL_FULL_FORMATTER = window.MarconiFormat?.BRL_FULL_FORMATTER || new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const BRL_EXACT_FORMATTER = window.MarconiFormat?.BRL_EXACT_FORMATTER || new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtMoneyFull = window.MarconiFormat?.moneyFull || ((v) => BRL_FULL_FORMATTER.format(v));
+const fmtMoneyExact = window.MarconiFormat?.moneyExact || ((v) => BRL_EXACT_FORMATTER.format(v));
+const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%');
 
 // ─── HELPERS ───
 function isProjectionMonth(m) { return m >= 7; }
@@ -1159,7 +1220,20 @@ const intObs = new IntersectionObserver((entries) => {
 
 // ─── MOUSE + SCROLL ───
 const glow = document.getElementById('mouseGlow');
-window.addEventListener('mousemove', (e) => { if (glow) { glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px'; } });
+let glowFrame = 0;
+let glowX = 0;
+let glowY = 0;
+window.addEventListener('mousemove', (e) => {
+  if (!glow) return;
+  glowX = e.clientX;
+  glowY = e.clientY;
+  if (glowFrame) return;
+  glowFrame = requestAnimationFrame(() => {
+    glow.style.left = glowX + 'px';
+    glow.style.top = glowY + 'px';
+    glowFrame = 0;
+  });
+}, { passive: true });
 const progress = document.getElementById('scrollProgress');
 const filterBar = document.getElementById('filterBar');
 window.addEventListener('scroll', () => {
@@ -1242,7 +1316,7 @@ function init() {
   document.querySelectorAll('.reveal').forEach(el => intObs.observe(el));
   document.querySelectorAll('.hero [data-count-to]').forEach(el => { el.textContent = (el.dataset.prefix || '') + '0' + (el.dataset.suffix || ''); setTimeout(() => animateCount(el), 120); });
 }
-document.addEventListener('DOMContentLoaded', init);
+onDashboardReady(init);
 
 /* ===== src/js/20-interactions.js ===== */
 
@@ -1491,7 +1565,19 @@ document.addEventListener('DOMContentLoaded', init);
       document.body.classList.toggle('v23-neutral', agg.resultado === 0);
     } catch(e){}
   }
-  document.addEventListener('mousemove', e => { document.body.style.setProperty('--mx', (e.clientX/window.innerWidth*100).toFixed(1)+'%'); document.body.style.setProperty('--my', (e.clientY/window.innerHeight*100).toFixed(1)+'%'); });
+  let dynamicPointerFrame = 0;
+  let dynamicPointerX = 50;
+  let dynamicPointerY = 50;
+  document.addEventListener('mousemove', e => {
+    dynamicPointerX = e.clientX / window.innerWidth * 100;
+    dynamicPointerY = e.clientY / window.innerHeight * 100;
+    if (dynamicPointerFrame) return;
+    dynamicPointerFrame = requestAnimationFrame(() => {
+      dynamicPointerFrame = 0;
+      document.body.style.setProperty('--mx', dynamicPointerX.toFixed(1) + '%');
+      document.body.style.setProperty('--my', dynamicPointerY.toFixed(1) + '%');
+    });
+  }, { passive: true });
   function addStagger(){
     document.querySelectorAll('.kpi-grid,.executive-summary-grid,.result-summary-strip,.critical-alerts-grid,.insights-grid,.rank-list,.hero-stats').forEach(group=>{
       group.classList.add('v23-stagger'); [...group.children].forEach((el,i)=>el.style.setProperty('--stagger', Math.min(i,12)));
@@ -1775,7 +1861,7 @@ function renderOutliers(){
   function updateCinemaProgress(){ const slides=document.querySelectorAll('.v23-cinema-slide'); const p=document.getElementById('v23CinemaProgress'); if(p) p.textContent = `${V23.cinemaIndex+1} / ${slides.length}`; }
 
   // initial boot after original init
-  document.addEventListener('DOMContentLoaded', () => { setTimeout(decorateAfterRender, 180); });
+  onDashboardReady(() => { setTimeout(decorateAfterRender, 180); });
 })();
 
 /* ===== src/js/30-export-loader.js ===== */
@@ -1882,7 +1968,7 @@ function renderOutliers(){
   window.loadDashboardExportModule = loadExportModule;
   window.runDashboardExport = runDashboardExport;
   window.prepareDashboardExportButton = prepareExportButton;
-  document.addEventListener('DOMContentLoaded', prepareExportButton);
+  onDashboardReady(prepareExportButton);
 })();
 
 /* ===== src/js/40-fixed-director.js ===== */
@@ -2020,7 +2106,20 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   function sumRows(rows, months, kind='basis') {
     return rows.reduce((s,it)=>s + sumItem(it,months,kind), 0);
   }
+  function fixedPrecomputedKey(months) {
+    try { return normalizeMonths(months).join(','); }
+    catch(e) { return [...new Set((months || []).map(Number).filter(m => m >= 1 && m <= 12))].sort((a,b)=>a-b).join(','); }
+  }
   function totalsFor(months) {
+    const cached = FIXED_COST_DATA.precomputed?.periodTotals?.[fixedPrecomputedKey(months)];
+    if (cached) {
+      return {
+        est: Number(cached.est || 0),
+        real: Number(cached.real || 0),
+        basis: Number(cached.basis || 0),
+        diff: Number(cached.diff || 0)
+      };
+    }
     const totalRows = FIXED_COST_DATA.totals || [];
     const items = FIXED_COST_DATA.items || [];
     const rows = totalRows.length ? totalRows : items;
@@ -2453,7 +2552,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       return result;
     };
   }
-  document.addEventListener('DOMContentLoaded', function(){
+  onDashboardReady(function(){
     document.body.dataset.page = document.body.dataset.page || 'cash';
     document.body.dataset.fixedView = document.body.dataset.fixedView || 'overview';
     document.querySelectorAll('[data-page-link]').forEach(b => b.classList.toggle('active', b.dataset.pageLink === document.body.dataset.page));
@@ -2539,7 +2638,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
   }
   window.renderDirectorPage = render;
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
+  onDashboardReady(()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
 })();
 
 /* ===== script-10 ===== */
@@ -2557,7 +2656,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const director=switcher.querySelector('[data-page-link="director"]');
     if(director && switcher.firstElementChild!==director) switcher.insertBefore(director, switcher.firstElementChild);
   }
-  document.addEventListener('DOMContentLoaded', ()=>{initDirectorCoverLogo(); ensureDirectorFirst();});
+  onDashboardReady(()=>{initDirectorCoverLogo(); ensureDirectorFirst();});
   setTimeout(()=>{initDirectorCoverLogo(); ensureDirectorFirst();},250);
 
   const originalSetPage=window.setDashboardPage;
@@ -2792,7 +2891,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     window.__v40PageWrapped=true;
     window.setDashboardPage=function(page){ const out=oldSet.apply(this,arguments); setTimeout(afterAnyRender,60); return out; };
   }
-  document.addEventListener('DOMContentLoaded',()=>{
+  onDashboardReady(()=>{
     setupStableNavigation();
     normalizeHeatmapZeros();
     setTimeout(afterAnyRender,250);
@@ -2928,9 +3027,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     };
   }
   document.addEventListener('click',()=>setTimeout(afterRender,120),true);
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(afterRender,350));
+  onDashboardReady(()=>setTimeout(afterRender,350));
   const mo = new MutationObserver(()=>{ clearTimeout(window.__v41MoT); window.__v41MoT=setTimeout(afterRender,180); });
-  document.addEventListener('DOMContentLoaded',()=>{ try{ mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){} });
+  onDashboardReady(()=>{ try{ mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){} });
 })();
 
 /* ===== script-13 ===== */
@@ -3365,16 +3464,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }, true); // useCapture true para vir antes do v41
   }
 
-  // Inicializar
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setupSidebarToggle();
-      updateHelpToast();
-    });
-  } else {
+  onDashboardReady(() => {
     setupSidebarToggle();
     updateHelpToast();
-  }
+  });
 })();
 
 /* ===== script-16 ===== */
@@ -3418,11 +3511,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     console.log('[PATCH v44] Layout enforcement ativo');
   }
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  onDashboardReady(init);
 })();
 
 /* ===== script-17 ===== */
@@ -3436,11 +3525,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     });
   }
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hideSubmenus);
-  } else {
-    hideSubmenus();
-  }
+  onDashboardReady(hideSubmenus);
   
   // Re-aplicar quando muda de página
   var obs = new MutationObserver(hideSubmenus);
@@ -3671,13 +3756,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
 
   // Entrada inicial, discreta, quando o dashboard abre.
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  onDashboardReady(function() {
     scheduleLayeredTransition(420);
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      scheduleLayeredTransition(420);
-    });
-  }
+  });
 
   console.log('[PATCH v62] Transição em camadas ativa.');
 })();
@@ -3881,12 +3962,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }
   }, true);
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { observeBodyPage(); scheduleUpdate(220); });
-  } else {
+  onDashboardReady(function() {
     observeBodyPage();
-    scheduleUpdate(120);
-  }
+    scheduleUpdate(220);
+  });
 })();
 
 /* ===== patch-v67-kpi-countup-js ===== */
@@ -4224,11 +4303,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     window.__v70LayoutTimer = window.setTimeout(applyLayoutFixes, 60);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', schedule);
-  } else {
-    schedule();
-  }
+  onDashboardReady(schedule);
 
   window.addEventListener('load', schedule);
   window.addEventListener('resize', schedule, { passive: true });
@@ -4340,11 +4415,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     } catch (e) {}
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { scheduleLock(900); });
-  } else {
+  onDashboardReady(function() {
     scheduleLock(900);
-  }
+  });
 
   window.addEventListener('load', function() { scheduleLock(900); });
   window.addEventListener('resize', function() { scheduleLock(520); }, { passive: true });
@@ -4428,8 +4501,17 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     });
   }
 
+  const PAGE_TITLE_LABELS = {
+    director: 'Diretoria',
+    cash: 'Fluxo de Caixa',
+    fixed: 'Custos Fixos'
+  };
+
   function syncActivePageState() {
     const page = document.body && document.body.dataset.page ? document.body.dataset.page : 'cash';
+    if (PAGE_TITLE_LABELS[page]) {
+      document.title = `Marconi Foods · ${PAGE_TITLE_LABELS[page]} · 2026`;
+    }
     setInactiveState(CASH_SECTION_IDS.map(function(id) { return document.getElementById(id); }), page === 'cash');
     setInactiveState([document.getElementById('directoria')], page === 'director');
     setInactiveState([document.getElementById('fixed-costs')], page === 'fixed');
@@ -4489,11 +4571,15 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }
   }, true);
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncActivePageState);
-  } else {
+  onDashboardReady(function() {
     syncActivePageState();
-  }
+  });
+  try {
+    new MutationObserver(syncActivePageState).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-page']
+    });
+  } catch (e) {}
   window.addEventListener('load', syncActivePageState);
   window.addEventListener('resize', syncActivePageState, { passive: true });
 
@@ -4613,7 +4699,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
 
   function rovingTabKeydown(event, selector) {
-    const current = event.target.closest(selector);
+    const target = event.target instanceof Element ? event.target : null;
+    const current = target?.closest(selector);
     if (!current) return false;
     const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
     if (!keys.includes(event.key)) return false;
@@ -4636,7 +4723,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   document.addEventListener('keydown', function(event) {
     if (rovingTabKeydown(event, '.page-tab')) return;
     if (rovingTabKeydown(event, '.fixed-view-tab')) return;
-    const actionable = event.target.closest('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)[role="button"]');
+    const target = event.target instanceof Element ? event.target : null;
+    const actionable = target?.closest('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)[role="button"]');
     if (!actionable) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
@@ -4658,8 +4746,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     });
   } catch (e) {}
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyAccessibility);
-  else applyAccessibility();
+  onDashboardReady(applyAccessibility);
   window.addEventListener('load', applyAccessibility);
   window.addEventListener('resize', scheduleAccessibility, { passive: true });
 })();
@@ -4743,9 +4830,86 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     });
   } catch (e) {}
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { syncFixedTabState(); });
-  else syncFixedTabState();
+  onDashboardReady(function() { syncFixedTabState(); });
   window.addEventListener('load', function() { syncFixedTabState(); });
+})();
+
+/* ===== phase5-controlled-ux-js ===== */
+/* Keeps dropdowns, overlays and presentation mode predictable during user exploration. */
+(function() {
+  'use strict';
+  if (window.__phase5ControlledUxLoaded) return;
+  window.__phase5ControlledUxLoaded = true;
+
+  function periodSelect() {
+    return document.getElementById('monthSelect');
+  }
+
+  function periodButton() {
+    return document.getElementById('monthSelectBtn');
+  }
+
+  function closePeriodDropdown() {
+    const select = periodSelect();
+    const button = periodButton();
+    if (!select || !select.classList.contains('open')) return false;
+    select.classList.remove('open');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    return true;
+  }
+
+  function closeFixedFocusPanel() {
+    const panel = document.getElementById('fixedFocusPanel');
+    if (!panel || !panel.classList.contains('show')) return false;
+    panel.classList.remove('show');
+    panel.innerHTML = '';
+    return true;
+  }
+
+  function syncPresentationA11y() {
+    const active = document.body?.classList.contains('presentation-mode');
+    const sidebar = document.querySelector('.control-sidebar');
+    const exitButton = document.getElementById('presentationExit');
+    if (sidebar) {
+      sidebar.setAttribute('aria-hidden', active ? 'true' : 'false');
+      if ('inert' in sidebar) sidebar.inert = !!active;
+    }
+    if (exitButton) {
+      exitButton.setAttribute('aria-hidden', active ? 'false' : 'true');
+      exitButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
+  document.addEventListener('pointerdown', function(event) {
+    const select = periodSelect();
+    if (!select || !select.classList.contains('open')) return;
+    if (select.contains(event.target)) return;
+    closePeriodDropdown();
+  }, true);
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key !== 'Escape') return;
+    if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+    const handled = closePeriodDropdown() || closeFixedFocusPanel();
+    if (handled) event.preventDefault();
+  }, true);
+
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('#filterReset')) return;
+    window.setTimeout(function() {
+      if (typeof window.showToastV41 === 'function') window.showToastV41('Filtros resetados');
+    }, 140);
+  }, true);
+
+  try {
+    new MutationObserver(syncPresentationA11y).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  } catch (e) {}
+
+  onDashboardReady(syncPresentationA11y);
+  window.addEventListener('load', syncPresentationA11y);
 })();
 
 /* ===== phase5-fixed-kpi-replay-js ===== */

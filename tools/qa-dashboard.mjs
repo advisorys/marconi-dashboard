@@ -188,7 +188,12 @@ async function run() {
           cdp.events.splice(i, 1);
         }
         if (event.method === 'Runtime.exceptionThrown') {
-          errors.push(event.params.exceptionDetails?.text || 'Runtime exception');
+          const details = event.params.exceptionDetails || {};
+          const exception = details.exception || {};
+          const location = [details.url, details.lineNumber != null ? details.lineNumber + 1 : null, details.columnNumber != null ? details.columnNumber + 1 : null]
+            .filter(Boolean)
+            .join(':');
+          errors.push([details.text, exception.description || exception.value, location].filter(Boolean).join(' | ') || 'Runtime exception');
           cdp.events.splice(i, 1);
         }
         if (event.method === 'Log.entryAdded') {
@@ -337,6 +342,7 @@ async function run() {
         };
         return {
           page: document.body.dataset.page,
+          title: document.title,
           active,
           visible,
           topbar: topbar ? { left: topbar.left, width: topbar.width } : null,
@@ -359,6 +365,8 @@ async function run() {
       pushResult(`nav_${target}`, state.page === target && state.active === target, JSON.stringify(state));
       pushResult(`visible_${target}`, state.visible[target] === true, JSON.stringify(state.visible));
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
+      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos' };
+      pushResult(`title_${target}`, state.title === `Marconi Foods · ${titleLabels[target]} · 2026`, state.title);
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
         pushResult('fixed_accessibility_labels', state.a11y.tabs && state.a11y.cards && state.a11y.regions, JSON.stringify(state.a11y));
@@ -416,6 +424,50 @@ async function run() {
       return Math.abs(item.rect.left - initial.topbar.left) <= 1 && Math.abs(item.rect.width - initial.topbar.width) <= 2;
     });
     pushResult('topbar_stable_desktop', stable, JSON.stringify(topbarRects));
+
+    const controlledUx = await evaluate(`(async () => {
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+      document.querySelector('[data-page-link="cash"]')?.click();
+      await sleep(450);
+      const button = document.getElementById('monthSelectBtn');
+      const select = document.getElementById('monthSelect');
+      button?.click();
+      await sleep(80);
+      const openAfterClick = !!select?.classList.contains('open') && button?.getAttribute('aria-expanded') === 'true';
+      document.querySelector('.dashboard-main')?.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      await sleep(80);
+      const closedByOutside = !select?.classList.contains('open') && button?.getAttribute('aria-expanded') === 'false';
+      button?.click();
+      await sleep(80);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await sleep(80);
+      const closedByEscape = !select?.classList.contains('open') && button?.getAttribute('aria-expanded') === 'false';
+      document.getElementById('filterReset')?.click();
+      await sleep(260);
+      const toast = document.querySelector('.toast-v41');
+      const resetToast = !!toast && toast.classList.contains('show') && /Filtros resetados/.test(toast.textContent || '');
+      document.getElementById('presentationMode')?.click();
+      await sleep(260);
+      const sidebar = document.querySelector('.control-sidebar');
+      const presentationActive = document.body.classList.contains('presentation-mode');
+      const sidebarHidden = !!sidebar && (getComputedStyle(sidebar).display === 'none' || sidebar.getAttribute('aria-hidden') === 'true');
+      document.getElementById('presentationExit')?.click();
+      await sleep(260);
+      return {
+        page: document.body.dataset.page || '',
+        openAfterClick,
+        closedByOutside,
+        closedByEscape,
+        resetToast,
+        presentationActive,
+        sidebarHidden,
+        presentationRestored: !document.body.classList.contains('presentation-mode'),
+        sidebarAria: sidebar?.getAttribute('aria-hidden') || ''
+      };
+    })()`);
+    pushResult('period_dropdown_open_close', controlledUx.openAfterClick && controlledUx.closedByOutside && controlledUx.closedByEscape, JSON.stringify(controlledUx));
+    pushResult('filter_reset_toast', controlledUx.resetToast && controlledUx.page === 'cash', JSON.stringify(controlledUx));
+    pushResult('presentation_mode_sidebar_control', controlledUx.presentationActive && controlledUx.sidebarHidden && controlledUx.presentationRestored && controlledUx.sidebarAria === 'false', JSON.stringify(controlledUx));
 
     await evaluate(`document.querySelector('[data-page-link="fixed"]')?.click()`);
     await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });

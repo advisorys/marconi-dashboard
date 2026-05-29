@@ -243,7 +243,19 @@
       document.body.classList.toggle('v23-neutral', agg.resultado === 0);
     } catch(e){}
   }
-  document.addEventListener('mousemove', e => { document.body.style.setProperty('--mx', (e.clientX/window.innerWidth*100).toFixed(1)+'%'); document.body.style.setProperty('--my', (e.clientY/window.innerHeight*100).toFixed(1)+'%'); });
+  let dynamicPointerFrame = 0;
+  let dynamicPointerX = 50;
+  let dynamicPointerY = 50;
+  document.addEventListener('mousemove', e => {
+    dynamicPointerX = e.clientX / window.innerWidth * 100;
+    dynamicPointerY = e.clientY / window.innerHeight * 100;
+    if (dynamicPointerFrame) return;
+    dynamicPointerFrame = requestAnimationFrame(() => {
+      dynamicPointerFrame = 0;
+      document.body.style.setProperty('--mx', dynamicPointerX.toFixed(1) + '%');
+      document.body.style.setProperty('--my', dynamicPointerY.toFixed(1) + '%');
+    });
+  }, { passive: true });
   function addStagger(){
     document.querySelectorAll('.kpi-grid,.executive-summary-grid,.result-summary-strip,.critical-alerts-grid,.insights-grid,.rank-list,.hero-stats').forEach(group=>{
       group.classList.add('v23-stagger'); [...group.children].forEach((el,i)=>el.style.setProperty('--stagger', Math.min(i,12)));
@@ -527,5 +539,5 @@ function renderOutliers(){
   function updateCinemaProgress(){ const slides=document.querySelectorAll('.v23-cinema-slide'); const p=document.getElementById('v23CinemaProgress'); if(p) p.textContent = `${V23.cinemaIndex+1} / ${slides.length}`; }
 
   // initial boot after original init
-  document.addEventListener('DOMContentLoaded', () => { setTimeout(decorateAfterRender, 180); });
+  onDashboardReady(() => { setTimeout(decorateAfterRender, 180); });
 })();

@@ -1,11 +1,3 @@
-/* ===== script-3 ===== */
-(function syncHeroBrandLogo(){
-  function applyLogo(){
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyLogo, { once: true });
-  else applyLogo();
-})();
-
 /* ===== script-4 ===== */
 const DATA = window.__DATA__ || {};
 const PRECOMPUTED = DATA.precomputed || {};
@@ -32,14 +24,16 @@ const MONTH_NAMES_LONG = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio',
 const MONTH_NAMES_SHORT = ['', 'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 
 // ─── FORMATTERS ───
-const fmtMoney = (v) => {
+const fmtMoney = window.MarconiFormat?.moneyShort || ((v) => {
   if (Math.abs(v) >= 1000000) return (v >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(v) / 1000000).toFixed(2) + 'M';
   if (Math.abs(v) >= 1000) return (v >= 0 ? 'R$ ' : '-R$ ') + (Math.abs(v) / 1000).toFixed(0) + 'K';
   return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-};
-const fmtMoneyFull = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
-const fmtMoneyExact = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
-const fmtPct = (v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%';
+});
+const BRL_FULL_FORMATTER = window.MarconiFormat?.BRL_FULL_FORMATTER || new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const BRL_EXACT_FORMATTER = window.MarconiFormat?.BRL_EXACT_FORMATTER || new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtMoneyFull = window.MarconiFormat?.moneyFull || ((v) => BRL_FULL_FORMATTER.format(v));
+const fmtMoneyExact = window.MarconiFormat?.moneyExact || ((v) => BRL_EXACT_FORMATTER.format(v));
+const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%');
 
 // ─── HELPERS ───
 function isProjectionMonth(m) { return m >= 7; }
@@ -1038,7 +1032,20 @@ const intObs = new IntersectionObserver((entries) => {
 
 // ─── MOUSE + SCROLL ───
 const glow = document.getElementById('mouseGlow');
-window.addEventListener('mousemove', (e) => { if (glow) { glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px'; } });
+let glowFrame = 0;
+let glowX = 0;
+let glowY = 0;
+window.addEventListener('mousemove', (e) => {
+  if (!glow) return;
+  glowX = e.clientX;
+  glowY = e.clientY;
+  if (glowFrame) return;
+  glowFrame = requestAnimationFrame(() => {
+    glow.style.left = glowX + 'px';
+    glow.style.top = glowY + 'px';
+    glowFrame = 0;
+  });
+}, { passive: true });
 const progress = document.getElementById('scrollProgress');
 const filterBar = document.getElementById('filterBar');
 window.addEventListener('scroll', () => {
@@ -1121,4 +1128,4 @@ function init() {
   document.querySelectorAll('.reveal').forEach(el => intObs.observe(el));
   document.querySelectorAll('.hero [data-count-to]').forEach(el => { el.textContent = (el.dataset.prefix || '') + '0' + (el.dataset.suffix || ''); setTimeout(() => animateCount(el), 120); });
 }
-document.addEventListener('DOMContentLoaded', init);
+onDashboardReady(init);

@@ -218,13 +218,9 @@
   }
 
   // Entrada inicial, discreta, quando o dashboard abre.
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  onDashboardReady(function() {
     scheduleLayeredTransition(420);
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      scheduleLayeredTransition(420);
-    });
-  }
+  });
 
   console.log('[PATCH v62] Transição em camadas ativa.');
 })();
@@ -428,12 +424,10 @@
     }
   }, true);
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { observeBodyPage(); scheduleUpdate(220); });
-  } else {
+  onDashboardReady(function() {
     observeBodyPage();
-    scheduleUpdate(120);
-  }
+    scheduleUpdate(220);
+  });
 })();
 
 /* ===== patch-v67-kpi-countup-js ===== */
@@ -771,11 +765,7 @@
     window.__v70LayoutTimer = window.setTimeout(applyLayoutFixes, 60);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', schedule);
-  } else {
-    schedule();
-  }
+  onDashboardReady(schedule);
 
   window.addEventListener('load', schedule);
   window.addEventListener('resize', schedule, { passive: true });
@@ -887,11 +877,9 @@
     } catch (e) {}
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { scheduleLock(900); });
-  } else {
+  onDashboardReady(function() {
     scheduleLock(900);
-  }
+  });
 
   window.addEventListener('load', function() { scheduleLock(900); });
   window.addEventListener('resize', function() { scheduleLock(520); }, { passive: true });
@@ -975,8 +963,17 @@
     });
   }
 
+  const PAGE_TITLE_LABELS = {
+    director: 'Diretoria',
+    cash: 'Fluxo de Caixa',
+    fixed: 'Custos Fixos'
+  };
+
   function syncActivePageState() {
     const page = document.body && document.body.dataset.page ? document.body.dataset.page : 'cash';
+    if (PAGE_TITLE_LABELS[page]) {
+      document.title = `Marconi Foods · ${PAGE_TITLE_LABELS[page]} · 2026`;
+    }
     setInactiveState(CASH_SECTION_IDS.map(function(id) { return document.getElementById(id); }), page === 'cash');
     setInactiveState([document.getElementById('directoria')], page === 'director');
     setInactiveState([document.getElementById('fixed-costs')], page === 'fixed');
@@ -1036,11 +1033,15 @@
     }
   }, true);
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncActivePageState);
-  } else {
+  onDashboardReady(function() {
     syncActivePageState();
-  }
+  });
+  try {
+    new MutationObserver(syncActivePageState).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-page']
+    });
+  } catch (e) {}
   window.addEventListener('load', syncActivePageState);
   window.addEventListener('resize', syncActivePageState, { passive: true });
 
@@ -1160,7 +1161,8 @@
   }
 
   function rovingTabKeydown(event, selector) {
-    const current = event.target.closest(selector);
+    const target = event.target instanceof Element ? event.target : null;
+    const current = target?.closest(selector);
     if (!current) return false;
     const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
     if (!keys.includes(event.key)) return false;
@@ -1183,7 +1185,8 @@
   document.addEventListener('keydown', function(event) {
     if (rovingTabKeydown(event, '.page-tab')) return;
     if (rovingTabKeydown(event, '.fixed-view-tab')) return;
-    const actionable = event.target.closest('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)[role="button"]');
+    const target = event.target instanceof Element ? event.target : null;
+    const actionable = target?.closest('body[data-page="fixed"] :is(.fixed-row, .fixed-dev-item, .fixed-sensitive-card)[role="button"]');
     if (!actionable) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
@@ -1205,8 +1208,7 @@
     });
   } catch (e) {}
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyAccessibility);
-  else applyAccessibility();
+  onDashboardReady(applyAccessibility);
   window.addEventListener('load', applyAccessibility);
   window.addEventListener('resize', scheduleAccessibility, { passive: true });
 })();
@@ -1290,9 +1292,86 @@
     });
   } catch (e) {}
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { syncFixedTabState(); });
-  else syncFixedTabState();
+  onDashboardReady(function() { syncFixedTabState(); });
   window.addEventListener('load', function() { syncFixedTabState(); });
+})();
+
+/* ===== phase5-controlled-ux-js ===== */
+/* Keeps dropdowns, overlays and presentation mode predictable during user exploration. */
+(function() {
+  'use strict';
+  if (window.__phase5ControlledUxLoaded) return;
+  window.__phase5ControlledUxLoaded = true;
+
+  function periodSelect() {
+    return document.getElementById('monthSelect');
+  }
+
+  function periodButton() {
+    return document.getElementById('monthSelectBtn');
+  }
+
+  function closePeriodDropdown() {
+    const select = periodSelect();
+    const button = periodButton();
+    if (!select || !select.classList.contains('open')) return false;
+    select.classList.remove('open');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    return true;
+  }
+
+  function closeFixedFocusPanel() {
+    const panel = document.getElementById('fixedFocusPanel');
+    if (!panel || !panel.classList.contains('show')) return false;
+    panel.classList.remove('show');
+    panel.innerHTML = '';
+    return true;
+  }
+
+  function syncPresentationA11y() {
+    const active = document.body?.classList.contains('presentation-mode');
+    const sidebar = document.querySelector('.control-sidebar');
+    const exitButton = document.getElementById('presentationExit');
+    if (sidebar) {
+      sidebar.setAttribute('aria-hidden', active ? 'true' : 'false');
+      if ('inert' in sidebar) sidebar.inert = !!active;
+    }
+    if (exitButton) {
+      exitButton.setAttribute('aria-hidden', active ? 'false' : 'true');
+      exitButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
+  document.addEventListener('pointerdown', function(event) {
+    const select = periodSelect();
+    if (!select || !select.classList.contains('open')) return;
+    if (select.contains(event.target)) return;
+    closePeriodDropdown();
+  }, true);
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key !== 'Escape') return;
+    if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+    const handled = closePeriodDropdown() || closeFixedFocusPanel();
+    if (handled) event.preventDefault();
+  }, true);
+
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('#filterReset')) return;
+    window.setTimeout(function() {
+      if (typeof window.showToastV41 === 'function') window.showToastV41('Filtros resetados');
+    }, 140);
+  }, true);
+
+  try {
+    new MutationObserver(syncPresentationA11y).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  } catch (e) {}
+
+  onDashboardReady(syncPresentationA11y);
+  window.addEventListener('load', syncPresentationA11y);
 })();
 
 /* ===== phase5-fixed-kpi-replay-js ===== */
