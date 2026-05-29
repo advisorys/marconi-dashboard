@@ -27,6 +27,9 @@ jobs:
 
       - name: Run dashboard QA
         run: npm run qa
+        env:
+          QA_DEVTOOLS_TIMEOUT_MS: 90000
+          QA_CDP_TIMEOUT_MS: 45000
 
       - name: Upload QA screenshots
         if: always()

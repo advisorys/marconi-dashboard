@@ -6,10 +6,17 @@ import os from 'node:os';
 import { spawn } from 'node:child_process';
 
 const repoRoot = process.cwd();
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const devToolsTimeoutMs = Number(process.env.QA_DEVTOOLS_TIMEOUT_MS || (isCI ? 60000 : 25000));
+const cdpTimeoutMs = Number(process.env.QA_CDP_TIMEOUT_MS || (isCI ? 30000 : 15000));
 const chromeCandidates = [
   process.env.CHROME_PATH,
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser'
 ].filter(Boolean);
 const chromePath = chromeCandidates.find(candidate => fssync.existsSync(candidate));
 const outputDir = path.join(repoRoot, '.qa-output');
@@ -60,23 +67,61 @@ function startServer() {
   });
 }
 
-function waitForDevTools(chrome) {
+function freePort() {
   return new Promise((resolve, reject) => {
-    let buffer = '';
-    const timer = setTimeout(() => reject(new Error('Chrome DevTools timeout')), 15000);
-    chrome.stderr.on('data', chunk => {
-      buffer += chunk.toString();
-      const match = buffer.match(/DevTools listening on (ws:\/\/[^\s]+)/);
-      if (match) {
-        clearTimeout(timer);
-        resolve(match[1]);
-      }
-    });
-    chrome.on('exit', code => {
-      clearTimeout(timer);
-      reject(new Error(`Chrome exited before DevTools was ready: ${code}`));
+    const server = http.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const port = server.address().port;
+      server.close(() => resolve(port));
     });
   });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createLogBuffer(limit = 12000) {
+  let value = '';
+  return {
+    push(chunk) {
+      value += chunk.toString();
+      if (value.length > limit) value = value.slice(-limit);
+    },
+    tail() {
+      return value.trim();
+    }
+  };
+}
+
+async function pollDevToolsUrl(debugPort) {
+  const response = await fetch(`http://127.0.0.1:${debugPort}/json/version`, {
+    signal: AbortSignal.timeout(1500)
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const payload = await response.json();
+  if (!payload.webSocketDebuggerUrl) throw new Error('webSocketDebuggerUrl ausente');
+  return payload.webSocketDebuggerUrl;
+}
+
+async function waitForDevTools(chrome, debugPort, chromeLog) {
+  let exitCode = null;
+  chrome.once('exit', code => {
+    exitCode = code;
+  });
+  const started = Date.now();
+  while (Date.now() - started < devToolsTimeoutMs) {
+    if (exitCode !== null) {
+      throw new Error(`Chrome exited before DevTools was ready: ${exitCode}. stderr: ${chromeLog.tail()}`);
+    }
+    try {
+      return await pollDevToolsUrl(debugPort);
+    } catch (error) {
+      await sleep(350);
+    }
+  }
+  throw new Error(`Chrome DevTools timeout after ${devToolsTimeoutMs}ms on port ${debugPort}. stderr: ${chromeLog.tail()}`);
 }
 
 class CDP {
@@ -99,7 +144,7 @@ class CDP {
   }
   async open() {
     await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('WebSocket timeout')), 10000);
+      const timer = setTimeout(() => reject(new Error('WebSocket timeout')), cdpTimeoutMs);
       this.ws.onopen = () => { clearTimeout(timer); resolve(); };
       this.ws.onerror = error => { clearTimeout(timer); reject(error); };
     });
@@ -116,10 +161,10 @@ class CDP {
           this.pending.delete(id);
           reject(new Error(`CDP timeout: ${method}`));
         }
-      }, 15000);
+      }, cdpTimeoutMs);
     });
   }
-  waitFor(method, sessionId, timeout = 15000) {
+  waitFor(method, sessionId, timeout = cdpTimeoutMs) {
     const started = Date.now();
     return new Promise((resolve, reject) => {
       const poll = () => {
@@ -144,6 +189,8 @@ async function run() {
   if (!chromePath) throw new Error(`Chrome/Edge not found. Set CHROME_PATH to a Chromium executable.`);
   const { server, port } = await startServer();
   const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'marconi-qa-'));
+  const debugPort = Number(process.env.QA_CHROME_DEBUG_PORT || 0) || await freePort();
+  const chromeLog = createLogBuffer();
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--disable-gpu',
@@ -151,13 +198,20 @@ async function run() {
     '--disable-default-apps',
     '--disable-extensions',
     '--disable-sync',
+    '--disable-dev-shm-usage',
     '--metrics-recording-only',
     '--no-first-run',
-    '--remote-debugging-port=0',
+    '--no-default-browser-check',
+    '--no-sandbox',
+    '--remote-allow-origins=*',
+    '--remote-debugging-address=127.0.0.1',
+    `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${userDataDir}`,
     '--window-size=1440,980',
     'about:blank'
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  chrome.stdout.on('data', chunk => chromeLog.push(chunk));
+  chrome.stderr.on('data', chunk => chromeLog.push(chunk));
 
   const warnings = [];
   const errors = [];
@@ -165,7 +219,7 @@ async function run() {
   const screenshots = {};
 
   try {
-    const wsUrl = await waitForDevTools(chrome);
+    const wsUrl = await waitForDevTools(chrome, debugPort, chromeLog);
     const cdp = new CDP(wsUrl);
     await cdp.open();
     const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
@@ -544,8 +598,9 @@ async function run() {
     }, null, 2));
     process.exitCode = passed ? 0 : 1;
   } finally {
-    chrome.kill();
+    if (!chrome.killed) chrome.kill();
     server.close();
+    await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
