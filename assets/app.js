@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260528235624
+ * Build: 20260529042723
  * Mode: production
  */
 
@@ -182,6 +182,70 @@
     easeOutCubic,
     countUpGroup
   };
+})();
+
+/* Lightweight app events and performance marks for safer cross-module hooks. */
+(function () {
+  'use strict';
+  if (!window.MarconiEvents) {
+    const prefix = 'marconi:';
+    window.MarconiEvents = {
+      emit(name, detail) {
+        if (!name || typeof CustomEvent !== 'function') return false;
+        document.dispatchEvent(new CustomEvent(prefix + name, {
+          detail: detail || {},
+          bubbles: false
+        }));
+        return true;
+      },
+      on(name, handler, options) {
+        if (!name || typeof handler !== 'function') return function noop() {};
+        const eventName = prefix + name;
+        document.addEventListener(eventName, handler, options);
+        return function unsubscribe() {
+          document.removeEventListener(eventName, handler, options);
+        };
+      }
+    };
+  }
+
+  if (window.MarconiPerf) return;
+
+  function supported() {
+    return !!(window.performance && typeof performance.mark === 'function');
+  }
+
+  function mark(name) {
+    if (!supported() || !name) return false;
+    try {
+      performance.mark('marconi:' + name);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function start(name) {
+    return mark(name + ':start');
+  }
+
+  function end(name, detail) {
+    if (!supported() || !name) return false;
+    const startName = 'marconi:' + name + ':start';
+    const endName = 'marconi:' + name + ':end';
+    try {
+      performance.mark(endName);
+      performance.measure('marconi:' + name, startName, endName);
+      if (window.MarconiEvents) {
+        window.MarconiEvents.emit('perf:measure', { name, detail: detail || {} });
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  window.MarconiPerf = { mark, start, end };
 })();
 
 /* ===== src/js/10-cashflow.js ===== */
@@ -1187,6 +1251,7 @@ function forceVisibleDynamicBlocks() {
 }
 
 function applyFilter() {
+  window.MarconiPerf?.start('filter-render');
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
@@ -1197,6 +1262,17 @@ function applyFilter() {
     });
     forceVisibleDynamicBlocks();
   }
+  try {
+    const period = getActivePeriod();
+    window.MarconiEvents?.emit('filter:changed', {
+      page: currentPage,
+      periodMode: activePeriodMode,
+      months: period.months,
+      flow: selectedFlow,
+      category: selectedCategoryName
+    });
+    window.MarconiPerf?.end('filter-render', { page: currentPage, periodMode: activePeriodMode });
+  } catch (e) {}
 }
 
 // ─── TOOLTIP ───
@@ -1236,12 +1312,18 @@ window.addEventListener('mousemove', (e) => {
 }, { passive: true });
 const progress = document.getElementById('scrollProgress');
 const filterBar = document.getElementById('filterBar');
+let scrollFrame = 0;
 window.addEventListener('scroll', () => {
-  const h = document.documentElement;
-  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
-  if (progress) progress.style.width = pct + '%';
-  if (filterBar) filterBar.classList.toggle('scrolled', h.scrollTop > 100);
-});
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    if (progress) progress.style.width = pct + '%';
+    if (filterBar) filterBar.classList.toggle('scrolled', h.scrollTop > 100);
+    scrollFrame = 0;
+  });
+}, { passive: true });
 
 
 function togglePresentationMode(force) {
@@ -1980,9 +2062,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
 (function initFixedCostsPage() {
   window.FIXED_COST_DATA = FIXED_COST_DATA; /* V42: expor para o painel de foco encontrar itens */
+  const fixedMoneyFormatter = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}).format;
   function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
   function fixedMoney(v) {
-    try { return fmtMoneyFull(v || 0); } catch(e) { return new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}).format(v || 0); }
+    try { return fixedMoneyFormatter(v || 0); } catch(e) { return fmtMoneyFull(v || 0); }
   }
   function fixedPct(v) {
     try { return fmtPct(v || 0); } catch(e) { return `${(v||0).toFixed(1)}%`; }
@@ -2452,7 +2535,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 /* ===== script-8 ===== */
 /* ━━━ V37 · duas páginas internas + interação de rubrica dos custos fixos ━━━ */
 (function(){
-  const money = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(Number(v||0));
+  const money = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
   const pct = v => `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
   const monthLabel = m => (window.FIXED_COST_DATA?.months?.[m-1] || ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'][m-1] || '—');
   const realized = m => m >= 1 && m <= 6;
@@ -2565,7 +2648,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 /* ===== script-9 ===== */
 /* ━━━ V38 · página Diretoria: leitura de bater o olho ━━━ */
 (function(){
-  function safeMoney(v){ try{return fmtMoneyFull(v||0);}catch(e){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v||0);} }
+  const directorMoneyFormatter = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
+  function safeMoney(v){ try{return directorMoneyFormatter(v||0);}catch(e){return fmtMoneyFull(v||0);} }
   function safeShort(v){ try{return fmtMoney(v||0);}catch(e){return safeMoney(v);} }
   function safePct(v){ return `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`; }
   function activePeriod(){ try{return getActivePeriod();}catch(e){return {months:[1,2,3,4,5,6,7,8,9,10,11,12], label:'2026', short:'2026', mode:'year'};} }
@@ -4953,4 +5037,75 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   } catch (e) {}
 
   if (document.body?.dataset.page === 'fixed') replaySoon(160);
+})();
+
+/* ===== backlog-events-performance-js ===== */
+/* Adds stable CustomEvent hooks and performance marks for QA and future modules. */
+(function() {
+  'use strict';
+  if (window.__backlogEventsPerformanceLoaded) return;
+  window.__backlogEventsPerformanceLoaded = true;
+
+  function emit(name, detail) {
+    if (window.MarconiEvents) window.MarconiEvents.emit(name, detail);
+  }
+
+  function currentPage() {
+    return document.body?.dataset.page || 'cash';
+  }
+
+  function currentFixedView() {
+    return document.body?.dataset.fixedView || 'overview';
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function' && !previousSetPage.__backlogEventsWrapped) {
+    const wrappedSetPage = function(page) {
+      const from = currentPage();
+      const requested = page || from;
+      window.MarconiPerf?.start('page-change');
+      emit('page:before-change', { from, to: requested });
+      const result = previousSetPage.apply(this, arguments);
+      requestAnimationFrame(function() {
+        const to = currentPage();
+        emit('page:changed', { from, to, requested });
+        window.MarconiPerf?.end('page-change', { from, to, requested });
+      });
+      return result;
+    };
+    wrappedSetPage.__backlogEventsWrapped = true;
+    window.setDashboardPage = wrappedSetPage;
+  }
+
+  const previousSetFixedCostView = window.setFixedCostView;
+  if (typeof previousSetFixedCostView === 'function' && !previousSetFixedCostView.__backlogEventsWrapped) {
+    const wrappedSetFixedCostView = function(view) {
+      const from = currentFixedView();
+      const result = previousSetFixedCostView.apply(this, arguments);
+      requestAnimationFrame(function() {
+        emit('fixed-view:changed', { from, to: currentFixedView(), requested: view });
+      });
+      return result;
+    };
+    wrappedSetFixedCostView.__backlogEventsWrapped = true;
+    window.setFixedCostView = wrappedSetFixedCostView;
+  }
+
+  const previousApplyFilter = window.applyFilter || (typeof applyFilter === 'function' ? applyFilter : null);
+  if (typeof previousApplyFilter === 'function' && !previousApplyFilter.__backlogEventsWrapped) {
+    const wrappedApplyFilter = function() {
+      const result = previousApplyFilter.apply(this, arguments);
+      requestAnimationFrame(function() {
+        emit('filter:rendered', { page: currentPage() });
+      });
+      return result;
+    };
+    wrappedApplyFilter.__backlogEventsWrapped = true;
+    try { applyFilter = window.applyFilter = wrappedApplyFilter; } catch (e) { window.applyFilter = wrappedApplyFilter; }
+  }
+
+  onDashboardReady(function() {
+    emit('app:ready', { page: currentPage(), fixedView: currentFixedView() });
+    window.MarconiPerf?.mark('app-ready');
+  });
 })();

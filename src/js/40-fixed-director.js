@@ -5,9 +5,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
 (function initFixedCostsPage() {
   window.FIXED_COST_DATA = FIXED_COST_DATA; /* V42: expor para o painel de foco encontrar itens */
+  const fixedMoneyFormatter = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}).format;
   function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
   function fixedMoney(v) {
-    try { return fmtMoneyFull(v || 0); } catch(e) { return new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}).format(v || 0); }
+    try { return fixedMoneyFormatter(v || 0); } catch(e) { return fmtMoneyFull(v || 0); }
   }
   function fixedPct(v) {
     try { return fmtPct(v || 0); } catch(e) { return `${(v||0).toFixed(1)}%`; }
@@ -477,7 +478,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 /* ===== script-8 ===== */
 /* ━━━ V37 · duas páginas internas + interação de rubrica dos custos fixos ━━━ */
 (function(){
-  const money = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(Number(v||0));
+  const money = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
   const pct = v => `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
   const monthLabel = m => (window.FIXED_COST_DATA?.months?.[m-1] || ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'][m-1] || '—');
   const realized = m => m >= 1 && m <= 6;
@@ -590,7 +591,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 /* ===== script-9 ===== */
 /* ━━━ V38 · página Diretoria: leitura de bater o olho ━━━ */
 (function(){
-  function safeMoney(v){ try{return fmtMoneyFull(v||0);}catch(e){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v||0);} }
+  const directorMoneyFormatter = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
+  function safeMoney(v){ try{return directorMoneyFormatter(v||0);}catch(e){return fmtMoneyFull(v||0);} }
   function safeShort(v){ try{return fmtMoney(v||0);}catch(e){return safeMoney(v);} }
   function safePct(v){ return `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`; }
   function activePeriod(){ try{return getActivePeriod();}catch(e){return {months:[1,2,3,4,5,6,7,8,9,10,11,12], label:'2026', short:'2026', mode:'year'};} }

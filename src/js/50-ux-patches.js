@@ -1416,3 +1416,74 @@
 
   if (document.body?.dataset.page === 'fixed') replaySoon(160);
 })();
+
+/* ===== backlog-events-performance-js ===== */
+/* Adds stable CustomEvent hooks and performance marks for QA and future modules. */
+(function() {
+  'use strict';
+  if (window.__backlogEventsPerformanceLoaded) return;
+  window.__backlogEventsPerformanceLoaded = true;
+
+  function emit(name, detail) {
+    if (window.MarconiEvents) window.MarconiEvents.emit(name, detail);
+  }
+
+  function currentPage() {
+    return document.body?.dataset.page || 'cash';
+  }
+
+  function currentFixedView() {
+    return document.body?.dataset.fixedView || 'overview';
+  }
+
+  const previousSetPage = window.setDashboardPage;
+  if (typeof previousSetPage === 'function' && !previousSetPage.__backlogEventsWrapped) {
+    const wrappedSetPage = function(page) {
+      const from = currentPage();
+      const requested = page || from;
+      window.MarconiPerf?.start('page-change');
+      emit('page:before-change', { from, to: requested });
+      const result = previousSetPage.apply(this, arguments);
+      requestAnimationFrame(function() {
+        const to = currentPage();
+        emit('page:changed', { from, to, requested });
+        window.MarconiPerf?.end('page-change', { from, to, requested });
+      });
+      return result;
+    };
+    wrappedSetPage.__backlogEventsWrapped = true;
+    window.setDashboardPage = wrappedSetPage;
+  }
+
+  const previousSetFixedCostView = window.setFixedCostView;
+  if (typeof previousSetFixedCostView === 'function' && !previousSetFixedCostView.__backlogEventsWrapped) {
+    const wrappedSetFixedCostView = function(view) {
+      const from = currentFixedView();
+      const result = previousSetFixedCostView.apply(this, arguments);
+      requestAnimationFrame(function() {
+        emit('fixed-view:changed', { from, to: currentFixedView(), requested: view });
+      });
+      return result;
+    };
+    wrappedSetFixedCostView.__backlogEventsWrapped = true;
+    window.setFixedCostView = wrappedSetFixedCostView;
+  }
+
+  const previousApplyFilter = window.applyFilter || (typeof applyFilter === 'function' ? applyFilter : null);
+  if (typeof previousApplyFilter === 'function' && !previousApplyFilter.__backlogEventsWrapped) {
+    const wrappedApplyFilter = function() {
+      const result = previousApplyFilter.apply(this, arguments);
+      requestAnimationFrame(function() {
+        emit('filter:rendered', { page: currentPage() });
+      });
+      return result;
+    };
+    wrappedApplyFilter.__backlogEventsWrapped = true;
+    try { applyFilter = window.applyFilter = wrappedApplyFilter; } catch (e) { window.applyFilter = wrappedApplyFilter; }
+  }
+
+  onDashboardReady(function() {
+    emit('app:ready', { page: currentPage(), fixedView: currentFixedView() });
+    window.MarconiPerf?.mark('app-ready');
+  });
+})();

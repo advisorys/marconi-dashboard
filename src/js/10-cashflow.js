@@ -999,6 +999,7 @@ function forceVisibleDynamicBlocks() {
 }
 
 function applyFilter() {
+  window.MarconiPerf?.start('filter-render');
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
@@ -1009,6 +1010,17 @@ function applyFilter() {
     });
     forceVisibleDynamicBlocks();
   }
+  try {
+    const period = getActivePeriod();
+    window.MarconiEvents?.emit('filter:changed', {
+      page: currentPage,
+      periodMode: activePeriodMode,
+      months: period.months,
+      flow: selectedFlow,
+      category: selectedCategoryName
+    });
+    window.MarconiPerf?.end('filter-render', { page: currentPage, periodMode: activePeriodMode });
+  } catch (e) {}
 }
 
 // ─── TOOLTIP ───
@@ -1048,12 +1060,18 @@ window.addEventListener('mousemove', (e) => {
 }, { passive: true });
 const progress = document.getElementById('scrollProgress');
 const filterBar = document.getElementById('filterBar');
+let scrollFrame = 0;
 window.addEventListener('scroll', () => {
-  const h = document.documentElement;
-  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
-  if (progress) progress.style.width = pct + '%';
-  if (filterBar) filterBar.classList.toggle('scrolled', h.scrollTop > 100);
-});
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    if (progress) progress.style.width = pct + '%';
+    if (filterBar) filterBar.classList.toggle('scrolled', h.scrollTop > 100);
+    scrollFrame = 0;
+  });
+}, { passive: true });
 
 
 function togglePresentationMode(force) {

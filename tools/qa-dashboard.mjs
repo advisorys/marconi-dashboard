@@ -523,6 +523,24 @@ async function run() {
     pushResult('filter_reset_toast', controlledUx.resetToast && controlledUx.page === 'cash', JSON.stringify(controlledUx));
     pushResult('presentation_mode_sidebar_control', controlledUx.presentationActive && controlledUx.sidebarHidden && controlledUx.presentationRestored && controlledUx.sidebarAria === 'false', JSON.stringify(controlledUx));
 
+    const telemetry = await evaluate(`(async () => {
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const events = [];
+      const unsubscribe = window.MarconiEvents?.on('page:changed', event => events.push(event.detail));
+      const beforeMeasures = performance.getEntriesByName('marconi:page-change').length;
+      window.setDashboardPage?.('director');
+      await sleep(850);
+      if (typeof unsubscribe === 'function') unsubscribe();
+      return {
+        hasEvents: !!window.MarconiEvents,
+        hasPerf: !!window.MarconiPerf,
+        page: document.body.dataset.page || '',
+        events,
+        newMeasures: performance.getEntriesByName('marconi:page-change').length - beforeMeasures
+      };
+    })()`);
+    pushResult('custom_events_and_perf_marks', telemetry.hasEvents && telemetry.hasPerf && telemetry.page === 'director' && telemetry.events.length >= 1 && telemetry.newMeasures >= 1, JSON.stringify(telemetry));
+
     await evaluate(`document.querySelector('[data-page-link="fixed"]')?.click()`);
     await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });
     await screenshot('phase5-desktop-fixed');

@@ -176,3 +176,67 @@
     countUpGroup
   };
 })();
+
+/* Lightweight app events and performance marks for safer cross-module hooks. */
+(function () {
+  'use strict';
+  if (!window.MarconiEvents) {
+    const prefix = 'marconi:';
+    window.MarconiEvents = {
+      emit(name, detail) {
+        if (!name || typeof CustomEvent !== 'function') return false;
+        document.dispatchEvent(new CustomEvent(prefix + name, {
+          detail: detail || {},
+          bubbles: false
+        }));
+        return true;
+      },
+      on(name, handler, options) {
+        if (!name || typeof handler !== 'function') return function noop() {};
+        const eventName = prefix + name;
+        document.addEventListener(eventName, handler, options);
+        return function unsubscribe() {
+          document.removeEventListener(eventName, handler, options);
+        };
+      }
+    };
+  }
+
+  if (window.MarconiPerf) return;
+
+  function supported() {
+    return !!(window.performance && typeof performance.mark === 'function');
+  }
+
+  function mark(name) {
+    if (!supported() || !name) return false;
+    try {
+      performance.mark('marconi:' + name);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function start(name) {
+    return mark(name + ':start');
+  }
+
+  function end(name, detail) {
+    if (!supported() || !name) return false;
+    const startName = 'marconi:' + name + ':start';
+    const endName = 'marconi:' + name + ':end';
+    try {
+      performance.mark(endName);
+      performance.measure('marconi:' + name, startName, endName);
+      if (window.MarconiEvents) {
+        window.MarconiEvents.emit('perf:measure', { name, detail: detail || {} });
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  window.MarconiPerf = { mark, start, end };
+})();
