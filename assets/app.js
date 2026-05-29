@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260529042723
+ * Build: 20260529141548
  * Mode: production
  */
 
@@ -2038,13 +2038,6 @@ function renderOutliers(){
     btn.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
     }, true);
-    const warmExport = function() {
-      loadExportModule().catch(function(error) {
-        console.warn('[Export] Preload adiado:', error);
-      });
-    };
-    btn.addEventListener('pointerenter', warmExport, { once: true, passive: true });
-    btn.addEventListener('focus', warmExport, { once: true });
   }
 
   window.loadDashboardExportModule = loadExportModule;
