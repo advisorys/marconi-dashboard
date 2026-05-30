@@ -1,0 +1,11 @@
+{
+  "conclusion": "success",
+  "status": "completed",
+  "sha": "80bff867325f0cde97cc315fcb92da9c627db0b9",
+  "branch": "main",
+  "run_id": "26691953457",
+  "run_url": "https://github.com/advisorys/marconi-dashboard/actions/runs/26691953457",
+  "run_number": "7",
+  "updated_at": "2026-05-30T18:47:46Z",
+  "workflow": "Dashboard QA"
+}
