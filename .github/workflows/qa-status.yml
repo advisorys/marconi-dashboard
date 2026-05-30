@@ -1,0 +1,46 @@
+name: Publish QA status
+
+# Roda DEPOIS do workflow "Dashboard QA" e publica o resultado (success/failure)
+# numa branch dedicada `qa-status` (1 arquivo: status.json). Não toca a main nem o site.
+# A automação diária do Cowork lê isso via `git show origin/qa-status:status.json`,
+# fechando o loop do QA de browser sem precisar de conector nem da API do GitHub.
+
+on:
+  workflow_run:
+    workflows: ["Dashboard QA"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qa-status
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Montar e publicar status.json
+        run: |
+          set -e
+          mkdir status && cd status
+          cat > status.json <<EOF
+          {
+            "conclusion": "${{ github.event.workflow_run.conclusion }}",
+            "status": "${{ github.event.workflow_run.status }}",
+            "sha": "${{ github.event.workflow_run.head_sha }}",
+            "branch": "${{ github.event.workflow_run.head_branch }}",
+            "run_id": "${{ github.event.workflow_run.id }}",
+            "run_url": "${{ github.event.workflow_run.html_url }}",
+            "run_number": "${{ github.event.workflow_run.run_number }}",
+            "updated_at": "${{ github.event.workflow_run.updated_at }}",
+            "workflow": "${{ github.event.workflow_run.name }}"
+          }
+          EOF
+          git init -q
+          git checkout -q -b qa-status
+          git add status.json
+          git -c user.email=actions@github.com -c user.name="GitHub Actions" \
+            commit -q -m "QA status: ${{ github.event.workflow_run.conclusion }} @ ${{ github.event.workflow_run.head_sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" qa-status
