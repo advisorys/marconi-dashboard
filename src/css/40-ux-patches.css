@@ -699,17 +699,27 @@ body.v62-layered-transition [data-v62-layer="true"] {
   --surface-2: rgba(12, 18, 31, .88) !important;
   --border: rgba(70, 83, 112, .58) !important;
   --border-2: rgba(214, 169, 79, .38) !important;
+  /* Chrome (Fase 6 fatia 2): fundo do app, sidebar e topbar. Sem !important —
+     o tema claro (50-theme-light.css) sobrescreve por especificidade maior.
+     Valores dark identicos aos originais chumbados abaixo. */
+  --app-bg-grad: linear-gradient(180deg, #070b12 0%, #0a101b 46%, #080d16 100%);
+  --chrome-bg: rgba(9, 14, 25, .92);
+  --chrome-border: rgba(70, 83, 112, .52);
+  /* Superficies de card/painel (Fase 6 fatia 3). Valores dark identicos aos chumbados. */
+  --card-bg:      linear-gradient(145deg, rgba(16, 24, 39, .94), rgba(8, 13, 24, .88));
+  --panel-bg:     linear-gradient(180deg, rgba(16, 23, 37, .94), rgba(9, 14, 26, .92));
+  --panel-border: rgba(48, 58, 80, .78);
 }
 
 html body {
   background:
-    linear-gradient(180deg, #070b12 0%, #0a101b 46%, #080d16 100%) !important;
+    var(--app-bg-grad) !important;
 }
 
 html body header.top-site-nav,
 html body .control-sidebar {
-  background: rgba(9, 14, 25, .92) !important;
-  border-color: rgba(70, 83, 112, .52) !important;
+  background: var(--chrome-bg) !important;
+  border-color: var(--chrome-border) !important;
   box-shadow: 0 18px 48px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
 
@@ -730,8 +740,8 @@ html body .control-sidebar {
   .rank-item,
   .mini-alert
 ) {
-  background: linear-gradient(145deg, rgba(16, 24, 39, .94), rgba(8, 13, 24, .88)) !important;
-  border-color: rgba(70, 83, 112, .58) !important;
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
   box-shadow: 0 12px 34px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .028) !important;
 }
 

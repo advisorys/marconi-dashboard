@@ -1,0 +1,260 @@
+/* Tema claro — overrides de tokens. O dark e o padrao (sem data-theme).
+   NB: as camadas de patch (30-exec v24, 40-ux v68) re-declaram a paleta; o v68 usa !important.
+   Por isso os tokens que o v68 forca levam !important aqui (especificidade html[data-theme] > :root). */
+html[data-theme="light"] {
+  /* ===== Off-white quente premium =====
+     Neutros em tons marfim/areia (nao branco puro); cards brancos para elevacao real.
+     Semanticas (verde/vermelho/ambar) preservadas. Dark intocado. */
+  --bg:        #F4F1EA;   /* marfim */
+  --bg-elev:   #FBF9F4;
+  --surface:   #FFFFFF !important;   /* cards puros -> elevacao sobre o marfim */
+  --surface-2: #EFEAE0 !important;   /* areia */
+  --surface-3: #E8E1D4 !important;
+  --border:    #E2DBCD !important;   /* borda quente */
+  --border-2:  #D6CDBB !important;
+  --text:      #1A1714;   /* quase-preto quente */
+  --text-dim:  #5A5145;   /* marrom-acinzentado (AA em card branco/marfim) */
+  --text-mute: #877C6C;
+  --indigo:    #4F46E5;
+  --indigo-d:  #4338CA;
+  --cyan:      #0E7490 !important;
+  --green:     #15803D !important;
+  --gold:      #B45309 !important;   /* ambar profundo (acento da marca) */
+  --gold-l:    #C2710C !important;
+  --red:       #DC2626 !important;
+  --purple-d:  #F1ECE1;
+  --purple-m:  #E8E0D0;
+  --control-active-border: rgba(180,83,9,0.55);
+  /* Companheiros RGB — espelham os hex quentes acima. */
+  --bg-rgb:        244,241,234;
+  --bg-elev-rgb:   251,249,244;
+  --surface-rgb:   255,255,255;
+  --surface-2-rgb: 239,234,224;
+  --border-rgb:    226,219,205;
+  --border-2-rgb:  214,205,187;
+  --indigo-rgb:    79,70,229;
+  --cyan-rgb:      14,116,144;
+  --switcher-border-rgb: 214,205,187;
+  --action-outline-text: #4F46E5;
+  /* Chrome (topbar/sidebar/fundo do app) em tons quentes. */
+  --app-bg-grad: linear-gradient(180deg, #FBF9F4 0%, #F4F1EA 46%, #EDE8DD 100%);
+  --chrome-bg: rgba(255,253,249,0.94);
+  --chrome-border: rgba(214,205,187,0.9);
+  /* Superficies de card/painel: branco com leve calor; elevacao vem da sombra quente abaixo. */
+  --card-bg:      linear-gradient(145deg, #FFFFFF, #FBF8F2);
+  --panel-bg:     linear-gradient(180deg, #FFFFFF, #FAF6EF);
+  --panel-border: rgba(214,205,187,0.9);
+  /* Sombra quente reutilizavel para elevacao premium dos cards. */
+  --card-shadow: 0 10px 30px rgba(120,90,40,0.12), 0 2px 8px rgba(120,90,40,0.06);
+  color-scheme: light;
+}
+html:not([data-theme="light"]) { color-scheme: dark; }
+
+/* ============================================================
+   Fatia 3+ — overrides estruturais do tema claro.
+   As camadas de patch (30-exec, 40-ux) chumbam superficies/controles/textos em
+   dark com !important. Aqui o claro vence por especificidade (html[data-theme="light"])
+   + !important, SEM tocar no dark. Agrupado por area; refinar no QA (contraste AA). */
+
+/* Paineis e metricas neutros (nao cobertos por --card-bg do 40-ux:716) */
+html[data-theme="light"] :is(
+  .exec-metric, .result-summary-item, .category-metric, .v23-compare-card,
+  .insight-card, .category-detail, .month-detail-panel, .v23-cinema-metric
+) {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+
+/* Tabelas, toolbars e rotulos de heatmap (fundo solido) */
+html[data-theme="light"] :is(
+  .data-table, .data-table th, .data-table tr.total-row td,
+  .v23-rank-toolbar, .v23-table-toolbar, .heatmap-name
+) {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Controles da sidebar e chips */
+html[data-theme="light"] :is(
+  .month-select-btn, .month-dropdown, .period-row, .month-row,
+  .flow-pill, .filter-pill, .sidebar-action, .v23-chip
+) {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+
+/* Rotulos, eyebrows e nav: texto chumbado #98A3B6 -> texto dim legivel */
+html[data-theme="light"] :is(
+  .kpi-label, .eyebrow, .hero-meta, .sidebar-section-title, .filter-title,
+  .toolbar-title, .period-list-label, .executive-eyebrow, .section-header .right,
+  .result-toolbar, .top-site-nav a
+) {
+  color: var(--text-dim) !important;
+}
+
+/* Acentos dourados em texto (#E0C078 -> ambar profundo, sem glow) para contraste AA */
+html[data-theme="light"] :is(
+  .number-gold, .hero-headline .accent, .rank-num, .rank-pct, .hero-brand-kicker,
+  .section-context, .heatmap-head, .v23-cinema-kicker
+) {
+  color: var(--gold) !important;
+  text-shadow: none !important;
+}
+
+/* Textos semanticos claros chumbados (#FCA5A5 rosa, #A5B4FC lilas) -> tokens legiveis no branco.
+   Scoped no modificador para nao afetar o dark nem outros elementos. */
+html[data-theme="light"] :is(.monthly-card-badge.bad, .outlier-pill) { color: var(--red) !important; }
+html[data-theme="light"] :is(.monthly-card-badge.good) { color: var(--green) !important; }
+html[data-theme="light"] :is(.monthly-card-badge.proj, .composition-month.projection .composition-label) { color: var(--indigo-d) !important; }
+
+/* Custos Fixos (fatia 4): cards, KPIs, toolbars e abas internas chumbados em dark
+   (vivem fora de .dashboard-main, entao o --card-bg do 40-ux nao os alcanca). */
+html[data-theme="light"] :is(
+  .fixed-card, .fixed-kpi, .fixed-exec-card, .fixed-chart-card, .fixed-wide
+) {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+html[data-theme="light"] :is(.fixed-page-toolbar, .card-toolbar, .fixed-view-tabs) {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+/* Mapa de desvios: cabecalho/nomes e grade (celulas de desvio mantem cor de dado) */
+html[data-theme="light"] :is(.fixed-heatmap-head, .fixed-heatmap-row-name, .fixed-heatmap-cell.empty, .fixed-heatmap-cell.zero-cell) {
+  background: var(--surface-2) !important;
+}
+html[data-theme="light"] :is(.fixed-heatmap-cell, .fixed-heatmap-head, .fixed-heatmap-row-name) {
+  border-right-color: var(--border) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+/* Fluxo (fatia 3): paineis mensais / concentracao */
+html[data-theme="light"] :is(
+  .monthly-focus-stat, .monthly-concentration-card, .monthly-side-panel
+) {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+/* Metodologia: colunas internas sem classe */
+html[data-theme="light"] .methodology-content div { background: var(--surface) !important; }
+
+/* ---- Fatia 5: graficos SVG do Fluxo (10-cashflow.js) ----
+   Tinta estrutural chumbada nos atributos SVG. CSS fill/stroke vence o atributo de
+   apresentacao, entao corrige no claro sem tocar no dark e atualiza no toggle ao vivo
+   (sem redesenhar). So afeta os hexes exatos usados como tinta, preservando dados (gold/etc.). */
+html[data-theme="light"] svg text[fill="#FFFFFF"] { fill: var(--text) !important; }
+html[data-theme="light"] svg text[fill="#5A6580"] { fill: var(--text-mute) !important; }
+html[data-theme="light"] svg text[fill="#94A0B8"] { fill: var(--text-dim) !important; }
+html[data-theme="light"] svg text[fill="#10B981"] { fill: var(--green) !important; }
+html[data-theme="light"] svg text[fill="#EF4444"] { fill: var(--red) !important; }
+html[data-theme="light"] svg line[stroke="#1F2440"] { stroke: var(--border) !important; }
+/* Acentos de dado em linha/ponto (sparklines, dots, eixos destacados): paleta clara mais
+   profunda para contraste no branco. Gradientes de barra usam stop-color (nao afetados). */
+html[data-theme="light"] svg [stroke="#FCD34D"] { stroke: var(--gold) !important; }
+html[data-theme="light"] svg [fill="#FCD34D"]   { fill: var(--gold) !important; }
+html[data-theme="light"] svg [stroke="#06B6D4"] { stroke: var(--cyan) !important; }
+html[data-theme="light"] svg [fill="#06B6D4"]   { fill: var(--cyan) !important; }
+html[data-theme="light"] svg [stroke="#6366F1"] { stroke: var(--indigo) !important; }
+html[data-theme="light"] svg [fill="#6366F1"]   { fill: var(--indigo) !important; }
+html[data-theme="light"] svg [stroke="#10B981"] { stroke: var(--green) !important; }
+html[data-theme="light"] svg [fill="#10B981"]   { fill: var(--green) !important; }
+
+/* Tooltip (overlay): claro quente com texto escuro (o color ja usa var(--text)). */
+html[data-theme="light"] .tooltip {
+  background: rgba(255,253,249,0.98) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 10px 40px rgba(120,90,40,0.20) !important;
+}
+
+/* ===== Elevacao premium: cards brancos com sombra quente sobre o marfim =====
+   Os patches dao sombra neutra escura; aqui troco por sombra quente nos grupos de card. */
+html[data-theme="light"] .dashboard-main :is(
+  .kpi-card, .chart-card, .result-card, .daily-card, .methodology-card,
+  .director-card, .director-kpi, .executive-card, .critical-alert-card,
+  .donut-card, .heatmap-card, .insight-card
+),
+html[data-theme="light"] :is(
+  .fixed-card, .fixed-kpi, .fixed-exec-card, .fixed-chart-card, .fixed-wide,
+  .exec-metric, .result-summary-item, .category-metric
+) {
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* ---- Fatia 6: restante (barras de contexto, switcher, segment, status, acentos) ---- */
+
+/* Barra de contexto v66 (breadcrumb fixa abaixo da topbar): tem tokens proprios. */
+html[data-theme="light"] {
+  --v66-context-bg: rgba(255,253,249,.92);
+  --v66-context-border: rgba(180,83,9,.30);
+  --v66-context-text: rgba(26,23,20,.82);
+  --v66-context-muted: rgba(90,81,69,.85);
+  --v66-context-gold: #B45309;
+}
+html[data-theme="light"] .v66-context-line {
+  background: linear-gradient(180deg, #FFFDF9, var(--v66-context-bg)) !important;
+}
+
+/* Page-switcher e page-tabs: regra do patch tem specificity alta + !important. */
+html[data-theme="light"] body header.top-site-nav > .page-switcher {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+html[data-theme="light"] body header.top-site-nav > .page-switcher > .page-tab {
+  color: var(--text-dim) !important;
+}
+html[data-theme="light"] .page-switcher {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+
+/* Segment (toggle de fluxo/filtros) */
+html[data-theme="light"] :is(.segment, .segment .filter-pill, .segment .flow-pill) {
+  background: var(--surface-2) !important;
+}
+
+/* Status chips de custos fixos: texto pastel claro (#FCA5A5/#FCD34D/#86EFAC/#5EEAD4)
+   -> tons profundos legiveis no fundo claro do chip. Semantica preservada. */
+html[data-theme="light"] .fixed-status.crit { color: var(--red) !important; }
+html[data-theme="light"] .fixed-status.att  { color: var(--gold) !important; }
+html[data-theme="light"] .fixed-status.ok   { color: var(--green) !important; }
+html[data-theme="light"] .fixed-status.econ { color: var(--cyan) !important; }
+
+/* Acentos de texto chumbados no patch v68 (40-ux:748-758, .dashboard-main :is(...) !important).
+   Prefixo html[data-theme] eleva a especificidade acima da regra do patch. */
+html[data-theme="light"] .dashboard-main :is(.number-gold, .hero-brand-kicker, .section-context, .executive-eyebrow, .rank-num),
+html[data-theme="light"] .dashboard-main :is(.kpi-card.gold, .director-card) strong {
+  color: var(--gold) !important;
+}
+html[data-theme="light"] .dashboard-main :is(.number-green, .positive, .trend.up, .kpi-trend.up, .director-kpi .val.positive) {
+  color: var(--green) !important;
+}
+html[data-theme="light"] .dashboard-main :is(.number-red, .negative, .trend.down, .kpi-trend.down, .director-kpi .val.negative) {
+  color: var(--red) !important;
+}
+
+/* Acentos dourados em texto que o patch chumba (#E0C078/#E8C768) -> ambar profundo (AA) */
+html[data-theme="light"] :is(.sidebar-action.gold, .top-badge, .print-btn) {
+  color: var(--gold) !important;
+}
+html[data-theme="light"] .director-verdict strong { color: var(--director-color, var(--gold)) !important; }
+
+/* ===== Logo da marca no tema claro =====
+   O PNG e claro (emblema vermelho no topo + wordmark BRANCO embaixo), feito p/ fundo escuro.
+   No claro o wordmark branco some. Truque: invert troca branco->preto (texto legivel) e
+   o emblema vermelho->ciano; hue-rotate(180) devolve o ciano ~vermelho. saturate reforca. */
+html[data-theme="light"] :is(.hero-brand-mark, #directorCoverLogo img) {
+  filter: invert(1) hue-rotate(180deg) saturate(1.7) !important;
+}
+/* o card do logo na Diretoria fica claro e quente, com leve elevacao */
+html[data-theme="light"] .director-cover-brand {
+  background: linear-gradient(145deg, #FFFFFF, #F4EFE4) !important;
+  border-color: rgba(180,83,9,0.30) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* Diretoria: banner "verdict/ATENCAO" quente. */
+html[data-theme="light"] :is(.director-verdict),
+html[data-theme="light"] body[data-page="director"] .director-cover .director-verdict {
+  background: linear-gradient(145deg, #FFFFFF, #F5F0E6) !important;
+  border-color: var(--border) !important;
+}

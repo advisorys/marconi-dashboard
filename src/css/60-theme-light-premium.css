@@ -1,0 +1,288 @@
+/* ============================================================
+   Refino premium do tema claro — "papel fino executivo com luz quente".
+   Camada ESTETICA aditiva sobre 50-theme-light.css. So afeta html[data-theme="light"];
+   o dark (padrao) e totalmente intocado. Enriquece a paleta off-white quente com
+   mesh de luz, tints de cor por KPI, elevacao real, icones vibrantes e acentos.
+   ============================================================ */
+
+/* ---- 1. Fundo: mesh quente, luz vinda do topo (sussurros da paleta da marca) ---- */
+html[data-theme="light"] body {
+  background:
+    radial-gradient(1100px 560px at 10% -8%, rgba(217,119,6,0.07), transparent 58%),
+    radial-gradient(900px 520px at 96% 4%, rgba(79,70,229,0.05), transparent 54%),
+    radial-gradient(820px 680px at 52% 116%, rgba(180,83,9,0.055), transparent 60%),
+    linear-gradient(180deg, #FBF9F4 0%, #F4F1EA 52%, #EEE9DE 100%) !important;
+  background-attachment: fixed !important;
+}
+/* grade sutil em tom quente (no dark e fria/azulada) */
+html[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(176,138,78,0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(176,138,78,0.055) 1px, transparent 1px) !important;
+  opacity: 0.55 !important;
+}
+/* glow ambiente quente (sobrescreve os radiais frios herdados do dark) */
+html[data-theme="light"] body::after {
+  background:
+    radial-gradient(circle at var(--mx, 78%) var(--my, 18%), rgba(180,83,9,0.055), transparent 32%),
+    radial-gradient(circle at 8% 90%, rgba(79,70,229,0.045), transparent 34%) !important;
+  opacity: 0.7 !important;
+}
+
+/* ---- 2. KPI cards: tint de cor por categoria + barra de acento + elevacao quente ----
+   Cada KPI ja tem classe de cor (indigo/cyan/gold/green). Damos um wash sutil da cor
+   no canto e uma barra superior via box-shadow inset, somada a sombra quente. */
+html[data-theme="light"] .dashboard-main .kpi-card { position: relative; overflow: hidden; }
+
+html[data-theme="light"] .dashboard-main .kpi-card.indigo {
+  background: linear-gradient(150deg, #FFFFFF 58%, #F2F1FE) !important;
+  box-shadow: inset 0 3px 0 #6366F1, var(--card-shadow) !important;
+}
+html[data-theme="light"] .dashboard-main .kpi-card.cyan {
+  background: linear-gradient(150deg, #FFFFFF 58%, #EBF7FA) !important;
+  box-shadow: inset 0 3px 0 #0E9BB8, var(--card-shadow) !important;
+}
+html[data-theme="light"] .dashboard-main .kpi-card.gold {
+  background: linear-gradient(150deg, #FFFFFF 58%, #FCF4E7) !important;
+  box-shadow: inset 0 3px 0 #D97706, var(--card-shadow) !important;
+}
+html[data-theme="light"] .dashboard-main .kpi-card.green {
+  background: linear-gradient(150deg, #FFFFFF 58%, #ECF8F0) !important;
+  box-shadow: inset 0 3px 0 #16A34A, var(--card-shadow) !important;
+}
+
+/* ---- 3. Elevacao + hover lift premium (cards e KPIs) ---- */
+html[data-theme="light"] .dashboard-main :is(
+  .kpi-card, .chart-card, .result-card, .daily-card, .executive-card,
+  .donut-card, .heatmap-card, .insight-card, .director-card, .director-kpi
+):hover,
+html[data-theme="light"] :is(.fixed-card, .fixed-kpi, .fixed-exec-card):hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 20px 46px rgba(120,90,40,0.17), 0 5px 14px rgba(120,90,40,0.09) !important;
+  border-color: rgba(180,83,9,0.30) !important;
+}
+
+/* ---- 4. Icones (icon-circle): mais vivos, com halo da propria cor ---- */
+html[data-theme="light"] .icon-circle {
+  filter: none !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent, #B45309) 30%, transparent) !important;
+}
+
+/* ---- 5. Numeros/headline dourados com gradiente ambar (clip de texto) ---- */
+html[data-theme="light"] .dashboard-main :is(.number-gold, .hero-headline .accent) {
+  background: linear-gradient(120deg, #92400E 0%, #B45309 45%, #D97706 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: #B45309 !important; /* fallback */
+  text-shadow: none !important;
+}
+
+/* ---- 6. Acentos de borda/realce ativos em tom quente ---- */
+html[data-theme="light"] .dashboard-main :is(.top-badge, .chip.active, .pill.active, .filter-pill.active, .flow-pill.active) {
+  border-color: rgba(180,83,9,0.40) !important;
+  background: rgba(217,119,6,0.10) !important;
+  color: var(--gold) !important;
+}
+
+/* ---- 7. Rede de seguranca de legibilidade: textos de corpo/descricao apagados ----
+   O scan WCAG apontou contraste ~2.4 nestes (tinta clara herdada dos patches). */
+html[data-theme="light"] .dashboard-main :is(
+  .executive-text, .insight-desc, .desc, .insight-text, .exec-desc,
+  .card-desc, .sub, .subtitle, .note, .hint
+) { color: var(--text-dim) !important; }
+
+html[data-theme="light"] .dashboard-main :is(.tag, .badge-text) { color: var(--text) !important; }
+html[data-theme="light"] .status-pill.surplus { color: var(--green) !important; }
+html[data-theme="light"] .status-pill.deficit { color: var(--red) !important; }
+
+/* ---- 8. Dourado-sobre-dourado (falha de contraste so no claro) ----
+   No dark e texto ambar claro sobre wash ambar (ok); no claro vira ilegivel.
+   Chip de filtro ATIVO -> preenchimento solido ambar + texto branco (estado nitido). */
+html[data-theme="light"] .v23-chip.active {
+  background: linear-gradient(135deg, #B45309, #92400E) !important;
+  border-color: #92400E !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(180,83,9,0.22) !important;
+}
+/* Labels (.tag) dentro de alertas ambar/amber: texto ambar profundo legivel. */
+html[data-theme="light"] :is(.mini-alert, .critical-alert-card) .tag {
+  color: #92400E !important;
+}
+
+/* ---- 9. Ranking de rubricas: valor monetario e' <span class="main"> em ~branco ----
+   `.main` e' classe generica; escopo no .rank-item evita afetar outros usos.
+   Valor -> texto escuro forte; posicao/percentual ja vem ambar do 50. */
+html[data-theme="light"] .rank-item .main { color: var(--text) !important; }
+html[data-theme="light"] :is(.rank-value, .rank-pct) { color: var(--text) !important; }
+
+/* ---- 10. Rotulos de toolbar (ordenar ranking / tabela): subir contraste p/ AA ---- */
+html[data-theme="light"] :is(.v23-rank-toolbar, .v23-table-toolbar) .label,
+html[data-theme="light"] .toolbar .label { color: var(--text-dim) !important; }
+
+/* ============================================================
+   11. SUB-CARDS ANINHADOS — ilhas navy-translucidas dentro dos cards.
+   Esses usam rgba(8..26, .., ..) com alpha baixo: no dark sao "respiros" sutis,
+   mas sobre o marfim viram blocos CINZA-SUJO (foi o que o usuario apontou).
+   Tratamento: superficie clara quente (areia) + borda quente. Agrupado por area.
+   ============================================================ */
+
+/* -- Diretoria: saude do periodo, pontos de atencao, acoes recomendadas -- */
+html[data-theme="light"] :is(
+  .director-health-item, .director-attention-item, .director-actions li
+) {
+  background: #F7F3EA !important;            /* areia clara */
+  border-color: var(--border) !important;
+}
+
+/* -- Fluxo: painel de detalhe do mes (abre ao clicar num mes no modo realizado):
+   "TOP CATEGORIAS DO MES" + "LEITURA GERENCIAL". .month-detail-box e' navy chumbado. -- */
+html[data-theme="light"] :is(
+  .month-detail-box, .month-detail-kpi, .month-cat-row,
+  .category-month-row, .category-detail, .exec-metric,
+  .result-summary-item, .monthly-focus-stat,
+  .monthly-side-panel, .monthly-concentration-card
+) {
+  background: #F7F3EA !important;
+  border-color: var(--border) !important;
+}
+/* o painel externo do detalhe do mes tem fundo proprio (linha da tabela expandida) */
+html[data-theme="light"] :is(.month-detail-panel, .mom-panel) {
+  background: var(--surface) !important;
+}
+html[data-theme="light"] :is(.month-cat-row, .mom-row) { border-bottom-color: var(--border) !important; }
+
+/* -- Custos Fixos: linhas sensiveis, itens de desvio, focus, analise -- */
+html[data-theme="light"] :is(
+  .fixed-sensitive-card, .fixed-dev-item, .fixed-dev-block, .fixed-focus-kpi,
+  .fixed-focus-month, .fixed-action, .fixed-analysis-actions li,
+  .fixed-deviation-list, .fixed-sensitive-metrics .m
+) {
+  background: #F7F3EA !important;
+  border-color: var(--border) !important;
+}
+/* o bloco-pai "Acima/Abaixo do orcamento" tem fundo proprio mais claro */
+html[data-theme="light"] .fixed-dev-block { background: var(--surface) !important; }
+
+/* botao "cmp" do ranking (navy-translucido + texto cyan): pilula clara cyan */
+html[data-theme="light"] .v23-compare-btn {
+  background: rgba(14,116,144,0.08) !important;
+  border-color: rgba(14,116,144,0.30) !important;
+  color: var(--cyan) !important;
+}
+html[data-theme="light"] .v23-compare-btn:hover {
+  background: rgba(14,116,144,0.16) !important;
+}
+
+/* ---- 12. Cards/KPIs com data-tone (good/risk/watch/info): gradiente COR+navy ----
+   No dark o 2o stop e' navy (rgba(12,18,32,.9)); no claro vira card meio-escuro.
+   Trocar por wash tonal claro sobre branco (mantem a semantica da cor da borda). */
+html[data-theme="light"] body[data-page="fixed"] .fixed-kpi[data-tone="good"],
+html[data-theme="light"] .fixed-exec-card[data-tone="good"] {
+  background: linear-gradient(135deg, #ECFAF1, #FFFFFF) !important;
+  border-color: rgba(21,128,61,0.30) !important;
+}
+html[data-theme="light"] body[data-page="fixed"] .fixed-kpi[data-tone="risk"],
+html[data-theme="light"] .fixed-exec-card[data-tone="risk"] {
+  background: linear-gradient(135deg, #FDECEC, #FFFFFF) !important;
+  border-color: rgba(220,38,38,0.30) !important;
+}
+html[data-theme="light"] body[data-page="fixed"] .fixed-kpi[data-tone="watch"],
+html[data-theme="light"] .fixed-exec-card[data-tone="watch"] {
+  background: linear-gradient(135deg, #FCF3E5, #FFFFFF) !important;
+  border-color: rgba(180,83,9,0.30) !important;
+}
+html[data-theme="light"] body[data-page="fixed"] .fixed-kpi[data-tone="info"],
+html[data-theme="light"] .fixed-exec-card[data-tone="info"] {
+  background: linear-gradient(135deg, #EAF1FE, #FFFFFF) !important;
+  border-color: rgba(79,70,229,0.28) !important;
+}
+
+/* ---- 13. Mini-boxes SAIDAS/RESULTADO dentro dos cards mensais (Concentracao mensal) ---- */
+html[data-theme="light"] .monthly-card-metric {
+  background: #F7F3EA !important;
+  border-color: var(--border) !important;
+}
+
+/* ---- 14. Heatmap de desvios: celula NEUTRA (sem desvio) e' cinza-azulado; texto e' branco ----
+   As celulas com dado mantem verde/vermelho (cor vem de --hm-bg via JS). So a neutra e o texto. */
+html[data-theme="light"] .fixed-heatmap-cell { --hm-bg: rgba(120,113,98,0.10); }   /* neutro quente claro */
+html[data-theme="light"] .fixed-heatmap-cell,
+html[data-theme="light"] .fixed-heatmap-cell small { color: var(--text) !important; }
+html[data-theme="light"] .fixed-heatmap-cell small { color: var(--text-dim) !important; }
+/* legenda neutra idem */
+html[data-theme="light"] .fixed-legend .neu { background: rgba(120,113,98,0.22) !important; }
+/* container/grade atras das celulas do heatmap */
+html[data-theme="light"] :is(.fixed-heatmap-wrap, .fixed-heatmap) { background: var(--surface) !important; }
+
+/* ---- 16. TOPBAR fica preta ao rolar (body.scrolled) ----
+   30-exec:1718/1724 chumba `html body[.scrolled] header.top-site-nav { background:rgba(13,18,32,..) }`
+   com especificidade alta + !important. Sobrescrever no claro com a mesma forma de seletor. */
+html[data-theme="light"] body header.top-site-nav,
+html[data-theme="light"] body.scrolled header.top-site-nav {
+  background: var(--chrome-bg) !important;
+  border-color: var(--chrome-border) !important;
+}
+html[data-theme="light"] body.scrolled header.top-site-nav {
+  box-shadow: 0 12px 34px rgba(120,90,40,0.16), 0 0 0 1px rgba(180,83,9,0.08) !important;
+}
+
+/* ---- 17. Texto/eixos de TODOS os SVG do dashboard (grafico "Controle mensal dos custos fixos" etc) ----
+   40-ux:766 chumba `.dashboard-main svg text { fill: rgba(203,213,225,.72) !important }` (cinza claro p/ dark).
+   No claro some. So mira o texto SEM fill inline proprio (eixos/labels neutros); os <text fill="#hex">
+   coloridos (verde/vermelho/branco do grafico do Fluxo) sao preservados pelas regras §5 (seletores de atributo). */
+html[data-theme="light"] .dashboard-main svg text:not([fill]) { fill: var(--text-dim) !important; }
+html[data-theme="light"] .fixed-monthly-svg text { fill: var(--text-dim) !important; }
+/* linhas de grade/eixo do grafico de custos fixos (navy chumbado) */
+html[data-theme="light"] .fixed-monthly-svg .grid-line { stroke: var(--border) !important; }
+html[data-theme="light"] .fixed-monthly-svg .axis { stroke: var(--border-2) !important; }
+
+/* ---- 18. Drill-down de categoria (Fluxo): subtitulo apagado + trilha no-value navy ----
+   30-exec:382-390 chumba varios textos de descricao em #9CA7BA !important (cinza claro p/ dark). */
+html[data-theme="light"] :is(
+  .executive-text, .insight-desc, .critical-alert-card .desc, .mini-alert .desc,
+  .category-detail-subtitle, .category-insight, .methodology-card, .sidebar-summary
+) { color: var(--text-dim) !important; }
+/* trilha das barras dos meses SEM movimento (apagados de proposito, mas a trilha era navy) */
+html[data-theme="light"] .category-month-row.no-value .category-month-bar {
+  background: rgba(120,113,98,0.18) !important;
+  outline-color: rgba(120,113,98,0.20) !important;
+}
+/* divisorias das linhas de mes (navy) */
+html[data-theme="light"] .category-month-row { border-bottom-color: var(--border) !important; }
+/* estado vazio do drill-down */
+html[data-theme="light"] .category-empty-detail { background: var(--surface) !important; border-color: var(--border) !important; }
+
+/* ---- 15. Detalhes finais: trilho da barra de score e botao de colapsar sidebar ---- */
+/* trilho da barra "Saude do periodo 53/100" (o preenchimento i e' gradiente vermelho->verde) */
+html[data-theme="light"] .director-score-bar { background: #E8E1D4 !important; }
+/* botao ‹ de colapsar a sidebar */
+html[data-theme="light"] .sidebar-toggle-btn {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text-dim) !important;
+}
+html[data-theme="light"] .sidebar-toggle-btn:hover {
+  background: rgba(180,83,9,0.08) !important;
+  border-color: var(--control-active-border) !important;
+  color: var(--gold) !important;
+}
+/* divisorias internas dessas listas em tom quente claro */
+html[data-theme="light"] :is(.fixed-dev-item, .category-month-row) {
+  border-bottom-color: var(--border) !important;
+}
+
+/* -- Rede de seguranca por VALOR: qualquer ilha navy-translucida que escapou --
+   Mira o atributo style/inline e os hex navy comuns como classe utilitaria.
+   (As regras acima cobrem por nome; esta cobre sobras por background herdado.) */
+html[data-theme="light"] .dashboard-main :is(.exec-row, .stat-box, .sub-card, .inner-card, .panel-row),
+html[data-theme="light"] :is(.director-cover .director-verdict) :is(.dv-col, .dv-item) {
+  background: #F7F3EA !important;
+  border-color: var(--border) !important;
+}
+
+/* texto dentro dos sub-cards: garantir legivel (corpo dim, titulo forte) */
+html[data-theme="light"] :is(
+  .director-health-item, .director-attention-item, .director-actions li,
+  .fixed-sensitive-card, .fixed-dev-item, .fixed-focus-kpi, .fixed-focus-month
+) :is(.l, .meta, .sub, small) { color: var(--text-mute) !important; }
