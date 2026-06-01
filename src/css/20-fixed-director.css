@@ -351,9 +351,9 @@
   align-items: center;
   gap: 5px;
   padding: 4px;
-  border: 1px solid rgba(54,63,99,.82);
+  border: 1px solid rgba(var(--switcher-border-rgb),.82);
   border-radius: 999px;
-  background: rgba(8,13,25,.52);
+  background: rgba(var(--bg-rgb),.52);
   flex: 0 0 auto;
 }
 .page-tab {
