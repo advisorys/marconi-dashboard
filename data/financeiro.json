@@ -2,7 +2,7 @@
   "meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-05-27T23:59:41-03:00",
+    "ultima_atualizacao": "2026-06-01T21:21:18-03:00",
     "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
@@ -1430,9 +1430,9 @@
         "month": 5,
         "day": 22,
         "entradas": 0,
-        "saidas": 59212.7,
-        "saidasBrutas": 59212.7,
-        "ajustesGerenciais": 0,
+        "saidas": 101923.56,
+        "saidasBrutas": 102002.86,
+        "ajustesGerenciais": 79.3,
         "projection": false
       },
       {
@@ -1460,8 +1460,8 @@
         "month": 5,
         "day": 25,
         "entradas": 0,
-        "saidas": 37770.86,
-        "saidasBrutas": 37770.86,
+        "saidas": 46113.13,
+        "saidasBrutas": 46113.13,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1469,9 +1469,9 @@
         "date": "2026-05-26",
         "month": 5,
         "day": 26,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 422132.4,
+        "saidas": 441662.07,
+        "saidasBrutas": 441662.07,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1480,8 +1480,8 @@
         "month": 5,
         "day": 27,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 188269.86,
+        "saidasBrutas": 188269.86,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1490,8 +1490,8 @@
         "month": 5,
         "day": 28,
         "entradas": 1000,
-        "saidas": 6430.05,
-        "saidasBrutas": 6430.05,
+        "saidas": 4466.67,
+        "saidasBrutas": 4466.67,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1500,8 +1500,8 @@
         "month": 5,
         "day": 29,
         "entradas": 0,
-        "saidas": 84839.37,
-        "saidasBrutas": 84839.37,
+        "saidas": 41200,
+        "saidasBrutas": 41200,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1529,9 +1529,9 @@
         "date": "2026-06-01",
         "month": 6,
         "day": 1,
-        "entradas": 236758.1,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
+        "entradas": 0,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1550,8 +1550,8 @@
         "month": 6,
         "day": 3,
         "entradas": 0,
-        "saidas": 900.37,
-        "saidasBrutas": 900.37,
+        "saidas": 969.39,
+        "saidasBrutas": 969.39,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1560,8 +1560,8 @@
         "month": 6,
         "day": 4,
         "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1570,8 +1570,8 @@
         "month": 6,
         "day": 5,
         "entradas": 420000,
-        "saidas": 37146,
-        "saidasBrutas": 37146,
+        "saidas": 38646,
+        "saidasBrutas": 38646,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1600,8 +1600,8 @@
         "month": 6,
         "day": 8,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 67504.2,
+        "saidasBrutas": 67504.2,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1620,8 +1620,8 @@
         "month": 6,
         "day": 10,
         "entradas": 0,
-        "saidas": 26170.5,
-        "saidasBrutas": 26170.5,
+        "saidas": 35595.4,
+        "saidasBrutas": 35595.4,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1630,8 +1630,8 @@
         "month": 6,
         "day": 11,
         "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
+        "saidas": 12773.64,
+        "saidasBrutas": 12773.64,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1640,8 +1640,8 @@
         "month": 6,
         "day": 12,
         "entradas": 420000,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
+        "saidas": 32920,
+        "saidasBrutas": 32920,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1670,8 +1670,8 @@
         "month": 6,
         "day": 15,
         "entradas": 0,
-        "saidas": 18330,
-        "saidasBrutas": 18330,
+        "saidas": 55350.81,
+        "saidasBrutas": 55350.81,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1690,8 +1690,8 @@
         "month": 6,
         "day": 17,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 73.56,
+        "saidasBrutas": 73.56,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1700,8 +1700,8 @@
         "month": 6,
         "day": 18,
         "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1710,8 +1710,8 @@
         "month": 6,
         "day": 19,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 590,
+        "saidasBrutas": 590,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1720,8 +1720,8 @@
         "month": 6,
         "day": 20,
         "entradas": 0,
-        "saidas": 42304.52,
-        "saidasBrutas": 42304.52,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1740,8 +1740,8 @@
         "month": 6,
         "day": 22,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 41070.52,
+        "saidasBrutas": 41070.52,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1770,8 +1770,8 @@
         "month": 6,
         "day": 25,
         "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1800,8 +1800,8 @@
         "month": 6,
         "day": 28,
         "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
+        "saidas": 0,
+        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1810,8 +1810,8 @@
         "month": 6,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2491.78,
+        "saidasBrutas": 2491.78,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1820,8 +1820,8 @@
         "month": 6,
         "day": 30,
         "entradas": 0,
-        "saidas": 22746.67,
-        "saidasBrutas": 22746.67,
+        "saidas": 22856.67,
+        "saidasBrutas": 22856.67,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1829,7 +1829,7 @@
         "date": "2026-07-01",
         "month": 7,
         "day": 1,
-        "entradas": 0,
+        "entradas": 236758.1,
         "saidas": 5600,
         "saidasBrutas": 5600,
         "ajustesGerenciais": 0,
@@ -2110,8 +2110,8 @@
         "month": 7,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2006.58,
+        "saidasBrutas": 2006.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -2420,8 +2420,8 @@
         "month": 8,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2006.58,
+        "saidasBrutas": 2006.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -2730,8 +2730,8 @@
         "month": 9,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2006.58,
+        "saidasBrutas": 2006.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -3030,8 +3030,8 @@
         "month": 10,
         "day": 29,
         "entradas": 1000,
-        "saidas": 3887.46,
-        "saidasBrutas": 3887.46,
+        "saidas": 4506.58,
+        "saidasBrutas": 4506.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -3059,7 +3059,7 @@
         "date": "2026-11-01",
         "month": 11,
         "day": 1,
-        "entradas": 20000000,
+        "entradas": 0,
         "saidas": 5600,
         "saidasBrutas": 5600,
         "ajustesGerenciais": 0,
@@ -3340,8 +3340,8 @@
         "month": 11,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2006.58,
+        "saidasBrutas": 2006.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -3359,7 +3359,7 @@
         "date": "2026-12-01",
         "month": 12,
         "day": 1,
-        "entradas": 20000000,
+        "entradas": 0,
         "saidas": 5600,
         "saidasBrutas": 5600,
         "ajustesGerenciais": 0,
@@ -3640,8 +3640,8 @@
         "month": 12,
         "day": 29,
         "entradas": 0,
-        "saidas": 1387.46,
-        "saidasBrutas": 1387.46,
+        "saidas": 2006.58,
+        "saidasBrutas": 2006.58,
         "ajustesGerenciais": 0,
         "projection": true
       },
@@ -3697,58 +3697,58 @@
       },
       "5": {
         "name": "Maio",
-        "entradas": 3993129.05,
-        "saidas": 3661460.28,
-        "resultado": 331668.77,
+        "entradas": 4415261.45,
+        "saidas": 4296842.59,
+        "resultado": 118418.86,
         "projection": false
       },
       "6": {
         "name": "Junho",
-        "entradas": 1080758.1,
-        "saidas": 168270.72,
-        "resultado": 912487.38,
+        "entradas": 844000,
+        "saidas": 312841.97,
+        "resultado": 531158.03,
         "projection": false
       },
       "7": {
         "name": "Julho",
-        "entradas": 5000,
-        "saidas": 170770.72,
-        "resultado": -165770.72,
+        "entradas": 241758.1,
+        "saidas": 171389.84,
+        "resultado": 70368.26,
         "projection": true
       },
       "8": {
         "name": "Agosto",
         "entradas": 4000,
-        "saidas": 168270.72,
-        "resultado": -164270.72,
+        "saidas": 168889.84,
+        "resultado": -164889.84,
         "projection": true
       },
       "9": {
         "name": "Setembro",
         "entradas": 4000,
-        "saidas": 168270.72,
-        "resultado": -164270.72,
+        "saidas": 168889.84,
+        "resultado": -164889.84,
         "projection": true
       },
       "10": {
         "name": "Outubro",
         "entradas": 5000,
-        "saidas": 170770.72,
-        "resultado": -165770.72,
+        "saidas": 171389.84,
+        "resultado": -166389.84,
         "projection": true
       },
       "11": {
         "name": "Novembro",
-        "entradas": 20004000,
-        "saidas": 168632.61,
-        "resultado": 19835367.39,
+        "entradas": 4000,
+        "saidas": 169251.73,
+        "resultado": -165251.73,
         "projection": true
       },
       "12": {
         "name": "Dezembro",
-        "entradas": 20005000,
-        "saidas": 171132.61,
-        "resultado": 19833867.39,
+        "entradas": 5000,
+        "saidas": 171751.73,
+        "resultado": -166751.73,
         "projection": true
       }
     },
@@ -3760,7 +3760,7 @@
           "2": 2062261.41,
           "3": 5662052.38,
           "4": 7865452.57,
-          "5": 2709131.01,
+          "5": 3277138.53,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -3769,8 +3769,8 @@
           "11": 0,
           "12": 0
         },
-        "value": 19150986.61,
-        "pct": 67.1
+        "value": 19718994.13,
+        "pct": 67.2
       },
       {
         "name": "Antecipação Recebíveis",
@@ -3789,7 +3789,7 @@
           "12": 0
         },
         "value": 2184497.62,
-        "pct": 7.6
+        "pct": 7.4
       },
       {
         "name": "Outros",
@@ -3798,8 +3798,8 @@
           "2": 137191.43,
           "3": 214153.53,
           "4": 647230.97,
-          "5": 166962.36,
-          "6": 43666.74,
+          "5": 166769.16,
+          "6": 50451.03,
           "7": 43666.74,
           "8": 43666.74,
           "9": 43666.74,
@@ -3807,8 +3807,8 @@
           "11": 44062.43,
           "12": 44062.43
         },
-        "value": 1644583.09,
-        "pct": 5.8
+        "value": 1651174.18,
+        "pct": 5.6
       },
       {
         "name": "Fornecedores Nacionais",
@@ -3827,7 +3827,7 @@
           "12": 0
         },
         "value": 1476630.31,
-        "pct": 5.2
+        "pct": 5
       },
       {
         "name": "Consultoria",
@@ -3836,8 +3836,8 @@
           "2": 74778.07,
           "3": 81717.42,
           "4": 94264.25,
-          "5": 90974.54,
-          "6": 100570.52,
+          "5": 91233.74,
+          "6": 90570.52,
           "7": 103070.52,
           "8": 100570.52,
           "9": 100570.52,
@@ -3845,8 +3845,8 @@
           "11": 100570.52,
           "12": 103070.52
         },
-        "value": 1188013.86,
-        "pct": 4.2
+        "value": 1178273.06,
+        "pct": 4
       },
       {
         "name": "Despacho Aduaneiro",
@@ -3855,7 +3855,7 @@
           "2": 6023.54,
           "3": 70529.93,
           "4": 757600.46,
-          "5": 269322.23,
+          "5": 280191.7,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -3864,7 +3864,7 @@
           "11": 0,
           "12": 0
         },
-        "value": 1122810.67,
+        "value": 1133680.14,
         "pct": 3.9
       },
       {
@@ -3874,8 +3874,8 @@
           "2": 41169.84,
           "3": 221501.64,
           "4": 288394.7,
-          "5": 227712.72,
-          "6": 0,
+          "5": 267277.48,
+          "6": 147167.84,
           "7": 0,
           "8": 0,
           "9": 0,
@@ -3883,8 +3883,8 @@
           "11": 0,
           "12": 0
         },
-        "value": 935566.08,
-        "pct": 3.3
+        "value": 1122298.68,
+        "pct": 3.8
       },
       {
         "name": "Impostos e Taxas",
@@ -3893,36 +3893,17 @@
           "2": 28794.61,
           "3": 26579.11,
           "4": 100930.23,
-          "5": 136040.35,
-          "6": 1387.46,
-          "7": 1387.46,
-          "8": 1387.46,
-          "9": 1387.46,
-          "10": 1387.46,
-          "11": 1387.46,
-          "12": 1387.46
+          "5": 136659.47,
+          "6": 2006.58,
+          "7": 2006.58,
+          "8": 2006.58,
+          "9": 2006.58,
+          "10": 2006.58,
+          "11": 2006.58,
+          "12": 2006.58
         },
-        "value": 318951.7,
+        "value": 323904.66,
         "pct": 1.1
-      },
-      {
-        "name": "Pessoal",
-        "months": {
-          "1": 22671,
-          "2": 26090.79,
-          "3": 24344.68,
-          "4": 22357.96,
-          "5": 20306,
-          "6": 22646,
-          "7": 22646,
-          "8": 22646,
-          "9": 22646,
-          "10": 22646,
-          "11": 22612.2,
-          "12": 22612.2
-        },
-        "value": 274224.83,
-        "pct": 1
       },
       {
         "name": "Devoluções de Vendas",
@@ -3931,7 +3912,7 @@
           "2": 743.06,
           "3": 66000,
           "4": 2172.35,
-          "5": 41011.07,
+          "5": 56574.27,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -3940,7 +3921,26 @@
           "11": 0,
           "12": 0
         },
-        "value": 264020.38,
+        "value": 279583.58,
+        "pct": 1
+      },
+      {
+        "name": "Pessoal",
+        "months": {
+          "1": 22671,
+          "2": 26090.79,
+          "3": 24344.68,
+          "4": 22357.96,
+          "5": 20998.24,
+          "6": 22646,
+          "7": 22646,
+          "8": 22646,
+          "9": 22646,
+          "10": 22646,
+          "11": 22612.2,
+          "12": 22612.2
+        },
+        "value": 274917.07,
         "pct": 0.9
       }
     ],
@@ -3952,7 +3952,7 @@
           "2": 2062261.41,
           "3": 5662052.38,
           "4": 7865452.57,
-          "5": 2709131.01,
+          "5": 3277138.53,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -3961,8 +3961,8 @@
           "11": 0,
           "12": 0
         },
-        "value": 19150986.61,
-        "pct": 67.1
+        "value": 19718994.13,
+        "pct": 67.2
       },
       {
         "name": "Antecipação Recebíveis",
@@ -3981,7 +3981,7 @@
           "12": 0
         },
         "value": 2184497.62,
-        "pct": 7.6
+        "pct": 7.4
       },
       {
         "name": "Outros",
@@ -3990,8 +3990,8 @@
           "2": 137191.43,
           "3": 214153.53,
           "4": 647230.97,
-          "5": 166962.36,
-          "6": 43666.74,
+          "5": 166769.16,
+          "6": 50451.03,
           "7": 43666.74,
           "8": 43666.74,
           "9": 43666.74,
@@ -3999,8 +3999,8 @@
           "11": 44062.43,
           "12": 44062.43
         },
-        "value": 1644583.09,
-        "pct": 5.8
+        "value": 1651174.18,
+        "pct": 5.6
       },
       {
         "name": "Fornecedores Nacionais",
@@ -4019,7 +4019,7 @@
           "12": 0
         },
         "value": 1476630.31,
-        "pct": 5.2
+        "pct": 5
       },
       {
         "name": "Consultoria",
@@ -4028,8 +4028,8 @@
           "2": 74778.07,
           "3": 81717.42,
           "4": 94264.25,
-          "5": 90974.54,
-          "6": 100570.52,
+          "5": 91233.74,
+          "6": 90570.52,
           "7": 103070.52,
           "8": 100570.52,
           "9": 100570.52,
@@ -4037,8 +4037,8 @@
           "11": 100570.52,
           "12": 103070.52
         },
-        "value": 1188013.86,
-        "pct": 4.2
+        "value": 1178273.06,
+        "pct": 4
       },
       {
         "name": "Despacho Aduaneiro",
@@ -4047,7 +4047,7 @@
           "2": 6023.54,
           "3": 70529.93,
           "4": 757600.46,
-          "5": 269322.23,
+          "5": 280191.7,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -4056,7 +4056,7 @@
           "11": 0,
           "12": 0
         },
-        "value": 1122810.67,
+        "value": 1133680.14,
         "pct": 3.9
       },
       {
@@ -4066,8 +4066,8 @@
           "2": 41169.84,
           "3": 221501.64,
           "4": 288394.7,
-          "5": 227712.72,
-          "6": 0,
+          "5": 267277.48,
+          "6": 147167.84,
           "7": 0,
           "8": 0,
           "9": 0,
@@ -4075,8 +4075,8 @@
           "11": 0,
           "12": 0
         },
-        "value": 935566.08,
-        "pct": 3.3
+        "value": 1122298.68,
+        "pct": 3.8
       },
       {
         "name": "Impostos e Taxas",
@@ -4085,36 +4085,17 @@
           "2": 28794.61,
           "3": 26579.11,
           "4": 100930.23,
-          "5": 136040.35,
-          "6": 1387.46,
-          "7": 1387.46,
-          "8": 1387.46,
-          "9": 1387.46,
-          "10": 1387.46,
-          "11": 1387.46,
-          "12": 1387.46
+          "5": 136659.47,
+          "6": 2006.58,
+          "7": 2006.58,
+          "8": 2006.58,
+          "9": 2006.58,
+          "10": 2006.58,
+          "11": 2006.58,
+          "12": 2006.58
         },
-        "value": 318951.7,
+        "value": 323904.66,
         "pct": 1.1
-      },
-      {
-        "name": "Pessoal",
-        "months": {
-          "1": 22671,
-          "2": 26090.79,
-          "3": 24344.68,
-          "4": 22357.96,
-          "5": 20306,
-          "6": 22646,
-          "7": 22646,
-          "8": 22646,
-          "9": 22646,
-          "10": 22646,
-          "11": 22612.2,
-          "12": 22612.2
-        },
-        "value": 274224.83,
-        "pct": 1
       },
       {
         "name": "Devoluções de Vendas",
@@ -4123,7 +4104,7 @@
           "2": 743.06,
           "3": 66000,
           "4": 2172.35,
-          "5": 41011.07,
+          "5": 56574.27,
           "6": 0,
           "7": 0,
           "8": 0,
@@ -4132,7 +4113,26 @@
           "11": 0,
           "12": 0
         },
-        "value": 264020.38,
+        "value": 279583.58,
+        "pct": 1
+      },
+      {
+        "name": "Pessoal",
+        "months": {
+          "1": 22671,
+          "2": 26090.79,
+          "3": 24344.68,
+          "4": 22357.96,
+          "5": 20998.24,
+          "6": 22646,
+          "7": 22646,
+          "8": 22646,
+          "9": 22646,
+          "10": 22646,
+          "11": 22612.2,
+          "12": 22612.2
+        },
+        "value": 274917.07,
         "pct": 0.9
       }
     ],
@@ -4200,7 +4200,7 @@
     ],
     "precomputed": {
       "version": "20260528-phase5",
-      "generated_at": "2026-05-27T23:59:41-03:00",
+      "generated_at": "2026-06-01T21:21:18-03:00",
       "periodAliases": {
         "year": "1,2,3,4,5,6,7,8,9,10,11,12",
         "realized": "1,2,3,4,5,6",
@@ -4250,70 +4250,70 @@
           "margem": -1.3957801373575318
         },
         "5": {
-          "entradas": 3993129.05,
-          "saidas": 3661460.28,
-          "resultado": 331668.77,
-          "margem": 8.305986754923437
+          "entradas": 4415261.45,
+          "saidas": 4296842.59,
+          "resultado": 118418.86000000034,
+          "margem": 2.6820350581957118
         },
         "6": {
-          "entradas": 1080758.1,
-          "saidas": 168270.72,
-          "resultado": 912487.3800000001,
-          "margem": 84.43030683739498
+          "entradas": 844000,
+          "saidas": 312841.97,
+          "resultado": 531158.03,
+          "margem": 62.933415876777254
         },
         "7": {
-          "entradas": 5000,
-          "saidas": 170770.72,
-          "resultado": -165770.72,
-          "margem": -3315.4144
+          "entradas": 241758.1,
+          "saidas": 171389.84,
+          "resultado": 70368.26000000001,
+          "margem": 29.10688824903902
         },
         "8": {
           "entradas": 4000,
-          "saidas": 168270.72,
-          "resultado": -164270.72,
-          "margem": -4106.768
+          "saidas": 168889.84,
+          "resultado": -164889.84,
+          "margem": -4122.246
         },
         "9": {
           "entradas": 4000,
-          "saidas": 168270.72,
-          "resultado": -164270.72,
-          "margem": -4106.768
+          "saidas": 168889.84,
+          "resultado": -164889.84,
+          "margem": -4122.246
         },
         "10": {
           "entradas": 5000,
-          "saidas": 170770.72,
-          "resultado": -165770.72,
-          "margem": -3315.4144
+          "saidas": 171389.84,
+          "resultado": -166389.84,
+          "margem": -3327.7968
         },
         "11": {
-          "entradas": 20004000,
-          "saidas": 168632.61,
-          "resultado": 19835367.39,
-          "margem": 99.15700554889023
+          "entradas": 4000,
+          "saidas": 169251.73,
+          "resultado": -165251.73,
+          "margem": -4131.293250000001
         },
         "12": {
-          "entradas": 20005000,
-          "saidas": 171132.61,
-          "resultado": 19833867.39,
-          "margem": 99.14455081229693
+          "entradas": 5000,
+          "saidas": 171751.73,
+          "resultado": -166751.73,
+          "margem": -3335.0346
         },
         "1,2,3,4,5,6,7,8,9,10,11,12": {
-          "entradas": 70727464.33,
-          "saidas": 28560285.15,
-          "resultado": 42167179.18,
-          "margem": 59.619243499606455
+          "entradas": 31149596.73,
+          "saidas": 29343953.430000003,
+          "resultado": 1805643.299999997,
+          "margem": 5.796682748900541
         },
         "1,2,3,4,5,6": {
-          "entradas": 30700464.330000002,
-          "saidas": 27542437.050000004,
-          "resultado": 3158027.2799999975,
-          "margem": 10.286578229092203
+          "entradas": 30885838.63,
+          "saidas": 28322390.610000003,
+          "resultado": 2563448.019999996,
+          "margem": 8.299752034286906
         },
         "7,8,9,10,11,12": {
-          "entradas": 40027000,
-          "saidas": 1017848.1,
-          "resultado": 39009151.9,
-          "margem": 97.4570962100582
+          "entradas": 263758.1,
+          "saidas": 1021562.82,
+          "resultado": -757804.72,
+          "margem": -287.3105015542651
         },
         "1,2,3": {
           "entradas": 15960573.46,
@@ -4322,22 +4322,22 @@
           "margem": 12.836551864095732
         },
         "4,5,6": {
-          "entradas": 14739890.87,
-          "saidas": 13630650.88,
-          "resultado": 1109239.9899999984,
-          "margem": 7.525428782228144
+          "entradas": 14925265.170000002,
+          "saidas": 14410604.440000001,
+          "resultado": 514660.73000000045,
+          "margem": 3.448251834308954
         },
         "7,8,9": {
-          "entradas": 13000,
-          "saidas": 507312.16000000003,
-          "resultado": -494312.16000000003,
-          "margem": -3802.401230769231
+          "entradas": 249758.1,
+          "saidas": 509169.52,
+          "resultado": -259411.42,
+          "margem": -103.86506783964164
         },
         "10,11,12": {
-          "entradas": 40014000,
-          "saidas": 510535.93999999994,
-          "resultado": 39503464.06,
-          "margem": 98.72410671265058
+          "entradas": 14000,
+          "saidas": 512393.30000000005,
+          "resultado": -498393.30000000005,
+          "margem": -3559.9521428571434
         }
       },
       "categoryBreakdown": {
@@ -4547,323 +4547,328 @@
         "5": [
           {
             "name": "Fornecedores Importação",
-            "value": 2709131.01,
-            "pct": 73.9904519734405
+            "value": 3277138.53,
+            "pct": 76.26852651355794
           },
           {
             "name": "Despacho Aduaneiro",
-            "value": 269322.23,
-            "pct": 7.355596112051773
+            "value": 280191.7,
+            "pct": 6.52087420312039
           },
           {
             "name": "Frete Rodoviário",
-            "value": 227712.72,
-            "pct": 6.219177666458258
+            "value": 267277.48,
+            "pct": 6.220322816154175
           },
           {
             "name": "Outros",
-            "value": 166962.36,
-            "pct": 4.559993752001046
+            "value": 166769.16,
+            "pct": 3.881202452892276
           },
           {
             "name": "Impostos e Taxas",
-            "value": 136040.35,
-            "pct": 3.715467043111007
+            "value": 136659.47,
+            "pct": 3.180462563791521
           },
           {
             "name": "Consultoria",
-            "value": 90974.54,
-            "pct": 2.484651834049119
+            "value": 91233.74,
+            "pct": 2.1232739642901373
           },
           {
             "name": "Devoluções de Vendas",
-            "value": 41011.07,
-            "pct": 1.120074147028573
+            "value": 56574.27,
+            "pct": 1.3166474874286702
           },
           {
             "name": "Pessoal",
-            "value": 20306,
-            "pct": 0.5545874718597248
+            "value": 20998.24,
+            "pct": 0.4886899987648839
           }
         ],
         "6": [
           {
+            "name": "Frete Rodoviário",
+            "value": 147167.84,
+            "pct": 47.042230299214644
+          },
+          {
             "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.76709435842433
+            "value": 90570.52,
+            "pct": 28.95088533037942
           },
           {
             "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.950290103946784
+            "value": 50451.03,
+            "pct": 16.126682107263292
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 7.238798553787396
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 0.6414037093552377
           }
         ],
         "7": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.35608446225442
+            "pct": 60.138057191721515
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.57039052127906
+            "pct": 25.478021334286794
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.261055525209473
+            "pct": 13.213151958132407
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8124694912570494
+            "value": 2006.58,
+            "pct": 1.170769515859283
           }
         ],
         "8": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.76709435842433
+            "pct": 59.547998861269576
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.950290103946784
+            "pct": 25.85516097356715
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 13.40874027709423
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 1.1880998880690514
           }
         ],
         "9": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.76709435842433
+            "pct": 59.547998861269576
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.950290103946784
+            "pct": 25.85516097356715
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 13.40874027709423
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 1.1880998880690514
           }
         ],
         "10": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.35608446225442
+            "pct": 60.138057191721515
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.57039052127906
+            "pct": 25.478021334286794
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.261055525209473
+            "pct": 13.213151958132407
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8124694912570494
+            "value": 2006.58,
+            "pct": 1.170769515859283
           }
         ],
         "11": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.63883260776193
+            "pct": 59.42067475469822
           },
           {
             "name": "Outros",
             "value": 44062.43,
-            "pct": 26.129246294652024
+            "pct": 26.033665948348062
           },
           {
             "name": "Pessoal",
             "value": 22612.2,
-            "pct": 13.409150223079628
+            "pct": 13.36009977564188
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8227708745064196
+            "value": 2006.58,
+            "pct": 1.1855595213118353
           }
         ],
         "12": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.22845090716491
+            "pct": 60.011343117184325
           },
           {
             "name": "Outros",
             "value": 44062.43,
-            "pct": 25.74753578526033
+            "pct": 25.654722662764446
           },
           {
             "name": "Pessoal",
             "value": 22612.2,
-            "pct": 13.213261925941525
+            "pct": 13.165631577626613
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8107513816332257
+            "value": 2006.58,
+            "pct": 1.1683026424246206
           }
         ],
         "1,2,3,4,5,6,7,8,9,10,11,12": [
           {
             "name": "Fornecedores Importação",
-            "value": 19150986.61,
-            "pct": 67.05460575557316
+            "value": 19718994.13,
+            "pct": 67.19951412491048
           },
           {
             "name": "Antecipação Recebíveis",
             "value": 2184497.62,
-            "pct": 7.648724823743579
+            "pct": 7.444455721384371
           },
           {
             "name": "Outros",
-            "value": 1644583.0899999996,
-            "pct": 5.758286660523766
+            "value": 1651174.1799999997,
+            "pct": 5.626965650483585
           },
           {
             "name": "Fornecedores Nacionais",
             "value": 1476630.31,
-            "pct": 5.170222573915725
+            "pct": 5.032145084071585
           },
           {
             "name": "Consultoria",
-            "value": 1188013.86,
-            "pct": 4.15967086379038
+            "value": 1178273.06,
+            "pct": 4.015386211714009
           },
           {
             "name": "Despacho Aduaneiro",
-            "value": 1122810.67,
-            "pct": 3.9313706572008797
+            "value": 1133680.14,
+            "pct": 3.8634199127407767
           },
           {
             "name": "Frete Rodoviário",
-            "value": 935566.0800000001,
-            "pct": 3.2757588906635977
+            "value": 1122298.6800000002,
+            "pct": 3.824633523486342
           },
           {
             "name": "Impostos e Taxas",
-            "value": 318951.7000000001,
-            "pct": 1.1167665109954277
-          },
-          {
-            "name": "Pessoal",
-            "value": 274224.83,
-            "pct": 0.9601613869040803
+            "value": 323904.6600000001,
+            "pct": 1.1038207948791723
           },
           {
             "name": "Devoluções de Vendas",
-            "value": 264020.38,
-            "pct": 0.9244318766894388
+            "value": 279583.58,
+            "pct": 0.9527808877796466
+          },
+          {
+            "name": "Pessoal",
+            "value": 274917.07,
+            "pct": 0.9368780885500474
           }
         ],
         "1,2,3,4,5,6": [
           {
             "name": "Fornecedores Importação",
-            "value": 19150986.61,
-            "pct": 69.5326509242217
+            "value": 19718994.13,
+            "pct": 69.62333936259486
           },
           {
             "name": "Antecipação Recebíveis",
             "value": 2184497.62,
-            "pct": 7.931388264714218
+            "pct": 7.71297045535663
           },
           {
             "name": "Fornecedores Nacionais",
             "value": 1476630.31,
-            "pct": 5.361291403950038
+            "pct": 5.2136499716186915
           },
           {
             "name": "Outros",
-            "value": 1381791.2699999998,
-            "pct": 5.016953537886002
+            "value": 1388382.3599999999,
+            "pct": 4.902066280767251
           },
           {
             "name": "Despacho Aduaneiro",
-            "value": 1122810.67,
-            "pct": 4.076656934757341
+            "value": 1133680.14,
+            "pct": 4.002769948380426
           },
           {
             "name": "Frete Rodoviário",
-            "value": 935566.0800000001,
-            "pct": 3.3968166226597596
+            "value": 1122298.6800000002,
+            "pct": 3.9625845694104003
           },
           {
             "name": "Consultoria",
-            "value": 577090.74,
-            "pct": 2.0952784205419475
+            "value": 567349.94,
+            "pct": 2.0031852106427817
           },
           {
             "name": "Impostos e Taxas",
-            "value": 310626.94,
-            "pct": 1.127812108405999
+            "value": 311865.18,
+            "pct": 1.1011259052754092
           },
           {
             "name": "Devoluções de Vendas",
-            "value": 264020.38,
-            "pct": 0.9585948386509976
+            "value": 279583.58,
+            "pct": 0.9871468261626379
           },
           {
             "name": "Pessoal",
-            "value": 138416.43,
-            "pct": 0.5025569442120229
+            "value": 139108.66999999998,
+            "pct": 0.49116146979091463
           }
         ],
         "7,8,9,10,11,12": [
           {
             "name": "Consultoria",
             "value": 610923.12,
-            "pct": 60.02105029227839
+            "pct": 59.802795093893494
           },
           {
             "name": "Outros",
             "value": 262791.82,
-            "pct": 25.81837309516027
+            "pct": 25.724489464093853
           },
           {
             "name": "Pessoal",
             "value": 135808.4,
-            "pct": 13.342698188462501
+            "pct": 13.294179989831658
           },
           {
             "name": "Impostos e Taxas",
-            "value": 8324.76,
-            "pct": 0.8178784240988415
+            "value": 12039.48,
+            "pct": 1.1785354521810025
           }
         ],
         "1,2,3": [
@@ -4921,92 +4926,92 @@
         "4,5,6": [
           {
             "name": "Fornecedores Importação",
-            "value": 10574583.58,
-            "pct": 77.57944703518076
+            "value": 11142591.1,
+            "pct": 77.3221633165583
           },
           {
             "name": "Despacho Aduaneiro",
-            "value": 1026922.69,
-            "pct": 7.533922620722275
+            "value": 1037792.1599999999,
+            "pct": 7.201586611588376
           },
           {
             "name": "Outros",
-            "value": 857860.07,
-            "pct": 6.2936104633031285
+            "value": 864451.16,
+            "pct": 5.9987154848308375
           },
           {
             "name": "Frete Rodoviário",
-            "value": 516107.42000000004,
-            "pct": 3.786373993022408
+            "value": 702840.0199999999,
+            "pct": 4.87724177654272
           },
           {
             "name": "Consultoria",
-            "value": 285809.31,
-            "pct": 2.096813369487459
+            "value": 276068.51,
+            "pct": 1.9157316485192488
           },
           {
             "name": "Impostos e Taxas",
-            "value": 238358.04,
-            "pct": 1.7486915489100987
+            "value": 239596.28,
+            "pct": 1.662638656120104
           },
           {
             "name": "Pessoal",
-            "value": 65309.96,
-            "pct": 0.4791404355886489
+            "value": 66002.2,
+            "pct": 0.45801132266732325
           },
           {
             "name": "Devoluções de Vendas",
-            "value": 43183.42,
-            "pct": 0.3168111367547548
+            "value": 58746.619999999995,
+            "pct": 0.4076624283498826
           },
           {
             "name": "Antecipação Recebíveis",
             "value": 22516.39,
-            "pct": 0.16518939703046667
+            "pct": 0.15624875482322242
           }
         ],
         "7,8,9": [
           {
             "name": "Consultoria",
             "value": 304211.56,
-            "pct": 59.965359395288296
+            "pct": 59.746616411760066
           },
           {
             "name": "Outros",
             "value": 131000.22,
-            "pct": 25.82240883009782
+            "pct": 25.728213267754125
           },
           {
             "name": "Pessoal",
             "value": 67938,
-            "pct": 13.391754693993535
+            "pct": 13.342903950731378
           },
           {
             "name": "Impostos e Taxas",
-            "value": 4162.38,
-            "pct": 0.8204770806203423
+            "value": 6019.74,
+            "pct": 1.182266369754419
           }
         ],
         "10,11,12": [
           {
             "name": "Consultoria",
             "value": 306711.56,
-            "pct": 60.07638952901141
+            "pct": 59.85862032153816
           },
           {
             "name": "Outros",
             "value": 131791.6,
-            "pct": 25.814362843877355
+            "pct": 25.72078908916256
           },
           {
             "name": "Pessoal",
             "value": 67870.4,
-            "pct": 13.293951450313171
+            "pct": 13.245762581204708
           },
           {
             "name": "Impostos e Taxas",
-            "value": 4162.38,
-            "pct": 0.8152961767980524
+            "value": 6019.74,
+            "pct": 1.1748280080945632
           }
         ]
       },
@@ -5217,197 +5222,202 @@
         "5": [
           {
             "name": "Fornecedores Importação",
-            "value": 2709131.01,
-            "pct": 73.9904519734405
+            "value": 3277138.53,
+            "pct": 76.26852651355794
           },
           {
             "name": "Despacho Aduaneiro",
-            "value": 269322.23,
-            "pct": 7.355596112051773
+            "value": 280191.7,
+            "pct": 6.52087420312039
           },
           {
             "name": "Frete Rodoviário",
-            "value": 227712.72,
-            "pct": 6.219177666458258
+            "value": 267277.48,
+            "pct": 6.220322816154175
           },
           {
             "name": "Outros",
-            "value": 166962.36,
-            "pct": 4.559993752001046
+            "value": 166769.16,
+            "pct": 3.881202452892276
           },
           {
             "name": "Impostos e Taxas",
-            "value": 136040.35,
-            "pct": 3.715467043111007
+            "value": 136659.47,
+            "pct": 3.180462563791521
           },
           {
             "name": "Consultoria",
-            "value": 90974.54,
-            "pct": 2.484651834049119
+            "value": 91233.74,
+            "pct": 2.1232739642901373
           },
           {
             "name": "Devoluções de Vendas",
-            "value": 41011.07,
-            "pct": 1.120074147028573
+            "value": 56574.27,
+            "pct": 1.3166474874286702
           },
           {
             "name": "Pessoal",
-            "value": 20306,
-            "pct": 0.5545874718597248
+            "value": 20998.24,
+            "pct": 0.4886899987648839
           }
         ],
         "6": [
           {
+            "name": "Frete Rodoviário",
+            "value": 147167.84,
+            "pct": 47.042230299214644
+          },
+          {
             "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.76709435842433
+            "value": 90570.52,
+            "pct": 28.95088533037942
           },
           {
             "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.950290103946784
+            "value": 50451.03,
+            "pct": 16.126682107263292
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 7.238798553787396
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 0.6414037093552377
           }
         ],
         "7": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.35608446225442
+            "pct": 60.138057191721515
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.57039052127906
+            "pct": 25.478021334286794
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.261055525209473
+            "pct": 13.213151958132407
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8124694912570494
+            "value": 2006.58,
+            "pct": 1.170769515859283
           }
         ],
         "8": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.76709435842433
+            "pct": 59.547998861269576
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.950290103946784
+            "pct": 25.85516097356715
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 13.40874027709423
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 1.1880998880690514
           }
         ],
         "9": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.76709435842433
+            "pct": 59.547998861269576
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.950290103946784
+            "pct": 25.85516097356715
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.458075177903797
+            "pct": 13.40874027709423
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8245403597250907
+            "value": 2006.58,
+            "pct": 1.1880998880690514
           }
         ],
         "10": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.35608446225442
+            "pct": 60.138057191721515
           },
           {
             "name": "Outros",
             "value": 43666.74,
-            "pct": 25.57039052127906
+            "pct": 25.478021334286794
           },
           {
             "name": "Pessoal",
             "value": 22646,
-            "pct": 13.261055525209473
+            "pct": 13.213151958132407
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8124694912570494
+            "value": 2006.58,
+            "pct": 1.170769515859283
           }
         ],
         "11": [
           {
             "name": "Consultoria",
             "value": 100570.52,
-            "pct": 59.63883260776193
+            "pct": 59.42067475469822
           },
           {
             "name": "Outros",
             "value": 44062.43,
-            "pct": 26.129246294652024
+            "pct": 26.033665948348062
           },
           {
             "name": "Pessoal",
             "value": 22612.2,
-            "pct": 13.409150223079628
+            "pct": 13.36009977564188
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8227708745064196
+            "value": 2006.58,
+            "pct": 1.1855595213118353
           }
         ],
         "12": [
           {
             "name": "Consultoria",
             "value": 103070.52,
-            "pct": 60.22845090716491
+            "pct": 60.011343117184325
           },
           {
             "name": "Outros",
             "value": 44062.43,
-            "pct": 25.74753578526033
+            "pct": 25.654722662764446
           },
           {
             "name": "Pessoal",
             "value": 22612.2,
-            "pct": 13.213261925941525
+            "pct": 13.165631577626613
           },
           {
             "name": "Impostos e Taxas",
-            "value": 1387.46,
-            "pct": 0.8107513816332257
+            "value": 2006.58,
+            "pct": 1.1683026424246206
           }
         ]
       }
@@ -8554,7 +8564,7 @@
     ],
     "precomputed": {
       "version": "20260528-phase5",
-      "generated_at": "2026-05-27T23:59:41-03:00",
+      "generated_at": "2026-06-01T21:21:18-03:00",
       "periodAliases": {
         "year": "1,2,3,4,5,6,7,8,9,10,11,12",
         "realized": "1,2,3,4,5,6",
