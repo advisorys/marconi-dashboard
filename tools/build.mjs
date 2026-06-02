@@ -21,7 +21,8 @@ const cssFiles = [
   'src/css/30-executive-interactions.css',
   'src/css/40-ux-patches.css',
   'src/css/50-theme-light.css',
-  'src/css/60-theme-light-premium.css'
+  'src/css/60-theme-light-premium.css',
+  'src/css/70-solaris.css'
 ];
 
 const sizeTargets = {
