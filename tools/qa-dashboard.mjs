@@ -600,6 +600,46 @@ async function run() {
     pushResult('mobile_fixed_hit_targets', mobileFixed.minFixedTabHeight >= 40, `minFixedTabHeight=${mobileFixed.minFixedTabHeight}`);
     await screenshot('phase5-mobile-fixed');
 
+    // ===== Modo Cinema (deck executivo) =====
+    await setViewport(1440, 980, false);
+    await navigate(baseUrl);
+    const cinema = await evaluate(`(async () => {
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      if (typeof window.MarconiCinema === 'undefined') return { api: false };
+      const btn = document.getElementById('cineOpenBtn');
+      window.MarconiCinema.open();
+      await sleep(400);
+      const overlay = document.getElementById('cineOverlay');
+      const shown = !!overlay && overlay.classList.contains('show');
+      const slides = document.querySelectorAll('.cine-slide').length;
+      const autoplay = !!overlay && overlay.classList.contains('cine-autoplaying');
+      // navega 1 slide e verifica que muda o ativo
+      const firstActive = document.querySelector('.cine-slide.active')?.getAttribute('data-i');
+      document.getElementById('cineNext')?.click();
+      await sleep(200);
+      const secondActive = document.querySelector('.cine-slide.active')?.getAttribute('data-i');
+      // count-up presente
+      const hasCount = !!document.querySelector('[data-cine-count]');
+      // graficos vivos presentes em algum slide
+      const hasCharts = !!document.querySelector('.cine-bars, .cine-line, .cine-donut, .cine-hbars');
+      // theme-aware: cor do texto do slide acompanha o tema (nao e' branco fixo no claro)
+      window.MarconiTheme && window.MarconiTheme.apply('light');
+      await sleep(150);
+      const lightColor = getComputedStyle(document.querySelector('.cine-h1, .cine-h2') || document.body).color;
+      window.MarconiTheme && window.MarconiTheme.apply('dark');
+      // Esc fecha
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await sleep(300);
+      const closed = !document.body.classList.contains('cine-active');
+      return { api: true, hasBtn: !!btn, shown, slides, autoplay, navWorks: firstActive !== secondActive, hasCount, hasCharts, lightColor, closed };
+    })()`);
+    pushResult('cinema_opens', cinema.api && cinema.hasBtn && cinema.shown && cinema.slides >= 5, JSON.stringify(cinema));
+    pushResult('cinema_autoplay_on_open', cinema.autoplay === true, `autoplay=${cinema.autoplay}`);
+    pushResult('cinema_nav_works', cinema.navWorks === true, `nav=${cinema.navWorks}`);
+    pushResult('cinema_live_charts_and_countup', cinema.hasCount === true && cinema.hasCharts === true, `count=${cinema.hasCount} charts=${cinema.hasCharts}`);
+    pushResult('cinema_theme_aware', /rgb\(2[0-9],/.test(cinema.lightColor || '') || /rgb\(1[0-9],/.test(cinema.lightColor || ''), `lightColor=${cinema.lightColor}`);
+    pushResult('cinema_esc_closes', cinema.closed === true, `closed=${cinema.closed}`);
+
     clearInterval(collectEvents);
     const relevantErrors = errors.filter(Boolean).filter(e => !/favicon/i.test(e));
     const relevantWarnings = warnings.filter(Boolean).filter(e => !/favicon/i.test(e));

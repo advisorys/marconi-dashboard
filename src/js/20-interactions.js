@@ -499,12 +499,10 @@ function renderOutliers(){
   }
 
   function wireCinemaButton(){
-    if(document.getElementById('v23CinemaMode')) return;
-    const actions = document.querySelector('.sidebar-actions');
-    if(actions){
-      const btn=document.createElement('button'); btn.type='button'; btn.id='v23CinemaMode'; btn.className='sidebar-action gold'; btn.textContent='Modo cinema';
-      actions.appendChild(btn); setButtonLike(btn, openCinema);
-    }
+    /* Modo Cinema v2: reconstruido no modulo dedicado src/js/60-cinema.js
+       (deck executivo, graficos vivos, autoplay, theme-aware). O botao e a engine
+       passaram a ser criados la. Esta funcao antiga vira no-op para nao duplicar. */
+    return;
   }
   function ensureCinema(){
     let o=document.getElementById('v23Cinema'); if(o) return o;

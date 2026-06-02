@@ -34,6 +34,10 @@ html[data-theme="light"] {
   --border-2-rgb:  214,205,187;
   --indigo-rgb:    79,70,229;
   --cyan-rgb:      14,116,144;
+  /* Companheiros RGB de cor (claro) — espelham os hex claros; usados no Modo Cinema. */
+  --gold-rgb:  180,83,9;
+  --green-rgb: 21,128,61;
+  --red-rgb:   220,38,38;
   --switcher-border-rgb: 214,205,187;
   --action-outline-text: #4F46E5;
   /* Chrome (topbar/sidebar/fundo do app) em tons quentes. */

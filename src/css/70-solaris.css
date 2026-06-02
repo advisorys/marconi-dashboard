@@ -9,6 +9,12 @@
 
 /* ---------- 1. Tokens estruturais globais ---------- */
 :root {
+  /* Companheiros RGB de cor (dark) — usados em rgba() no Modo Cinema (80-cinema.css).
+     O tema claro sobrescreve no 50-theme-light. Espelham os hex dark do 00-theme-base. */
+  --gold-rgb:  245,158,11;
+  --green-rgb: 16,185,129;
+  --red-rgb:   239,68,68;
+
   /* Escala tipográfica (Inter) — espelha o DESIGN.md do Stitch */
   --fs-display: 48px;   --lh-display: 56px;   --ls-display: -0.02em;
   --fs-headline: 32px;  --lh-headline: 40px;  --ls-headline: -0.01em;
