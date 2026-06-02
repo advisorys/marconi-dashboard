@@ -1,5 +1,5 @@
 /* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
- * Build: 20260601021641
+ * Build: 20260601235706
  * Mode: production
  */
 
@@ -8942,3 +8942,398 @@ html[data-theme="light"] :is(
   .director-health-item, .director-attention-item, .director-actions li,
   .fixed-sensitive-card, .fixed-dev-item, .fixed-focus-kpi, .fixed-focus-month
 ) :is(.l, .meta, .sub, small) { color: var(--text-mute) !important; }
+
+/* ===== src/css/70-solaris.css ===== */
+
+/* ============================================================
+   70-solaris.css — Camada estrutural "Solaris Executive"
+   Traz a ESTÉTICA do design do Stitch (DESIGN.md) para o dashboard:
+   tipografia Inter sistemática, ritmo de espaçamento 4px, elevação por
+   sombra ambiente + hairlines, cantos Soft. Estrutura é GLOBAL (vale dark
+   e claro); a COR continua vindo dos tokens por tema (--bg/--surface/--gold…).
+   Concatenada por ÚLTIMO no build → vence por ordem. Sem hex de cor chumbado.
+   ============================================================ */
+
+/* ---------- 1. Tokens estruturais globais ---------- */
+:root {
+  /* Escala tipográfica (Inter) — espelha o DESIGN.md do Stitch */
+  --fs-display: 48px;   --lh-display: 56px;   --ls-display: -0.02em;
+  --fs-headline: 32px;  --lh-headline: 40px;  --ls-headline: -0.01em;
+  --fs-headline-md: 24px; --lh-headline-md: 32px;
+  --fs-title: 20px;     --lh-title: 28px;
+  --fs-body-lg: 18px;   --lh-body-lg: 28px;
+  --fs-body: 16px;      --lh-body: 24px;
+  --fs-data: 16px;      --lh-data: 24px;
+  --fs-label: 14px;     --lh-label: 20px;     --ls-label: 0.04em;
+  --fs-caption: 12px;   --lh-caption: 16px;
+
+  /* Ritmo de espaçamento — baseline 4px (Solaris "airy") */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --gutter: 24px;          /* gutters do grid bento */
+  --card-pad: 24px;        /* padding interno padrão dos cards (lado maior = arejado) */
+  --card-pad-lg: 32px;
+
+  /* Cantos (Soft / DESIGN.md) */
+  --r-sm: 4px;   /* botões, inputs, tags */
+  --r-md: 8px;   /* sub-itens */
+  --r-lg: 12px;  /* cards e modais */
+  --r-xl: 16px;  /* heros, containers grandes */
+  --r-pill: 9999px;
+
+  /* Hairline + elevação (sombra ambiente difusa, SEM glow) */
+  --hairline: 1px;
+  --shadow-ambient: 0 4px 12px rgba(10,14,26,0.10), 0 1px 3px rgba(10,14,26,0.06);
+  --shadow-ambient-hover: 0 8px 24px rgba(10,14,26,0.16), 0 2px 6px rgba(10,14,26,0.08);
+
+  /* Transições */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms;
+  --t-med: 200ms;
+}
+
+/* Tema claro: sombra "Solaris" quente (reusa --card-shadow do 50 se quiser,
+   mas aqui padronizamos a ambiente quente para a camada estrutural). */
+html[data-theme="light"] {
+  --shadow-ambient: 0 4px 12px rgba(120,90,40,0.08), 0 1px 3px rgba(120,90,40,0.05);
+  --shadow-ambient-hover: 0 8px 24px rgba(180,83,9,0.15), 0 2px 6px rgba(120,90,40,0.08);
+}
+
+/* ---------- 2. Tipografia Inter (global, dark + claro) ----------
+   Fallback preserva a stack antiga se a CDN do Google falhar. */
+html body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   3. PILOTO — Diretoria no idioma "Solaris": cards limpos elevados,
+   cantos Soft, headers com hairline inferior, respiro generoso,
+   tipografia Inter sistemática. Cor sempre via token (dark + claro).
+   ============================================================ */
+
+/* Container mais generoso (executivo, arejado) */
+html body[data-page="director"] .director-container {
+  max-width: 1440px;
+  padding-left: var(--sp-7);
+  padding-right: var(--sp-7);
+}
+
+/* --- Hero: menos "gradiente dramático", mais editorial limpo --- */
+html body .director-hero.director-cover {
+  border: var(--hairline) solid var(--border-2);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-ambient);
+  padding: var(--sp-6);
+}
+html body .director-hero h1 {
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 700;
+  letter-spacing: var(--ls-display);
+  line-height: 1.05;
+}
+html body .director-hero .accent { text-shadow: none; }
+
+/* Verdict (status do período): card limpo, barra de acento à esquerda */
+html body .director-verdict {
+  min-height: 0;
+  border: var(--hairline) solid var(--border-2);
+  border-left: 3px solid var(--director-color, var(--gold));
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-ambient);
+  padding: var(--sp-5);
+}
+html body .director-verdict strong {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+}
+
+/* --- KPIs: linha limpa, branco elevado, número grande Inter --- */
+html body .director-kpi-grid { gap: var(--gutter); }
+html body .director-kpi {
+  border: var(--hairline) solid var(--border-2);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-ambient);
+  padding: var(--card-pad);
+  min-height: 0;
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
+}
+html body .director-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-ambient-hover);
+  border-color: var(--gold);
+}
+html body .director-kpi .lbl {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
+  font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+html body .director-kpi .val {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 700;
+}
+html body .director-kpi .sub {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  margin-top: var(--sp-2);
+}
+
+/* --- Cards do grid inferior: brancos, elevados, header com hairline --- */
+html body .director-grid { gap: var(--gutter); }
+html body .director-card {
+  border: var(--hairline) solid var(--border-2);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-ambient);
+  padding: var(--card-pad-lg);
+  min-height: 0;
+}
+html body .director-card-head {
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--hairline) solid var(--border);
+}
+html body .director-card-head span {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  font-weight: 600;
+}
+html body .director-card-head strong {
+  font-size: var(--fs-headline-md);
+  line-height: var(--lh-headline-md);
+}
+
+/* Sub-itens (saúde, atenção, ações): cantos médios, respiro, divisória limpa */
+html body :is(.director-health-item, .director-attention-item, .director-actions li) {
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+html body .director-attention-item { border-left: 3px solid var(--c, var(--gold)); }
+html body .director-explanation {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body-lg);
+}
+html body .director-health-list { gap: var(--sp-3); }
+html body .director-attention-list,
+html body .director-actions { gap: var(--sp-3); }
+
+/* ============================================================
+   4. FLUXO DE CAIXA no idioma Solaris.
+   Cards/superfícies do .dashboard-main: cantos Soft, sombra ambiente,
+   hairline, respiro, tipografia Inter. Cor via token (dark + claro).
+   ============================================================ */
+
+/* Títulos de seção — escala Inter, mais respiro abaixo */
+html body .dashboard-main .section-header { margin-bottom: var(--sp-6); }
+html body .dashboard-main .section-header h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 600;
+  letter-spacing: var(--ls-headline);
+  line-height: 1.1;
+}
+
+/* Cards de conteúdo (gráficos, resultado, executivo, diário, donut, insight) */
+html body .dashboard-main :is(
+  .kpi-card, .chart-card, .result-card, .daily-card, .methodology-card,
+  .executive-card, .critical-alert-card, .donut-card, .heatmap-card,
+  .insight-card, .data-table
+) {
+  border: var(--hairline) solid var(--border) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-ambient) !important;
+}
+
+/* KPIs do Fluxo: padding e tipografia Solaris */
+html body .dashboard-main .kpi-card { padding: var(--card-pad) !important; }
+html body .dashboard-main .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-ambient-hover) !important;
+  border-color: var(--gold) !important;
+}
+html body .dashboard-main .kpi-label {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
+  font-weight: 600;
+}
+html body .dashboard-main .kpi-value {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 700;
+}
+
+/* Cards maiores (gráfico, resultado) — padding mais generoso */
+html body .dashboard-main :is(.chart-card, .result-card, .executive-card, .donut-card, .heatmap-card, .daily-card, .insight-card) {
+  padding: var(--card-pad-lg) !important;
+}
+
+/* Tabela mês-a-mês: hairline dividers, sem zebra (DESIGN.md), tipografia data-md */
+html body .dashboard-main .data-table th {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  font-weight: 600;
+  padding: var(--sp-4) var(--sp-5);
+}
+html body .dashboard-main .data-table td {
+  font-size: var(--fs-data);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom-color: var(--border);
+}
+
+/* Ranking de rubricas: itens com cantos médios e hairline */
+html body .dashboard-main .rank-item {
+  border-radius: var(--r-md) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+
+/* Drill-down de categoria e painel mês-a-mês */
+html body .dashboard-main :is(.category-detail, .mom-panel) {
+  border-radius: var(--r-lg) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+
+/* ============================================================
+   5. CUSTOS FIXOS no idioma Solaris.
+   KPIs, cards, sub-cards (linhas sensíveis / desvios), toolbar, abas,
+   mapa de desvios. Cantos Soft, sombra ambiente, hairline, Inter.
+   ============================================================ */
+
+/* Cards e KPIs principais */
+html body[data-page="fixed"] :is(.fixed-card, .fixed-kpi, .fixed-exec-card, .fixed-chart-card, .fixed-wide) {
+  border: var(--hairline) solid var(--border) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-ambient) !important;
+}
+html body[data-page="fixed"] .fixed-kpi {
+  padding: var(--card-pad) !important;
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
+}
+html body[data-page="fixed"] .fixed-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-ambient-hover) !important;
+  border-color: var(--gold) !important;
+}
+html body[data-page="fixed"] .fixed-kpi .lbl {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  font-weight: 600;
+}
+html body[data-page="fixed"] .fixed-kpi .val {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 700;
+}
+html body[data-page="fixed"] :is(.fixed-card, .fixed-wide, .fixed-chart-card) {
+  padding: var(--card-pad-lg) !important;
+}
+
+/* Sub-cards (linhas sensíveis / itens de desvio / análise) — cantos médios */
+html body[data-page="fixed"] :is(.fixed-sensitive-card, .fixed-dev-block, .fixed-focus-kpi, .fixed-focus-month, .fixed-action) {
+  border-radius: var(--r-md) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+
+/* Toolbar e abas internas — pílula (exceção full do DESIGN.md) */
+html body[data-page="fixed"] .fixed-page-toolbar {
+  border-radius: var(--r-lg) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+html body[data-page="fixed"] .fixed-view-tabs {
+  border-radius: var(--r-pill) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+
+/* Card do logo (capa Diretoria) — Soft, limpo */
+html body .director-cover-brand {
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--shadow-ambient) !important;
+}
+
+/* Heatmap wrap — Soft */
+html body[data-page="fixed"] .fixed-heatmap-wrap {
+  border-radius: var(--r-lg) !important;
+  border: var(--hairline) solid var(--border) !important;
+}
+
+/* Títulos dos cards de custos fixos — Inter */
+html body[data-page="fixed"] .fixed-card h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: var(--fs-title);
+  line-height: var(--lh-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   6. CHROME (topbar, sidebar, breadcrumb, page-switcher) no idioma Solaris.
+   Cantos Soft, hairline, sombra ambiente, Inter. Cor via token.
+   ============================================================ */
+
+/* Topbar: cantos menores (executivo), hairline, sombra ambiente */
+html body header.top-site-nav {
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-ambient) !important;
+}
+html body.scrolled header.top-site-nav {
+  box-shadow: var(--shadow-ambient-hover) !important;
+}
+
+/* Sidebar de controle: Soft + sombra ambiente */
+html body .control-sidebar {
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--shadow-ambient) !important;
+}
+
+/* Breadcrumb (barra de contexto v66) */
+html body .v66-context-line { border-radius: var(--r-md) !important; }
+
+/* Page-switcher e tabs — pílula Solaris */
+html body header.top-site-nav > .page-switcher { border-radius: var(--r-pill) !important; }
+
+/* Botões de ação da sidebar — cantos Soft, tipografia label */
+html body .sidebar-action {
+  border-radius: var(--r-sm) !important;
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  transition: border-color var(--t-med) var(--ease), background var(--t-med) var(--ease), color var(--t-med) var(--ease);
+}
+
+/* Marca da sidebar (título) — Inter */
+html body .brand-title,
+html body .top-site-title span {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Hero do Fluxo (título "Visão consolidada") — Inter display */
+html body .dashboard-main .hero-headline,
+html body .dashboard-main h1 {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: var(--ls-display);
+}
+
+/* Estados de foco acessíveis (ring âmbar suave, DESIGN.md) */
+html body :is(.page-tab, .sidebar-action, .top-site-links a, button, a):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Correção de contraste no claro: valor negativo .val.bad usa #F87171 (vermelho claro,
+   feito p/ fundo escuro) — no claro fica 2.5:1. Trocar pelo vermelho profundo do tema. */
+html[data-theme="light"] :is(.monthly-card-metric, .monthly-focus-stat) .val.bad {
+  color: var(--red) !important;
+}

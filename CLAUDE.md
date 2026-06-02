@@ -8,6 +8,13 @@ Dashboard financeiro executivo da Marconi Foods (2026). Site **estático**, publ
 - Repo: `advisorys/marconi-dashboard` · Branch: `main` · URL: https://advisorys.github.io/marconi-dashboard/
 - 3 páginas: **Diretoria** (`director`), **Fluxo de Caixa** (`cash`), **Custos Fixos** (`fixed`).
 
+**Objetivos de negócio:** dar visibilidade executiva do caixa 2026 em < 5 s.
+- Diretoria vê saúde geral, riscos e ações recomendadas de relance.
+- Analista filtra mês/período e vê resultado + 10 categorias sem recarregar.
+- 37 itens de custo fixo (2 grupos) com real × orçado × variação mês a mês.
+- Jan–Jun = realizados; Jul–Dez = projeção. Exportação PDF/PPTX lazy (sob demanda).
+- Dados sigilosos — uso interno; não compartilhar o link.
+
 ## Regras de ouro (não violar sem aprovação explícita)
 1. **Não alterar dados financeiros** sem validação. Nunca inventar números.
 2. **Não editar `assets/app.js` nem `assets/styles.css` à mão** — são gerados. Edite `src/` e rode o build.
@@ -28,10 +35,26 @@ tools/                  build.mjs, precompute-data.mjs, qa-dashboard.mjs
 .github/workflows/qa.yml  QA no CI
 ```
 
+## Arquivos críticos (por papel)
+| Arquivo | Papel — quando tocar |
+|---|---|
+| `data/financeiro.json` | Fonte de verdade dos números. Nunca editar à mão — use precompute. |
+| `src/css/00-theme-base.css` | Tokens `:root` (paleta, espaçamento, tipografia) — identidade visual parte daqui. |
+| `src/css/50-theme-light.css` | Override do tema claro; vence patches v68 por especificidade `html[data-theme]` + `!important`. |
+| `src/js/00-foundation.js` | Helpers globais: `MarconiFormat`, `MarconiEvents`, `MarconiMotion`, `onDashboardReady`. |
+| `src/js/10-cashflow.js` | Página Fluxo de Caixa — gráficos, tabela, filtros de período/mês. |
+| `src/js/40-fixed-director.js` | Páginas Custos Fixos e Diretoria — renderização e lógica de abas. |
+| `src/js/50-ux-patches.js` | Patches cumulativos de UX (topbar, sidebar, mobile) — **não remover sem QA**. |
+| `tools/precompute-data.mjs` | Valida schema e recalcula `precomputed`; obrigatório antes do build. |
+| `tools/build.mjs` | Concatena `src/` na ordem fixa → `assets/`; única forma legítima de gerar assets. |
+| `.github/workflows/qa.yml` | QA visual no CI (windows-latest, Node 22) — fonte de verdade para PRs. |
+| `FASE6-DESIGN-SYSTEM.md` | Spec completa do tema claro (Fase 6): tokens, toggle, iteração de cores hardcoded. |
+| `MELHORIAS-ESTETICAS.md` | Spec de polish: tokens de espaçamento/radius, tints de status, tipografia, micro-interações. |
+
 ## Build (sempre via script — nunca editar assets à mão)
 `tools/build.mjs` concatena os fontes em ordem fixa e atualiza a versão dos assets.
-- JS: `00-foundation → 10-cashflow → 20-interactions → 30-export-loader → 40-fixed-director → 50-ux-patches`
-- CSS: `00-theme-base → 20-fixed-director → 30-executive-interactions → 40-ux-patches`
+- JS: `00-foundation → 10-cashflow → 20-interactions → 30-export-loader → 40-fixed-director → 50-ux-patches → 55-theme-toggle`
+- CSS: `00-theme-base → 20-fixed-director → 30-executive-interactions → 40-ux-patches → 50-theme-light → 60-theme-light-premium`
 - `--prod` tenta minificar com `terser`/`lightningcss` (opcionais, hoje ausentes → avisa e segue).
 - Atualiza `?v=` em `index.html` e `ASSET_VERSION` em `assets/bootstrap.js`.
 
@@ -57,6 +80,27 @@ Projeto **sem dependências de runtime** (lockfile vazio); `npm ci` é praticame
 - `window.setDashboardPage(page)` define `document.body.dataset.page = page`; o CSS mostra/oculta seções por `body[data-page="..."]`. Em `fixed` chama `renderFixedCosts()`; em `director`, `renderDirectorPage()`.
 - **Padrão decorator**: módulos (40, 50) **envolvem** `window.setDashboardPage` em camadas para somar comportamento. Para adicionar página, **some um módulo** que envolve a função (não reescreva a base). Ver skill `nova-pagina-dashboard`.
 - Helpers compartilhados: `MarconiFormat` (formatação), `MarconiEvents` (eventos `page:changed`, `filter:changed`...), `MarconiMotion`, `MarconiPerf`, `onDashboardReady`.
+
+## Identidade visual (tokens reais do código)
+**Paleta dark (padrão)** — definida em `src/css/00-theme-base.css` `:root`:
+- Fundos: `--bg #0A0E1A` · `--surface #131829` · `--surface-2 #1A1F35`
+- Acento âmbar (marca): `--gold #F59E0B` / `--gold-l #FCD34D`
+- Semânticos financeiros: `--green #10B981` (positivo/economia) · `--red #EF4444` (negativo/acima do orçado)
+- Estruturais: `--indigo #6366F1` (projeção/UI) · `--cyan #06B6D4`
+- Texto: `--text #FFFFFF` · `--text-dim #94A0B8` · `--text-mute #5A6580`
+
+**Paleta light** (`html[data-theme="light"]` — Fase 6, branch separada):
+- Fundos: `--bg #F4F1EA` (marfim) · `--surface #FFFFFF` · `--surface-2 #EFEAE0` (areia)
+- Âmbar profundo: `--gold #B45309` · `--gold-l #C2710C`
+- Texto: `--text #1A1714` · `--text-dim #5A5145`
+
+**Tipografia:** `Helvetica Neue, Helvetica, Arial, sans-serif`. h1 `clamp(48px,6vw,84px)` · h2 `clamp(32px,4vw,48px)`. Números com `font-feature-settings:'tnum'` (tabular-nums). Container máx. 1320px, padding 48px lateral.
+
+**Tokens de polish** (Fase 6 / `MELHORIAS-ESTETICAS.md`) — ainda só em branch:
+- Radius: `--r-sm 8px` · `--r-md 12px` · `--r-lg 16px` · `--r-pill 999px`
+- Espaçamento: `--sp-1..6` (4→32px em steps de 4/8px)
+- Tints de status dark: `--tint-positive rgba(16,185,129,.14)` · `--tint-negative rgba(239,68,68,.14)` · `--tint-accent rgba(245,158,11,.14)`
+- Animação: `--ease cubic-bezier(.2,.6,.2,1)` · `--t-fast 120ms` · `--t-med 200ms`
 
 ## Publicação (checklist antes de push)
 ```
