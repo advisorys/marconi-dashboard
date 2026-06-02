@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260602182739
+ * Build: 20260602233939
  * Mode: development
  */
 
@@ -5165,6 +5165,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   var state = { idx: 0, cycle: 0, playing: false, timer: null, raf: [], timebarRaf: null, built: false };
 
+  var REDUCE = false;
+  try { REDUCE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+
   function token(name, fallback) {
     try {
       var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -5646,6 +5649,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     o.setAttribute('role', 'dialog');
     o.setAttribute('aria-label', 'Modo apresentação executiva');
     o.innerHTML =
+      '<div class="cine-aurora" aria-hidden="true"><span class="ca-blob ca-1"></span><span class="ca-blob ca-2"></span><span class="ca-blob ca-3"></span><span class="ca-blob ca-4"></span></div>' +
       '<div class="cine-stage" id="cineStage"></div>' +
       '<div class="cine-progress" id="cineProgress"></div>' +
       '<div class="cine-controls">' +
@@ -5710,16 +5714,47 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (counter) counter.textContent = (state.idx + 1) + ' / ' + slides.length + (state.cycle > 0 ? '  ·  volta ' + (state.cycle + 1) : '');
     var active = secs[state.idx];
     if (active) {
-      // slide-do-momento: regenera o conteúdo conforme a volta atual
-      var dyn = active.getAttribute('data-dyn');
-      if (dyn) {
-        var inner = active.querySelector('.cine-slide-inner');
-        if (inner) inner.innerHTML = (dyn === 'category') ? momentCategoryHtml(state.cycle) : momentMonthHtml(state.cycle);
+      // Reconstrói o conteúdo do slide a cada exibição → DOM NOVA → as animações CSS
+      // (entrada + gráficos) disparam do zero de forma CONFIÁVEL. O antigo truque
+      // remove/reflow/add('anim') falhava às vezes (animação "fantasma": declarada
+      // mas sem timeline), deixando o slide preso em opacity:0 = vazio.
+      var inner = active.querySelector('.cine-slide-inner');
+      if (inner) {
+        var dyn = active.getAttribute('data-dyn');
+        inner.innerHTML = dyn
+          ? ((dyn === 'category') ? momentCategoryHtml(state.cycle) : momentMonthHtml(state.cycle))
+          : slides[state.idx].html;
       }
-      active.classList.remove('anim');
-      void active.offsetWidth; // reflow
-      active.classList.add('anim');
+      // Entrada do CONTEÚDO via Web Animations API — confiável (a animação CSS de
+      // entrada às vezes ficava "pendente" sem timeline e travava em opacity:0 = vazio).
+      if (inner && !REDUCE) {
+        var kids = inner.children;
+        for (var ci = 0; ci < kids.length; ci++) {
+          try {
+            kids[ci].animate(
+              [{ opacity: 0, transform: 'translateY(22px)' }, { opacity: 1, transform: 'translateY(0)' }],
+              { duration: 560, delay: Math.min(ci, 4) * 80, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }
+            );
+          } catch (e) {}
+        }
+      }
+      // Linhas e rosca que "desenham" (stroke-dashoffset): a animação CSS desse tipo
+      // NÃO iniciava de forma confiável (ficava pendente → traço invisível). Faço via
+      // WAAPI, e o repouso já é "desenhado" (se algo falhar, nunca fica vazio).
+      active.querySelectorAll('.cine-line-path, .cine-draw, .cine-mdonut-seg').forEach(function (el) {
+        var fromOff = parseFloat(getComputedStyle(el).strokeDasharray) || 0;
+        el.style.strokeDashoffset = '0';
+        if (REDUCE || !fromOff) return;
+        try {
+          el.animate(
+            [{ strokeDashoffset: fromOff + 'px' }, { strokeDashoffset: '0px' }],
+            { duration: 1300, delay: 160, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'backwards' }
+          );
+        } catch (e) {}
+      });
       runCountUp(active);
+      // Demais animações de gráfico (opacidade: barras, células, pontos) via CSS.
+      active.classList.add('anim');
     }
     if (userAction) restartPlayIfOn();
   }
@@ -5787,14 +5822,19 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (o) o.classList.toggle('cine-autoplaying', state.playing);
   }
 
-  // ---- teclado ----
+  // ---- teclado (modal: roda na CAPTURA e bloqueia os atalhos do dashboard) ----
+  // CAUSA do "slide vazio ao navegar de seta": o dashboard tem um keydown global em
+  // que ArrowRight/Left chamam setDashboardPage() — trocavam a página ATRÁS do cinema
+  // e re-renderizavam, atropelando o slide. Autoplay/dot-click não disparam keydown,
+  // por isso funcionavam. Captura + stopImmediatePropagation isola o cinema.
   document.addEventListener('keydown', function (e) {
     if (!document.body.classList.contains('cine-active')) return;
+    e.stopImmediatePropagation();
     if (e.key === 'Escape') { close(); }
-    else if (e.key === 'ArrowRight') { go(1, true); }
-    else if (e.key === 'ArrowLeft') { go(-1, true); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); go(1, true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1, true); }
     else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
-  });
+  }, true);
 
   // ---- botão na sidebar ----
   function wireButton() {
