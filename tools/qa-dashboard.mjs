@@ -621,7 +621,7 @@ async function run() {
       // count-up presente
       const hasCount = !!document.querySelector('[data-cine-count]');
       // graficos vivos presentes em algum slide
-      const hasCharts = !!document.querySelector('.cine-bars, .cine-line, .cine-donut, .cine-hbars');
+      const hasCharts = !!document.querySelector('.cine-line, .cine-hbars, .cine-duo, .cine-wf, .cine-pulse, .cine-mdonut, .cine-hm, .cine-spark');
       // theme-aware: cor do texto do slide acompanha o tema (nao e' branco fixo no claro)
       window.MarconiTheme && window.MarconiTheme.apply('light');
       await sleep(150);
