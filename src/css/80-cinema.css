@@ -83,24 +83,22 @@ html[data-theme="light"] .cine-overlay::after {
 
 /* ---------- gráfico de barras ---------- */
 .cine-svg { width: 100%; height: auto; display: block; overflow: visible; }
-.cine-axis { stroke: var(--border-2, #2D3454); stroke-width: 1.5; }
-.cine-bar-lbl { fill: var(--text-dim); font-size: 13px; font-weight: 700; letter-spacing: 1px; font-family: 'Inter', sans-serif; }
-.cine-bar {
-  transform-box: fill-box; transform-origin: bottom;
+/* ---------- barras verticais (HTML — anima height de forma confiável) ---------- */
+.cine-vbars {
+  display: flex; align-items: flex-end; justify-content: center; gap: clamp(28px, 5vw, 72px);
+  height: clamp(220px, 30vh, 320px); margin-top: 28px;
+  padding: 0 8px;
 }
-.cine-slide.anim .cine-bar {
-  animation: cineBarGrow .9s cubic-bezier(.22,1,.36,1) both;
-  animation-delay: var(--bar-delay, 0s);
+.cine-vbar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; width: clamp(90px, 11vw, 150px); }
+.cine-vbar-val { font-size: clamp(15px, 1.5vw, 20px); font-weight: 800; color: var(--text); margin-bottom: 10px; font-feature-settings: 'tnum'; white-space: nowrap; }
+.cine-vbar-track { width: 100%; flex: 1; display: flex; align-items: flex-end; border-bottom: 1.5px solid var(--border-2, #2D3454); }
+.cine-vbar-fill { width: 100%; height: 0; border-radius: 10px 10px 0 0; min-height: 4px; }
+.cine-slide.anim .cine-vbar-fill {
+  animation: cineVbarGrow 1s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: var(--col-delay, 0s);
 }
-@keyframes cineBarGrow {
-  from { height: 0; y: var(--bar-y); }
-  to   { height: var(--bar-h); }
-}
-/* fallback p/ navegadores sem animação de y/height em rect: usa scaleY */
-@supports not (height: 10px) {
-  .cine-slide.anim .cine-bar { animation: cineBarScale .9s cubic-bezier(.22,1,.36,1) both; transform: scaleY(0); }
-}
-@keyframes cineBarScale { to { transform: scaleY(1); } }
+@keyframes cineVbarGrow { from { height: 0; } to { height: var(--bh); } }
+.cine-vbar-lbl { margin-top: 12px; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
 
 /* ---------- gráfico de linha ---------- */
 .cine-zero { stroke: var(--border-2, #2D3454); stroke-width: 1; stroke-dasharray: 4 4; opacity: .6; }
@@ -236,11 +234,24 @@ html[data-theme="light"] .cine-overlay::after {
   .cine-synth { grid-template-columns: 1fr; gap: 24px; }
 }
 
+/* ---------- mini barra de progresso temporal (rodapé, cresce esq->dir no autoplay) ---------- */
+.cine-timebar {
+  position: fixed; left: 0; right: 0; bottom: 0; height: 3px; z-index: 20003;
+  background: rgba(var(--border-2-rgb, 45,52,84), .35);
+  opacity: 0; transition: opacity .3s ease; pointer-events: none;
+}
+.cine-timebar.on { opacity: 1; }
+.cine-timebar-fill {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--gold, #F59E0B), var(--gold-l, #FCD34D));
+  box-shadow: 0 0 12px rgba(var(--gold-rgb, 245,158,11), .5);
+}
+
 /* respeita redução de movimento */
 @media (prefers-reduced-motion: reduce) {
   .cine-slide.anim *, .cine-overlay { animation: none !important; transition: none !important; }
   .cine-line-path { stroke-dashoffset: 0 !important; }
   .cine-donut-val { stroke-dashoffset: 0 !important; }
   .cine-hbar-fill { width: var(--fill) !important; }
-  .cine-bar { height: var(--bar-h) !important; y: var(--bar-y) !important; }
+  .cine-vbar-fill { height: var(--bh) !important; }
 }

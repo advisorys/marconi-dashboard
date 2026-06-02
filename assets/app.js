@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260602135536
+ * Build: 20260602172128
  * Mode: production
  */
 
@@ -5156,9 +5156,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   var MONTHS = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   var MONTHS_LONG = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-  var AUTOPLAY_MS = 6000;
+  var AUTOPLAY_MS = 10000;
 
-  var state = { idx: 0, playing: false, timer: null, raf: [], built: false };
+  var state = { idx: 0, playing: false, timer: null, raf: [], timebarRaf: null, built: false };
 
   // ---- token de cor (theme-aware): lê do CSS em runtime ----
   function token(name, fallback) {
@@ -5197,27 +5197,24 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   // =========================================================
   //  GRÁFICOS SVG (desenhados com dados reais; animados via CSS/JS)
   // =========================================================
-  // Barras verticais: entradas vs saídas (3 grupos resumidos) — anima altura
+  // Barras verticais: entradas vs saídas vs resultado — HTML (anima height de forma confiável).
+  // (SVG <rect> com height/y animado tem suporte irregular nos browsers; por isso é HTML.)
   function chartBars(d) {
-    var max = Math.max(d.agg.entradas, d.agg.saidas, 1);
+    var max = Math.max(d.agg.entradas, d.agg.saidas, Math.abs(d.agg.resultado), 1);
     var bars = [
-      { lbl: 'Entradas', v: d.agg.entradas, c: 'var(--green)' },
-      { lbl: 'Saídas', v: d.agg.saidas, c: 'var(--red)' },
-      { lbl: 'Resultado', v: Math.abs(d.agg.resultado), c: 'var(--gold)' }
+      { lbl: 'Entradas', v: d.agg.entradas, c: 'var(--green)', disp: money(d.agg.entradas) },
+      { lbl: 'Saídas', v: d.agg.saidas, c: 'var(--red)', disp: money(d.agg.saidas) },
+      { lbl: 'Resultado', v: Math.abs(d.agg.resultado), c: 'var(--gold)', disp: (d.agg.resultado >= 0 ? '+' : '-') + money(Math.abs(d.agg.resultado)) }
     ];
-    var w = 520, h = 240, padB = 36, padT = 16, bw = 90, gap = (w - bars.length * bw) / (bars.length + 1);
-    var svg = '<svg class="cine-svg cine-bars" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">';
-    // baseline
-    svg += '<line x1="0" y1="' + (h - padB) + '" x2="' + w + '" y2="' + (h - padB) + '" class="cine-axis"/>';
-    bars.forEach(function (b, i) {
-      var bh = (b.v / max) * (h - padB - padT);
-      var x = gap + i * (bw + gap);
-      var y = h - padB - bh;
-      svg += '<rect class="cine-bar" x="' + x + '" y="' + (h - padB) + '" width="' + bw + '" height="0" rx="8" fill="' + b.c + '" style="--bar-h:' + bh + 'px;--bar-y:' + y + 'px;--bar-delay:' + (i * 0.12) + 's"><animate/></rect>';
-      svg += '<text class="cine-bar-lbl" x="' + (x + bw / 2) + '" y="' + (h - padB + 22) + '" text-anchor="middle">' + b.lbl + '</text>';
-    });
-    svg += '</svg>';
-    return svg;
+    var cols = bars.map(function (b, i) {
+      var hpct = (b.v / max) * 100;
+      return '<div class="cine-vbar-col" style="--col-delay:' + (i * 0.12) + 's">' +
+        '<div class="cine-vbar-val">' + b.disp + '</div>' +
+        '<div class="cine-vbar-track"><div class="cine-vbar-fill" style="--bh:' + hpct.toFixed(1) + '%;background:' + b.c + '"></div></div>' +
+        '<div class="cine-vbar-lbl">' + b.lbl + '</div>' +
+      '</div>';
+    }).join('');
+    return '<div class="cine-vbars">' + cols + '</div>';
   }
 
   // Linha de tendência mensal (resultado) — anima o traço (stroke-dashoffset)
@@ -5441,7 +5438,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         '<button class="cine-btn cine-next" id="cineNext" type="button" aria-label="Próximo slide">›</button>' +
       '</div>' +
       '<button class="cine-close" id="cineClose" type="button" aria-label="Fechar (Esc)">✕ Fechar</button>' +
-      '<div class="cine-counter" id="cineCounter"></div>';
+      '<div class="cine-counter" id="cineCounter"></div>' +
+      '<div class="cine-timebar" id="cineTimebar"><div class="cine-timebar-fill" id="cineTimebarFill"></div></div>';
     document.body.appendChild(o);
     o.querySelector('#cineClose').addEventListener('click', close);
     o.querySelector('#cinePrev').addEventListener('click', function () { go(-1, true); });
@@ -5522,17 +5520,44 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     state.playing = false;
     updatePlayBtn();
     if (state.timer) { clearTimeout(state.timer); state.timer = null; }
+    stopTimebar();
   }
   function togglePlay() { state.playing ? stopPlay() : startPlay(); }
   function restartPlayIfOn() { if (state.playing) { schedule(); } }
   function schedule() {
     if (state.timer) clearTimeout(state.timer);
-    if (!state.playing) return;
+    if (!state.playing) { stopTimebar(); return; }
+    runTimebar(); // mini barra de tempo cresce esq->dir junto com o intervalo
     state.timer = setTimeout(function () {
       if (!state.playing) return;
       go(1, false);
       schedule();
     }, AUTOPLAY_MS);
+  }
+
+  // ---- mini barra de progresso temporal (cresce 0->100% no intervalo do autoplay) ----
+  function runTimebar() {
+    var fill = document.getElementById('cineTimebarFill');
+    var bar = document.getElementById('cineTimebar');
+    if (!fill || !bar) return;
+    if (state.timebarRaf) cancelAnimationFrame(state.timebarRaf);
+    bar.classList.add('on');
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var t = Math.min((ts - start) / AUTOPLAY_MS, 1);
+      fill.style.width = (t * 100).toFixed(2) + '%';
+      if (t < 1 && state.playing) state.timebarRaf = requestAnimationFrame(step);
+    }
+    fill.style.width = '0%';
+    state.timebarRaf = requestAnimationFrame(step);
+  }
+  function stopTimebar() {
+    if (state.timebarRaf) { cancelAnimationFrame(state.timebarRaf); state.timebarRaf = null; }
+    var fill = document.getElementById('cineTimebarFill');
+    var bar = document.getElementById('cineTimebar');
+    if (fill) fill.style.width = '0%';
+    if (bar) bar.classList.remove('on');
   }
   function updatePlayBtn() {
     var b = document.getElementById('cinePlay');
