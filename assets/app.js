@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260602002429
+ * Build: 20260602012611
  * Mode: production
  */
 
@@ -3555,13 +3555,19 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const main = document.querySelector('.dashboard-main');
     const sidebar = document.querySelector('.control-sidebar');
     const topbar = document.querySelector('.top-site-nav');
-    
-    const offset = isCollapsed ? '98px' : '326px';
+
+    // Diretoria nao tem sidebar de filtro (pagina de apresentacao): conteudo
+    // centralizado, sem reservar o "vao" da sidebar fantasma. Sem isso, o offset
+    // herdado do estado expandido/colapsado do Fluxo vazava pra ca (bug do vao).
+    const isDirector = document.body.dataset.page === 'director';
+
+    const offset = isDirector ? '0px' : (isCollapsed ? '98px' : '326px');
     const sidebarW = isCollapsed ? '64px' : '292px';
-    
+    const topbarLeft = isDirector ? '22px' : offset;
+
     if (main) main.style.setProperty('margin-left', offset, 'important');
     if (sidebar) sidebar.style.setProperty('width', sidebarW, 'important');
-    if (topbar) topbar.style.setProperty('left', offset, 'important');
+    if (topbar) topbar.style.setProperty('left', topbarLeft, 'important');
   }
   
   // Aplica ao trocar de página (vence regras data-page específicas)

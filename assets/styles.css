@@ -1,5 +1,5 @@
 /* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
- * Build: 20260602002429
+ * Build: 20260602012611
  * Mode: production
  */
 
@@ -9337,3 +9337,28 @@ html body :is(.page-tab, .sidebar-action, .top-site-links a, button, a):focus-vi
 html[data-theme="light"] :is(.monthly-card-metric, .monthly-focus-stat) .val.bad {
   color: var(--red) !important;
 }
+
+/* ============================================================
+   7. FIX — Diretoria sem "vão" da sidebar fantasma.
+   A Diretoria NÃO tem sidebar de filtro (é página de apresentação), mas o
+   patch v44 (40-ux:27) agrupa director com cash/fixed e aplica
+   margin-left:var(--sidebar-offset) no .dashboard-main + left no header.
+   Como o offset segue o estado expandido/colapsado (que persiste entre páginas),
+   sobra um vão que "respira" ao alternar. Aqui forçamos a Diretoria a ignorar
+   a sidebar: corpo centralizado (margin 0) e topbar full-width.
+   Especificidade > patch v44: prefixo html + body[data-page] + .dashboard-main repetida. */
+html body[data-page="director"][data-page="director"] main.dashboard-main.dashboard-main,
+html body[data-page="director"][data-page="director"] .dashboard-main.dashboard-main {
+  margin-left: 0 !important;
+}
+html body[data-page="director"][data-page="director"] header.top-site-nav.top-site-nav {
+  left: 22px !important;
+  right: 22px !important;
+}
+/* Breadcrumb v66 (.v66-context-line) reserva left:clamp(...,374px) p/ a sidebar.
+   Na Diretoria nao ha sidebar -> alinhar com a borda do conteudo. */
+html body[data-page="director"][data-page="director"] .v66-context-line {
+  left: clamp(24px, 4vw, 56px) !important;
+}
+/* O container interno já centraliza com max-width + margin auto (patch v44:51),
+   então o conteúdo fica justo e centrado, igual às outras páginas com filtro colapsado. */
