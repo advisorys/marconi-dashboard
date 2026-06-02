@@ -409,9 +409,30 @@ html body[data-page="director"][data-page="director"] header.top-site-nav.top-si
   right: 22px !important;
 }
 /* Breadcrumb v66 (.v66-context-line) reserva left:clamp(...,374px) p/ a sidebar.
-   Na Diretoria nao ha sidebar -> alinhar com a borda do conteudo. */
+   Na Diretoria nao ha sidebar -> REPLICAR a geometria do container do conteudo
+   (--container-max centralizado + --container-pad lateral) para o TEXTO do breadcrumb
+   alinhar exatamente com o hero/KPIs, que vivem nesse mesmo container. */
 html body[data-page="director"][data-page="director"] .v66-context-line {
-  left: clamp(24px, 4vw, 56px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  /* O container do conteudo resolve para ~1380 efetivo (nao o token 1320), entao usamos
+     o mesmo valor para o texto do breadcrumb bater exatamente com o hero/KPIs. */
+  max-width: 1380px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: var(--container-pad, 48px) !important;
+  padding-right: var(--container-pad, 48px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Toast de notificacao (.toast-v41) tem fundo navy chumbado rgba(13,18,32,.96).
+   No claro vira uma "pilula preta" (o "treco preto" ao colapsar a sidebar) e o
+   texto var(--text) escuro fica ilegivel. Themar no claro: superficie clara + borda ambar. */
+html[data-theme="light"] .toast-v41 {
+  background: rgba(255,253,249,0.97) !important;
+  border-color: rgba(180,83,9,0.40) !important;
+  color: var(--text) !important;
+  box-shadow: 0 14px 40px rgba(120,90,40,0.20) !important;
 }
 /* O container interno já centraliza com max-width + margin auto (patch v44:51),
    então o conteúdo fica justo e centrado, igual às outras páginas com filtro colapsado. */
