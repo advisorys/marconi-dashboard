@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260603000256
+ * Build: 20260603002005
  * Mode: development
  */
 
@@ -3362,6 +3362,23 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     
     const key = e.key.toLowerCase();
     
+    // Pop-up/modal aberto (cinema, painel de foco, dropdown de mês): Escape fecha; nenhum
+    // atalho global dispara — senão a tecla "vaza" e troca a página POR TRÁS do pop-up.
+    // (Mesmo bug que corrigimos no cinema; novos overlays: some o seletor aqui.)
+    const cineOpen = document.body.classList.contains('cine-active');
+    const focusPanel = document.querySelector('.fixed-focus-panel.show');
+    const monthDrop = document.querySelector('#monthSelect.open');
+    if (cineOpen || focusPanel || monthDrop) {
+      if (key === 'escape') {
+        if (focusPanel) { focusPanel.classList.remove('show'); focusPanel.innerHTML = ''; }
+        if (monthDrop) {
+          monthDrop.classList.remove('open');
+          document.getElementById('monthSelectBtn')?.setAttribute('aria-expanded', 'false');
+        }
+      }
+      return;
+    }
+
     // Navegação entre páginas
     if (key === 'd') { window.setDashboardPage?.('director'); showToast('Diretoria'); }
     else if (key === 'f') { window.setDashboardPage?.('cash'); showToast('Fluxo de Caixa'); }
