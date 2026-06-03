@@ -1,5 +1,5 @@
 /* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
- * Build: 20260602233939
+ * Build: 20260603000256
  * Mode: development
  */
 
@@ -9599,9 +9599,9 @@ html[data-theme="light"] .ca-3 { background: radial-gradient(circle, rgba(var(--
 .cine-hbar-row { display: grid; grid-template-columns: 230px 1fr 120px 64px; gap: 18px; align-items: center; }
 .cine-hbar-name { font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cine-hbar-track { height: 14px; border-radius: 999px; background: var(--border, #1F2440); overflow: hidden; }
-/* repouso já preenchido (width:var(--fill)); o "crescer" é via WAAPI scaleX no render()
-   — animação de width/CSS não iniciava de forma confiável. */
-.cine-hbar-fill { height: 100%; width: var(--fill, 0%); border-radius: 999px; transform-origin: left center; background: linear-gradient(90deg, var(--gold, #F59E0B), var(--gold-l, #FCD34D)); }
+.cine-hbar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--gold, #F59E0B), var(--gold-l, #FCD34D)); }
+.cine-slide.anim .cine-hbar-fill { animation: cineHbar 1s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--row-delay, 0s); }
+@keyframes cineHbar { to { width: var(--fill); } }
 .cine-hbar-val { text-align: right; font-size: 15px; font-weight: 800; color: var(--text); font-feature-settings: 'tnum'; }
 .cine-hbar-pct { text-align: right; font-size: 14px; font-weight: 700; color: var(--gold, #F59E0B); font-feature-settings: 'tnum'; }
 
@@ -9618,7 +9618,8 @@ html[data-theme="light"] .ca-3 { background: radial-gradient(circle, rgba(var(--
 .cine-mini-row { display: grid; grid-template-columns: minmax(120px,210px) 1fr 100px; gap: 14px; align-items: center; }
 .cine-mini-name { font-size: 14px; font-weight: 600; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cine-mini-track { height: 11px; border-radius: 999px; background: var(--border, #1F2440); overflow: hidden; }
-.cine-mini-fill { height: 100%; width: var(--fill, 0%); border-radius: 999px; transform-origin: left center; background: linear-gradient(90deg, var(--gold, #F59E0B), var(--gold-l, #FCD34D)); }
+.cine-mini-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--gold, #F59E0B), var(--gold-l, #FCD34D)); }
+.cine-slide.anim .cine-mini-fill { animation: cineHbar .9s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--row-delay, 0s); }
 .cine-mini-val { text-align: right; font-size: 14px; font-weight: 800; color: var(--text); font-feature-settings: 'tnum'; }
 
 /* ---------- síntese ---------- */

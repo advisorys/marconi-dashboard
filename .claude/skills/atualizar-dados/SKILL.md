@@ -7,9 +7,9 @@ description: Atualizar data/financeiro.json a partir das planilhas .xlsx dos con
 
 Fluxo para regerar `data/financeiro.json` a partir das planilhas. **Leia o `CLAUDE.md` antes.** Regra inquebrável: **nunca inventar números** — os dados vêm sempre das planilhas reais. O `precompute` é a rede de segurança que valida tudo no fim.
 
-## ⚠️ Alerta crítico (leia primeiro)
-O importador original `…\.codex_check_scripts\update_marconi_data.py` está **desatualizado**: ele ainda injeta um `<script id="embedded-data">` no `index.html`, que **foi removido** da arquitetura atual (o `index.html` carrega os dados por `fetch` em `assets/bootstrap.js`). Rodar o script como está faz ele **falhar** com "Embedded data script not found" — e, se fosse adiante, reintroduziria JSON embutido (peso e dado duplicado) que não deve voltar.
-→ Use o wrapper seguro abaixo (`update_data_safe.py`), que reaproveita a lógica boa (`generate_data`) e grava **só** o `financeiro.json`.
+## Importador (corrigido) + por que ainda usamos o wrapper
+O importador `…\.codex_check_scripts\update_marconi_data.py` foi **corrigido em 2026-06-02**: removidos `replace_embedded_json` e a validação de `embedded-data`. Ele **não injeta mais** o `<script id="embedded-data">` no `index.html` (a arquitetura atual carrega os dados por `fetch` em `assets/bootstrap.js`); o `main()` grava só `financeiro.json` + `summary.json`. `generate_data`/`strip_update_only` ficaram intactos.
+→ Mesmo assim, **use o wrapper `update_data_safe.py`** no fluxo: ele reaproveita o `generate_data`, grava **direto** em `data/financeiro.json` e **só escreve se houver mudança REAL** de dado (ignora ruído de timestamp), evitando commit à toa.
 
 ## Dependências e ambiente
 - **Python + openpyxl** (`pip install openpyxl`).
@@ -46,5 +46,5 @@ O importador original `…\.codex_check_scripts\update_marconi_data.py` está **
 - `custos_fixos`: `items` (name/group/`months` = 12×[est, real, diff, basis]), `totals`, `months` (rótulos).
 - `meta.ultima_atualizacao` (America/Sao_Paulo) e `meta.fonte` (nomes das planilhas).
 
-## Melhoria recomendada
-Quando a pasta das planilhas estiver acessível, vale **corrigir e testar** o `update_marconi_data.py` de vez: remover `replace_embedded_json` e a validação de `embedded-data`, gravando só `financeiro.json`. Faça em conjunto, validando contra planilhas reais — não às cegas.
+## Feito (2026-06-02) + pendência
+Importador corrigido: `replace_embedded_json` e a validação de `embedded-data` removidos; `main()` grava só `financeiro.json` + `summary.json`. `generate_data`/`strip_update_only` intactos (o wrapper depende deles). Verificado por `py_compile` + import. **Pendência:** validar **1 run completo contra planilhas reais** na próxima atualização — a lógica de parsing não mudou, mas confirme o resultado (regra: não às cegas).

@@ -51,4 +51,4 @@ Regras de integridade (CLAUDE.md): não editar assets à mão (são gerados); n�
 
 ## Observações
 - A automação de QA das 05:00 (Cowork) e esta de dados (Claude Code) são complementares: a de dados publica quando o consultor entrega planilha nova; a de QA vigia a integridade todo dia.
-- O importador antigo (`update_marconi_data.py`) ainda injeta `embedded-data` (removido da arquitetura) — por isso usamos o wrapper, que grava só o `financeiro.json`. Quando der, vale corrigir o importador de vez (ver SKILL.md → "Melhoria recomendada").
+- O importador (`update_marconi_data.py`) foi **corrigido em 2026-06-02**: não injeta mais `embedded-data`; grava só `financeiro.json`. Seguimos usando o wrapper (`update_data_safe.py`) porque ele só grava se houver **mudança real** de dado (evita commit de ruído de timestamp).

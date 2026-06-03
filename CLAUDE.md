@@ -124,4 +124,4 @@ Só publicar com QA verde e mudança real. Sem mudança real → não commitar.
 - Assets acima do alvo minificado (`terser`/`lightningcss` não instalados).
 - CSS com muitos `!important` e patches históricos (reduzir só com QA).
 - `tools/precompute` não valida seções novas além de `fluxo_caixa`/`custos_fixos` — estender ao criar páginas.
-- **`.codex_check_scripts/update_marconi_data.py` está DESATUALIZADO**: ainda injeta `embedded-data` no `index.html`, que foi removido. Hoje ele quebra. Corrigir antes de usar (ver skill `atualizar-dados`).
+- **`.codex_check_scripts/update_marconi_data.py` CORRIGIDO (2026-06-02)**: removidos `replace_embedded_json` + validação de `embedded-data`; `main()` grava só `financeiro.json` + `summary.json` (`generate_data`/`strip_update_only` intactos). Pendência: validar 1 run completo contra planilhas reais na próxima atualização (parsing não mudou). Fluxo via skill `atualizar-dados` (wrapper).
