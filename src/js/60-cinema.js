@@ -701,22 +701,15 @@
 
   // ---- botão na sidebar ----
   function wireButton() {
-    var old = document.getElementById('v23CinemaMode');
     var actions = document.querySelector('.sidebar-actions');
-    if (!actions) return;
-    var btn = document.getElementById('cineOpenBtn');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.id = 'cineOpenBtn';
-      btn.className = 'sidebar-action gold';
-      btn.textContent = 'Modo cinema';
-      if (old && old.parentNode === actions) { actions.replaceChild(btn, old); }
-      else { actions.appendChild(btn); }
-      btn.addEventListener('click', function (e) { e.preventDefault(); open(); });
-    } else if (old && old !== btn) {
-      old.remove();
-    }
+    if (!actions || document.getElementById('cineOpenBtn')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'cineOpenBtn';
+    btn.className = 'sidebar-action gold';
+    btn.textContent = 'Modo cinema';
+    actions.appendChild(btn);
+    btn.addEventListener('click', function (e) { e.preventDefault(); open(); });
   }
 
   // re-render no toggle de tema (cores via token mudam; re-render garante gráficos coerentes)

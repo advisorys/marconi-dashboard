@@ -1,9 +1,10 @@
 /* ============================================================
-   80-cinema.css — Modo Cinema executivo (v4 · chart-forward)
-   Overlay imersivo theme-aware (cor via token: navy no dark, marfim no claro),
-   tipografia Inter grande, gráficos SVG/HTML animados. Par do src/js/60-cinema.js.
-   Linhas usam pathLength="1" → o "desenho" (stroke-dashoffset) é confiável
-   independente do comprimento do traço.
+   80-cinema.css — Modo Cinema executivo (chart-forward + aurora)
+   Overlay imersivo theme-aware (navy no dark, marfim no claro), tipografia Inter,
+   gráficos SVG/HTML animados, fundo aurora. Par do src/js/60-cinema.js.
+   Entrada de conteúdo, desenho de linhas/rosca e preenchimento de barras rodam
+   via Web Animations API no render() (a animação CSS desses não iniciava de forma
+   confiável); opacidade/transform seguem em CSS.
    ============================================================ */
 
 /* ---------- overlay ---------- */

@@ -7,7 +7,6 @@
     compareMonths: [],
     compareCats: [],
     pinnedTip: false,
-    cinemaIndex: 0,
     filterBusy: false
   };
   window.V23 = V23;
@@ -208,7 +207,7 @@
     const tt = document.getElementById('tooltip');
     if (tt && tt.contains(e.target)) { V23.pinnedTip = !V23.pinnedTip; tt.classList.toggle('v23-pinned', V23.pinnedTip); }
   });
-  document.addEventListener('keydown', e => { if(e.key==='Escape') { V23.pinnedTip=false; const tt=document.getElementById('tooltip'); if(tt){tt.classList.remove('v23-pinned'); originalHideTip();} if(document.body.classList.contains('v23-cinema')) closeCinema(); }});
+  document.addEventListener('keydown', e => { if(e.key==='Escape') { V23.pinnedTip=false; const tt=document.getElementById('tooltip'); if(tt){tt.classList.remove('v23-pinned'); originalHideTip();} }});
 
   // ── Enhanced apply filter: View Transition + skeleton + post decoration ──
   const originalApplyFilter = applyFilter;
@@ -233,7 +232,6 @@
     wireInsights();
     pulseAlerts();
     wireCompareButtons();
-    wireCinemaButton();
   }
   function updateDynamicBackground(){
     try {
@@ -498,43 +496,6 @@ function renderOutliers(){
     });
   }
 
-  function wireCinemaButton(){
-    /* Modo Cinema v2: reconstruido no modulo dedicado src/js/60-cinema.js
-       (deck executivo, graficos vivos, autoplay, theme-aware). O botao e a engine
-       passaram a ser criados la. Esta funcao antiga vira no-op para nao duplicar. */
-    return;
-  }
-  function ensureCinema(){
-    let o=document.getElementById('v23Cinema'); if(o) return o;
-    o=document.createElement('div'); o.id='v23Cinema'; o.className='v23-cinema-overlay';
-    o.innerHTML = `<button class="v23-cinema-close">Fechar</button><button class="v23-cinema-prev">Anterior</button><button class="v23-cinema-next">Próximo</button><div class="v23-cinema-progress" id="v23CinemaProgress"></div><div id="v23CinemaSlides" style="width:100%;height:100%;"></div>`;
-    document.body.appendChild(o);
-    o.querySelector('.v23-cinema-close').addEventListener('click', closeCinema);
-    o.querySelector('.v23-cinema-next').addEventListener('click',()=>moveCinema(1));
-    o.querySelector('.v23-cinema-prev').addEventListener('click',()=>moveCinema(-1));
-    document.addEventListener('keydown', e=>{ if(!document.body.classList.contains('v23-cinema')) return; if(e.key==='ArrowRight') moveCinema(1); if(e.key==='ArrowLeft') moveCinema(-1); });
-    return o;
-  }
-  function openCinema(){
-    const period=getActivePeriod(), agg=aggregate(period.months), cats=getCategoryBreakdown(period.months), top=cats[0];
-    const slides = [
-      {k:'Fluxo de Caixa 2026', t:'Performance financeira em modo cinema.', x:`${periodLabelFor(period.months, period.mode)} · leitura executiva dinâmica.`},
-      {k:'Resultado do período', t:`${agg.resultado>=0?'+':''}${fmtMoneyFull(agg.resultado)}`, x:`Entradas de ${fmtMoneyFull(agg.entradas)} contra saídas gerenciais de ${fmtMoneyFull(agg.saidas)}.`},
-      {k:'Principal pressão de caixa', t: top ? top.name : 'Sem categoria', x: top ? `${fmtMoneyFull(top.value)} · ${fmtPct(top.pct)} das saídas do recorte.` : 'Sem saídas classificadas no período.'},
-      {k:'Mapa crítico', t:'Concentração, outliers e composição.', x:'Use as setas para navegar. Esc fecha o modo cinema.'}
-    ];
-    const root=ensureCinema().querySelector('#v23CinemaSlides');
-    root.innerHTML = slides.map((s,i)=>`<section class="v23-cinema-slide ${i===0?'active':''}"><div class="v23-cinema-content"><div class="v23-cinema-kicker">${safe(s.k)}</div><div class="v23-cinema-title">${safe(s.t)}</div><div class="v23-cinema-text">${safe(s.x)}</div><div class="v23-cinema-metrics"><div class="v23-cinema-metric"><div class="mini">Entradas</div><h3>${fmtMoneyFull(agg.entradas)}</h3></div><div class="v23-cinema-metric"><div class="mini">Saídas</div><h3>${fmtMoneyFull(agg.saidas)}</h3></div><div class="v23-cinema-metric"><div class="mini">Margem</div><h3>${fmtPct(agg.margem)}</h3></div></div></div></section>`).join('');
-    V23.cinemaIndex=0; document.body.classList.add('v23-cinema'); updateCinemaProgress();
-  }
-  function closeCinema(){ document.body.classList.remove('v23-cinema'); }
-  function moveCinema(d){
-    const slides=[...document.querySelectorAll('.v23-cinema-slide')]; if(!slides.length) return;
-    slides[V23.cinemaIndex]?.classList.remove('active');
-    V23.cinemaIndex=(V23.cinemaIndex+d+slides.length)%slides.length;
-    slides[V23.cinemaIndex]?.classList.add('active'); updateCinemaProgress();
-  }
-  function updateCinemaProgress(){ const slides=document.querySelectorAll('.v23-cinema-slide'); const p=document.getElementById('v23CinemaProgress'); if(p) p.textContent = `${V23.cinemaIndex+1} / ${slides.length}`; }
 
   // initial boot after original init
   onDashboardReady(() => { setTimeout(decorateAfterRender, 180); });

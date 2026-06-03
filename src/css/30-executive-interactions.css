@@ -66,24 +66,7 @@
   .data-table th[data-v23-sort] { cursor:pointer; user-select:none; position:relative; }
   .data-table th[data-v23-sort]::after { content:'↕'; color:var(--text-mute); margin-left:8px; font-size:11px; }
   .data-table th.v23-sort-active::after { content:attr(data-dir); color:var(--gold-l); }
-  .v23-cinema-overlay { position:fixed; inset:0; z-index:20000; background:radial-gradient(circle at 75% 20%, rgba(99,102,241,.28), transparent 38%), linear-gradient(180deg,#050713,#0A0E1A); display:none; color:#fff; overflow:hidden; }
-  body.v23-cinema .v23-cinema-overlay { display:flex; }
-  body.v23-cinema > *:not(.v23-cinema-overlay):not(.tooltip) { visibility:hidden!important; }
-  .v23-cinema-slide { width:100%; height:100%; display:none; align-items:center; justify-content:center; padding:7vw; }
-  .v23-cinema-slide.active { display:flex; animation:v23CinemaIn .6s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes v23CinemaIn { from{opacity:0; transform:scale(.985) translateY(20px); filter:blur(8px)} to{opacity:1; transform:none; filter:none} }
-  .v23-cinema-content { max-width:1100px; width:100%; }
-  .v23-cinema-kicker { color:var(--gold-l); font-size:12px; letter-spacing:4px; text-transform:uppercase; font-weight:900; margin-bottom:22px; }
-  .v23-cinema-title { font-size:clamp(54px,7vw,110px); line-height:.92; letter-spacing:-4px; font-weight:900; margin-bottom:28px; }
-  .v23-cinema-text { color:var(--text-dim); font-size:22px; line-height:1.55; max-width:880px; }
-  .v23-cinema-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:36px; }
-  .v23-cinema-metric { padding:22px; border:1px solid var(--border-2); border-radius:20px; background:rgba(19,24,41,.55); }
-  .v23-cinema-close, .v23-cinema-next, .v23-cinema-prev { position:fixed; z-index:20001; border:1px solid rgba(252,211,77,.35); background:rgba(10,14,26,.7); color:var(--gold-l); border-radius:999px; padding:12px 16px; letter-spacing:2px; text-transform:uppercase; font-weight:900; cursor:pointer; }
-  .v23-cinema-close { top:24px; right:24px; }
-  .v23-cinema-next { right:24px; bottom:24px; }
-  .v23-cinema-prev { left:24px; bottom:24px; }
-  .v23-cinema-progress { position:fixed; left:50%; bottom:34px; transform:translateX(-50%); color:var(--text-mute); font-size:11px; letter-spacing:2px; text-transform:uppercase; }
-  @media print { .top-site-nav, .control-sidebar, .presentation-exit, .v23-compare-dock, .v23-cinema-overlay, .tooltip { display:none!important; } body { background:#07101f!important; } .dashboard-main{margin-left:0!important; padding-top:0!important;} section{break-inside:avoid; page-break-inside:avoid; padding:28px 0!important;} .hero{min-height:auto!important;} .chart-card,.result-card,.executive-card,.data-table,.daily-card,.heatmap-card{box-shadow:none!important; border-color:#3B4264!important;} }
+  @media print { .top-site-nav, .control-sidebar, .presentation-exit, .v23-compare-dock, .tooltip { display:none!important; } body { background:#07101f!important; } .dashboard-main{margin-left:0!important; padding-top:0!important;} section{break-inside:avoid; page-break-inside:avoid; padding:28px 0!important;} .hero{min-height:auto!important;} .chart-card,.result-card,.executive-card,.data-table,.daily-card,.heatmap-card{box-shadow:none!important; border-color:#3B4264!important;} }
 
 
 /* ===== v24-executive-dark-premium-style ===== */
@@ -196,7 +179,6 @@
   .rank-num,
   .rank-pct,
   .hero-brand-kicker,
-  .v23-cinema-kicker,
   .executive-eyebrow,
   .section-context,
   .v23-chip.active,
@@ -208,10 +190,7 @@
   .top-badge,
   .section-context,
   .print-btn,
-  .sidebar-action.gold,
-  .v23-cinema-close,
-  .v23-cinema-next,
-  .v23-cinema-prev {
+  .sidebar-action.gold {
     border-color: rgba(201,161,90,.36) !important;
     background: rgba(201,161,90,.045) !important;
     color: #E0C078 !important;
@@ -355,19 +334,6 @@
     50% { box-shadow: 0 0 0 1px rgba(200,90,90,.13), 0 0 22px rgba(200,90,90,.055), inset 0 1px 0 rgba(255,255,255,.02); }
   }
 
-  .v23-cinema-overlay {
-    background:
-      radial-gradient(circle at 78% 18%, rgba(91,111,168,.14), transparent 38%),
-      radial-gradient(circle at 12% 82%, rgba(201,161,90,.08), transparent 36%),
-      linear-gradient(180deg,#050812,#0A0F1D) !important;
-  }
-  .v23-cinema-title {
-    text-shadow: 0 20px 60px rgba(0,0,0,.30) !important;
-  }
-  .v23-cinema-metric {
-    background: rgba(15,22,36,.62) !important;
-    border-color: rgba(48,58,80,.78) !important;
-  }
 
   .tooltip {
     background: rgba(12,18,31,.96) !important;
@@ -1841,7 +1807,7 @@ html {
     color: #0F172A !important;
   }
   header.top-site-nav, .control-sidebar, .toast-v41,
-  .presentation-exit, .v23-compare-dock, .v23-cinema-overlay {
+  .presentation-exit, .v23-compare-dock {
     display: none !important;
   }
   section, .fixed-card, .director-card {

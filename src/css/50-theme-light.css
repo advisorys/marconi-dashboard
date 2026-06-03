@@ -63,7 +63,7 @@ html:not([data-theme="light"]) { color-scheme: dark; }
 /* Paineis e metricas neutros (nao cobertos por --card-bg do 40-ux:716) */
 html[data-theme="light"] :is(
   .exec-metric, .result-summary-item, .category-metric, .v23-compare-card,
-  .insight-card, .category-detail, .month-detail-panel, .v23-cinema-metric
+  .insight-card, .category-detail, .month-detail-panel
 ) {
   background: var(--card-bg) !important;
   border-color: var(--border) !important;
@@ -99,7 +99,7 @@ html[data-theme="light"] :is(
 /* Acentos dourados em texto (#E0C078 -> ambar profundo, sem glow) para contraste AA */
 html[data-theme="light"] :is(
   .number-gold, .hero-headline .accent, .rank-num, .rank-pct, .hero-brand-kicker,
-  .section-context, .heatmap-head, .v23-cinema-kicker
+  .section-context, .heatmap-head
 ) {
   color: var(--gold) !important;
   text-shadow: none !important;
