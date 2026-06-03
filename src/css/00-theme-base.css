@@ -3474,34 +3474,6 @@
 
 
   /* ━━━ V35 · Ranking criteria made explicit ━━━ */
-  .v35-rank-toolbar {
-    display: grid !important;
-    grid-template-columns: minmax(240px, 1fr) auto;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 14px;
-    padding: 14px 16px !important;
-    border-radius: 16px !important;
-    background: linear-gradient(135deg, rgba(17,24,39,.86), rgba(22,29,46,.72)) !important;
-  }
-  .v35-rank-toolbar-left { display:flex; flex-direction:column; gap:5px; min-width:0; }
-  .v35-rank-toolbar .label { color:#AAB3C5 !important; }
-  .v35-sort-status {
-    color:#E7EEF9;
-    font-size:12px;
-    line-height:1.4;
-    letter-spacing:.4px;
-    font-weight:700;
-  }
-  .v35-sort-status strong { color:#E0C078; }
-  .v35-sort-status span { color:#8F9AAF; font-weight:600; }
-  .v35-rank-toolbar .v23-chipset { justify-content:flex-end; }
-  .v35-rank-toolbar .v23-chip.active {
-    background: rgba(201,161,90,.18) !important;
-    border-color: rgba(201,161,90,.72) !important;
-    color: #F3D68A !important;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.025), 0 10px 26px rgba(0,0,0,.20) !important;
-  }
   .v35-rank-row-metric {
     display:flex;
     flex-direction:column;
@@ -3532,7 +3504,5 @@
   .rank-item.v35-sort-refresh { animation: v35RankRefresh .36s cubic-bezier(.22,1,.36,1) both; }
   @keyframes v35RankRefresh { from { opacity:.52; transform:translateY(8px); } to { opacity:1; transform:none; } }
   @media (max-width: 1180px) {
-    .v35-rank-toolbar { grid-template-columns:1fr; }
-    .v35-rank-toolbar .v23-chipset { justify-content:flex-start; }
     .rank-item.v35-sorted { grid-template-columns:36px minmax(220px,1fr) minmax(118px,132px) 72px 30px 28px !important; }
   }

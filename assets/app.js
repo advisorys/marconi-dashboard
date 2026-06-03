@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260603032810
+ * Build: 20260603035316
  * Mode: development
  */
 
@@ -1435,38 +1435,6 @@ onDashboardReady(init);
 
   // ── Ranking override with dynamic sorting ──
   const colors = ['#6366F1','#06B6D4','#10B981','#F59E0B','#EF4444','#A855F7','#EC4899','#84CC16','#14B8A6','#5A6580'];
-  const RANK_SORT_META = {
-    value: {
-      label: 'Valor total',
-      chip: 'Valor',
-      desc: 'classifica pela materialidade financeira no período selecionado.',
-      metric: 'Valor no período'
-    },
-    pct: {
-      label: 'Participação',
-      chip: 'Participação',
-      desc: 'classifica pelo peso relativo de cada rubrica sobre o total de saídas.',
-      metric: 'Participação'
-    },
-    peak: {
-      label: 'Pico mensal',
-      chip: 'Pico mensal',
-      desc: 'classifica pela maior concentração observada em um único mês.',
-      metric: 'Maior pico'
-    },
-    recurrence: {
-      label: 'Recorrência',
-      chip: 'Recorrência',
-      desc: 'classifica pelas rubricas que aparecem em mais meses do recorte.',
-      metric: 'Meses com valor'
-    },
-    concentration: {
-      label: 'Concentração',
-      chip: 'Concentração',
-      desc: 'classifica pelo percentual concentrado no mês de maior desembolso.',
-      metric: 'Concentração'
-    }
-  };
 
   function rankStats(c, period){
     const full = getCategoryByName(c.name);
@@ -1564,25 +1532,6 @@ onDashboardReady(init);
     addRankingToolbar();
   };
 
-  function addRankingToolbar(){
-    const list = document.getElementById('rankList'); if(!list) return;
-    let bar = document.getElementById('v23RankToolbar');
-    const meta = RANK_SORT_META[V23.rankSort || 'value'] || RANK_SORT_META.value;
-    const chips = Object.entries(RANK_SORT_META).map(([key,m]) => `<button class="v23-chip" data-rank-sort="${key}">${m.chip}</button>`).join('');
-    const html = `<div class="v35-rank-toolbar-left"><div class="label">Critério de ordenação</div><div id="v35RankSortStatus" class="v35-sort-status"><strong>${meta.label}</strong> <span>· ${meta.desc}</span></div></div><div class="v23-chipset">${chips}</div>`;
-    if(!bar){
-      bar = document.createElement('div'); bar.id='v23RankToolbar'; bar.className='v23-rank-toolbar v35-rank-toolbar';
-      list.parentNode.insertBefore(bar, list);
-    }
-    bar.className = 'v23-rank-toolbar v35-rank-toolbar';
-    bar.innerHTML = html;
-    bar.querySelectorAll('[data-rank-sort]').forEach(b=>setButtonLike(b,()=>{
-      V23.rankSort=b.dataset.rankSort;
-      renderRanking();
-      decorateAfterRender();
-    }));
-    bar.querySelectorAll('[data-rank-sort]').forEach(b=>b.classList.toggle('active', b.dataset.rankSort===V23.rankSort));
-  }
 
   // ── Tooltip: advanced + pinned ──
   const originalShowTip = showTip;
