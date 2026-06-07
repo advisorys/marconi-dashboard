@@ -1,5 +1,5 @@
 /* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
- * Build: 20260607141529
+ * Build: 20260607142509
  * Mode: development
  */
 
@@ -4513,8 +4513,8 @@ body[data-page="fixed"] .fixed-monthly-svg .bar-over{fill:rgba(239,68,68,.82)!im
   [data-month].v23-context, [data-row-month].v23-context, .heatmap-cell.v23-context { filter:drop-shadow(0 0 14px rgba(252,211,77,.55)); opacity:1!important; }
   tr.row-month.v23-context td { background:rgba(252,211,77,.085)!important; }
   .rank-item.v23-context { border-color:var(--gold)!important; box-shadow:0 0 0 1px rgba(252,211,77,.28), 0 18px 46px rgba(0,0,0,.25); }
-  .v23-rank-toolbar, .v23-table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; padding:12px 14px; border:1px solid var(--border); border-radius:14px; background:rgba(26,31,53,.62); }
-  .v23-rank-toolbar .label, .v23-table-toolbar .label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; font-weight:800; }
+  .v23-rank-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; padding:12px 14px; border:1px solid var(--border); border-radius:14px; background:rgba(26,31,53,.62); }
+  .v23-rank-toolbar .label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; font-weight:800; }
   .v23-chipset { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   .v23-chip { border:1px solid var(--border-2); background:rgba(19,24,41,.74); color:var(--text-dim); border-radius:999px; padding:8px 11px; font-size:10px; letter-spacing:1.6px; text-transform:uppercase; font-weight:800; cursor:pointer; transition:all .22s ease; }
   .v23-chip:hover { border-color:var(--gold); color:var(--text); transform:translateY(-1px); }
@@ -4646,8 +4646,7 @@ body[data-page="fixed"] .fixed-monthly-svg .bar-over{fill:rgba(239,68,68,.82)!im
   .kpi-label,
   .executive-eyebrow,
   .result-toolbar,
-  .v23-rank-toolbar .label,
-  .v23-table-toolbar .label {
+  .v23-rank-toolbar .label {
     color: #98A3B6 !important;
   }
   .top-site-nav a:hover,
@@ -8401,7 +8400,7 @@ html[data-theme="light"] :is(
 /* Tabelas, toolbars e rotulos de heatmap (fundo solido) */
 html[data-theme="light"] :is(
   .data-table, .data-table th, .data-table tr.total-row td,
-  .v23-rank-toolbar, .v23-table-toolbar, .heatmap-name
+  .v23-rank-toolbar, .heatmap-name
 ) {
   background: var(--surface) !important;
   border-color: var(--border) !important;
@@ -8713,7 +8712,7 @@ html[data-theme="light"] .rank-item .main { color: var(--text) !important; }
 html[data-theme="light"] :is(.rank-value, .rank-pct) { color: var(--text) !important; }
 
 /* ---- 10. Rotulos de toolbar (ordenar ranking / tabela): subir contraste p/ AA ---- */
-html[data-theme="light"] :is(.v23-rank-toolbar, .v23-table-toolbar) .label,
+html[data-theme="light"] :is(.v23-rank-toolbar) .label,
 html[data-theme="light"] .toolbar .label { color: var(--text-dim) !important; }
 
 /* ============================================================

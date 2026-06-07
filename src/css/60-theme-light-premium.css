@@ -117,7 +117,7 @@ html[data-theme="light"] .rank-item .main { color: var(--text) !important; }
 html[data-theme="light"] :is(.rank-value, .rank-pct) { color: var(--text) !important; }
 
 /* ---- 10. Rotulos de toolbar (ordenar ranking / tabela): subir contraste p/ AA ---- */
-html[data-theme="light"] :is(.v23-rank-toolbar, .v23-table-toolbar) .label,
+html[data-theme="light"] :is(.v23-rank-toolbar) .label,
 html[data-theme="light"] .toolbar .label { color: var(--text-dim) !important; }
 
 /* ============================================================

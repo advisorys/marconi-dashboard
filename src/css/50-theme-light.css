@@ -72,7 +72,7 @@ html[data-theme="light"] :is(
 /* Tabelas, toolbars e rotulos de heatmap (fundo solido) */
 html[data-theme="light"] :is(
   .data-table, .data-table th, .data-table tr.total-row td,
-  .v23-rank-toolbar, .v23-table-toolbar, .heatmap-name
+  .v23-rank-toolbar, .heatmap-name
 ) {
   background: var(--surface) !important;
   border-color: var(--border) !important;
