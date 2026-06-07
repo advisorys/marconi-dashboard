@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260603035316
+ * Build: 20260607141529
  * Mode: development
  */
 
@@ -1964,7 +1964,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 (function initFixedCostsPage() {
   window.FIXED_COST_DATA = FIXED_COST_DATA; /* V42: expor para o painel de foco encontrar itens */
   const fixedMoneyFormatter = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}).format;
-  function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+  function escHtml(v) { return window.MarconiFormat.escapeHtml(v); }  /* dedup: usa o canônico (00-foundation) */
   function fixedMoney(v) {
     try { return fixedMoneyFormatter(v || 0); } catch(e) { return fmtMoneyFull(v || 0); }
   }
@@ -2449,7 +2449,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return [1,2,3,4,5,6,7,8,9,10,11,12];
   }
   function itemByName(name){ return (window.FIXED_COST_DATA?.items || []).find(i => i.name === name); }
-  function totalsFor(item, months){
+  function itemTotalsFor(item, months){
     return months.reduce((a,m)=>{ const row = item.months[m-1] || [0,0,0,0]; a.est += row[0]||0; a.real += row[1]||0; a.diff += row[2]||0; return a; }, {est:0, real:0, diff:0});
   }
   function setPage(page){
@@ -2488,7 +2488,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const months = currentMonths();
     const realMonths = months.filter(realized);
     const viewMonths = realMonths.length ? realMonths : months;
-    const t = totalsFor(item, viewMonths);
+    const t = itemTotalsFor(item, viewMonths);
     const max = Math.max(...viewMonths.map(m => Math.max(item.months[m-1]?.[0]||0, item.months[m-1]?.[1]||0)), 1);
     const status = Math.abs(t.diff) < Math.max(1,t.est*.04) ? 'dentro do orçamento' : t.diff > 0 ? 'acima do orçamento' : 'abaixo do orçamento';
     const statusColor = t.diff > 0 ? 'number-red' : t.diff < 0 ? 'number-green' : '';
@@ -2653,7 +2653,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     };
   }
 
-  function esc(s){ return String(s ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function esc(s){ return window.MarconiFormat.escapeHtml(s); }  /* dedup: usa o canônico (00-foundation) */
   function monthValueLocal(item, m, kind){
     try { return monthValue(item,m,kind); } catch(e){ const row=item.months?.[m-1]||[0,0,0,0]; return kind==='est'?row[0]||0:kind==='real'?row[1]||0:row[2]||0; }
   }
