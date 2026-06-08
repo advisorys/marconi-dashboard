@@ -481,12 +481,12 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   const money = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
   const pct = v => `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
   const monthLabel = m => (window.FIXED_COST_DATA?.months?.[m-1] || ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'][m-1] || '—');
-  const realized = m => m >= 1 && m <= 6;
+  const realized = m => !isProjectionMonth(m);
 
   function currentMonths(){
     const st = window.filterState || {};
-    if (st.period === 'realized') return [1,2,3,4,5,6];
-    if (st.period === 'projection') return [7,8,9,10,11,12];
+    if (st.period === 'realized') return ALL_MONTHS.filter(m => !isProjectionMonth(m));
+    if (st.period === 'projection') return ALL_MONTHS.filter(m => isProjectionMonth(m));
     if (st.period === 'custom' && Array.isArray(st.months) && st.months.length) return st.months.slice().sort((a,b)=>a-b);
     return [1,2,3,4,5,6,7,8,9,10,11,12];
   }
@@ -598,7 +598,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   function activePeriod(){ try{return getActivePeriod();}catch(e){return {months:[1,2,3,4,5,6,7,8,9,10,11,12], label:'2026', short:'2026', mode:'year'};} }
   function fixedTotals(months){
     const data = window.FIXED_COST_DATA || {}; const rows = data.totals?.length ? data.totals : (data.items||[]);
-    const realized = m => m<=6;
+    const realized = m => !isProjectionMonth(m);
     let est=0, basis=0, realEst=0, real=0;
     months.forEach(m=> rows.forEach(it=>{ const r=it.months?.[m-1]||[0,0,0]; est+=r[0]||0; basis += realized(m) ? (r[1]||0) : (r[0]||0); if(realized(m)){real+=r[1]||0; realEst+=r[0]||0;} }));
     return {est,basis,real,diff:real-realEst};
@@ -608,7 +608,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return cats[0] || {name:'—', value:0};
   }
   function worstMonth(months, realizedOnly=false){
-    const ms = realizedOnly ? months.filter(m=>m<=6) : months;
+    const ms = realizedOnly ? months.filter(m=>!isProjectionMonth(m)) : months;
     return ms.map(m=>({m, ...(DATA.monthly[m]||{})})).sort((a,b)=>(a.resultado||0)-(b.resultado||0))[0] || null;
   }
   function bestMonth(months){
@@ -622,7 +622,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const margin = agg.entradas ? agg.resultado/agg.entradas*100 : 0;
     const fixed = fixedTotals(months); const fixedOnOut = agg.saidas ? fixed.basis/agg.saidas*100 : 0;
     const top = topCategory(months); const topPct = agg.saidas ? top.value/agg.saidas*100 : 0;
-    const worst = worstMonth(months, months.some(m=>m<=6)); const best = bestMonth(months);
+    const worst = worstMonth(months, months.some(m=>!isProjectionMonth(m))); const best = bestMonth(months);
     const deficitMonths = months.filter(m=>(DATA.monthly[m]?.resultado||0)<0).length;
     let score = 50;
     score += Math.max(-25, Math.min(25, margin*2.2));
@@ -709,7 +709,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
   window.renderFixedDeviationHeatmap=function(months, projectionOnly){
     const el=document.getElementById('fixedCostsHeatmap'); if(!el) return;
-    const realMonths=(months||[]).filter(m=>m<=6);
+    const realMonths=(months||[]).filter(m=>!isProjectionMonth(m));
     if(projectionOnly || !realMonths.length){
       el.innerHTML=`<div class="empty-state"><strong>Mapa de desvios indisponível para projeção.</strong><br>Os meses previstos ainda não possuem realização para comparação.</div>`;
       return;
@@ -777,8 +777,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         const est = Number(tuple[0]||0), real = Number(tuple[1]||0), diff = Number(tuple[2]||0);
         acc.est += est;
         acc.real += real;
-        acc.diff += (m <= 6 ? diff : 0);
-        acc.basis += (m <= 6 ? real : est);
+        acc.diff += (!isProjectionMonth(m) ? diff : 0);
+        acc.basis += (!isProjectionMonth(m) ? real : est);
       });
       return acc;
     }, {basis:0, est:0, real:0, diff:0});

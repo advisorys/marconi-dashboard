@@ -10,8 +10,8 @@ const PRECOMPUTED = DATA.precomputed || {};
 
 // ─── STATE ───
 const ALL_MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12];
-const REAL_MONTHS = [1,2,3,4,5,6];
-const PROJ_MONTHS = [7,8,9,10,11,12];
+const REAL_MONTHS = ALL_MONTHS.filter(m => !isProjectionMonth(m));
+const PROJ_MONTHS = ALL_MONTHS.filter(m => isProjectionMonth(m));
 let selectedMonths = [...ALL_MONTHS];
 let activePeriodMode = 'year'; // year | realized | projection | custom
 let selectedFlow = 'both'; // both | entradas | saidas
@@ -36,7 +36,7 @@ const fmtMoneyExact = window.MarconiFormat?.moneyExact || ((v) => BRL_EXACT_FORM
 const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%');
 
 // ─── HELPERS ───
-function isProjectionMonth(m) { return m >= 7; }
+function isProjectionMonth(m) { return window.MarconiFormat ? window.MarconiFormat.isProjectionMonth(m) : (Number(m) >= 7); }
 function normalizeMonths(months) {
   const uniq = [...new Set(months.map(Number).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
   return uniq.length ? uniq : [...ALL_MONTHS];
@@ -60,7 +60,7 @@ function setSelectedMonths(months, mode = 'custom') {
     selectedMonths = normalized;
     activePeriodMode = mode;
   }
-  dailyMonthView = selectedMonths.length === 1 ? selectedMonths[0] : selectedMonths.find(m => m <= 6) || selectedMonths[0];
+  dailyMonthView = selectedMonths.length === 1 ? selectedMonths[0] : selectedMonths.find(m => !isProjectionMonth(m)) || selectedMonths[0];
 }
 function toggleMonth(m) {
   m = Number(m);
