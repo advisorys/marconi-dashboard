@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260608151553
+ * Build: 20260608154150
  * Mode: development
  */
 
@@ -688,12 +688,6 @@ function renderExecutiveSummary() {
         <div class="exec-metric"><div class="lbl">MAIOR SAÍDA MENSAL</div><div class="val number-gold">${MONTH_NAMES_SHORT[maxOutM]}</div></div>
         <div class="exec-metric"><div class="lbl">TOP 3 SAÍDAS</div><div class="val">${fmtPct(top3Pct)}</div></div>
       </div>
-    </div>
-    <div class="executive-card">
-      <div class="executive-eyebrow">SINAIS RÁPIDOS</div>
-      <div class="executive-alert-list">
-        ${alerts.map(a => `<div class="mini-alert" style="--alert-color:${a.color};"><div class="tag">${a.tag}</div><div class="title">${a.title}</div><div class="desc">${a.desc}</div></div>`).join('')}
-      </div>
     </div>`;
 }
 function renderResultChart() {
@@ -1280,7 +1274,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
+    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
@@ -2645,8 +2639,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     recs.push('Manter visão separada entre realizado e projeção para evitar decisões baseadas em meses ainda não confirmados.');
     const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
   }
-  window.renderDirectorPage = render;
-  onDashboardReady(()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
+  // V38 (render) desativado: a Diretoria e renderizada por renderDirectorV40 (script-11, abaixo).
 })();
 
 /* ===== script-10 ===== */
@@ -4463,7 +4456,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   const CACHE_LIMIT = 80;
   const CASH_SECTION_IDS = [
-    'home', 'kpis', 'executive', 'monthly', 'result',
+    'home', 'kpis', 'executive', 'monthly',
     'alerts', 'categories', 'table', 'methodology'
   ];
 

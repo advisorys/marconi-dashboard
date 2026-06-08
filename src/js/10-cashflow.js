@@ -411,12 +411,6 @@ function renderExecutiveSummary() {
         <div class="exec-metric"><div class="lbl">MAIOR SAÍDA MENSAL</div><div class="val number-gold">${MONTH_NAMES_SHORT[maxOutM]}</div></div>
         <div class="exec-metric"><div class="lbl">TOP 3 SAÍDAS</div><div class="val">${fmtPct(top3Pct)}</div></div>
       </div>
-    </div>
-    <div class="executive-card">
-      <div class="executive-eyebrow">SINAIS RÁPIDOS</div>
-      <div class="executive-alert-list">
-        ${alerts.map(a => `<div class="mini-alert" style="--alert-color:${a.color};"><div class="tag">${a.tag}</div><div class="title">${a.title}</div><div class="desc">${a.desc}</div></div>`).join('')}
-      </div>
     </div>`;
 }
 function renderResultChart() {
@@ -1003,7 +997,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
+    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }

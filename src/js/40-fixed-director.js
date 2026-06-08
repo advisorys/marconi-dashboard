@@ -664,8 +664,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     recs.push('Manter visão separada entre realizado e projeção para evitar decisões baseadas em meses ainda não confirmados.');
     const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
   }
-  window.renderDirectorPage = render;
-  onDashboardReady(()=>setTimeout(()=>{ if (document.body.dataset.page === 'director') render(); },120));
+  // V38 (render) desativado: a Diretoria e renderizada por renderDirectorV40 (script-11, abaixo).
 })();
 
 /* ===== script-10 ===== */

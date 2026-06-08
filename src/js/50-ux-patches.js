@@ -894,7 +894,7 @@
 
   const CACHE_LIMIT = 80;
   const CASH_SECTION_IDS = [
-    'home', 'kpis', 'executive', 'monthly', 'result',
+    'home', 'kpis', 'executive', 'monthly',
     'alerts', 'categories', 'table', 'methodology'
   ];
 

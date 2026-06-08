@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260608151553"/>
-<script defer src="assets/bootstrap.js?v=20260608151553"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260608154150"/>
+<script defer src="assets/bootstrap.js?v=20260608154150"></script>
 
 </head>
 <body>
@@ -33,7 +33,6 @@
 <a data-target="executive" href="#executive">Resumo</a>
 <a data-target="kpis" href="#kpis">KPIs</a>
 <a data-target="monthly" href="#monthly">Fluxo</a>
-<a data-target="result" href="#result">Resultado</a>
 <a data-target="categories" href="#categories">Categorias</a>
 <a data-target="table" href="#table">Tabela</a>
 <a data-target="methodology" href="#methodology">Metodologia</a>
@@ -41,7 +40,6 @@
 <a data-fixed-anchor="true" data-fixed-view-link="control" href="#fixed-costs">Desvios</a>
 <a data-fixed-anchor="true" data-fixed-view-link="matrix" href="#fixed-costs">Mapa</a>
 <a data-director-anchor="true" data-target="directoria" href="#directoria">Resumo</a>
-<a data-director-anchor="true" data-target="director-health" href="#director-health">Saúde</a>
 <a data-director-anchor="true" data-target="director-actions" href="#director-actions">Ações</a>
 </nav>
 </header>
@@ -196,24 +194,6 @@
 <div class="legend-item"><div class="legend-dot" style="background: transparent; border: 2px solid #FCD34D; box-shadow: 0 0 10px rgba(245,158,11,0.45);"></div>SELECIONADO</div>
 </div>
 <div class="chart-click-hint">Clique na legenda para filtrar entrada/saída · clique em barras ou linhas da tabela para criar uma seleção personalizada</div>
-</div>
-</div>
-</section>
-<!-- ━━━━━━━━━━━━━━━━━━━━ RESULT CHART ━━━━━━━━━━━━━━━━━━━━ -->
-<section id="result">
-<div class="container">
-<div class="section-header reveal">
-<div class="left">
-<div class="eyebrow green">RESULTADO MENSAL</div>
-<h2>Geração ou consumo<br/>de caixa por mês.</h2>
-<div class="section-context">RESULTADO = ENTRADAS - SAÍDAS GERENCIAIS</div>
-</div>
-<div class="right">CLIQUE EM UM MÊS PARA FILTRAR</div>
-</div>
-<div class="result-card reveal">
-<div class="result-toolbar"><span id="resultPeriodContext">Resultado mensal · 2026</span><span>Positivo acima da linha · negativo abaixo da linha</span></div>
-<div class="result-summary-strip" id="resultSummary"></div>
-<svg class="chart-svg" id="resultChart" preserveaspectratio="xMidYMid meet" viewbox="0 0 1200 420"></svg>
 </div>
 </div>
 </section>
@@ -447,10 +427,6 @@
         <div class="director-attention-list" id="directorAttentionList"></div>
       </div>
 
-      <div class="director-card director-wide" id="director-health">
-        <div class="director-card-head"><span>O QUE EXPLICA O PERÍODO</span></div>
-        <div class="director-explanation" id="directorExplanation"></div>
-      </div>
 
       <div class="director-card" id="director-actions">
         <div class="director-card-head"><span>AÇÕES RECOMENDADAS</span></div>
