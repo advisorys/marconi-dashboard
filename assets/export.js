@@ -479,12 +479,6 @@ function alerts(ms,cats,a){ const realized=ms.filter(m=>!isProj(m)); const base=
         addSectionSlide(pptx, 'Evolução Mês a Mês', 'Fluxo de Caixa · Performance', monthlyCapture);
       }
       
-      updateStatus('Capturando resultado consolidado...', 68);
-      const resultCapture = await captureElement('#result');
-      if (resultCapture) {
-        addSectionSlide(pptx, 'Resultado Consolidado', 'Fluxo de Caixa · Resultado', resultCapture);
-      }
-      
       updateStatus('Capturando ranking de categorias...', 76);
       // Scroll first then capture (categorias está mais embaixo)
       const catsEl = document.querySelector('#categories');

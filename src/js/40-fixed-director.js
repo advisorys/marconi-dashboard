@@ -615,56 +615,6 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return months.map(m=>({m, ...(DATA.monthly[m]||{})})).sort((a,b)=>(b.resultado||0)-(a.resultado||0))[0] || null;
   }
   function monthName(m){ try{return MONTH_NAMES_LONG[m]||m;}catch(e){return String(m);} }
-  function render(){
-    const page = document.getElementById('directoria'); if(!page) return;
-    const p = activePeriod(); const months = p.months || [];
-    let agg={entradas:0, saidas:0, resultado:0}; try{agg=aggregate(months);}catch(e){ months.forEach(m=>{const x=DATA.monthly[m]||{};agg.entradas+=x.entradas||0;agg.saidas+=x.saidas||0;agg.resultado+=x.resultado||0;}); }
-    const margin = agg.entradas ? agg.resultado/agg.entradas*100 : 0;
-    const fixed = fixedTotals(months); const fixedOnOut = agg.saidas ? fixed.basis/agg.saidas*100 : 0;
-    const top = topCategory(months); const topPct = agg.saidas ? top.value/agg.saidas*100 : 0;
-    const worst = worstMonth(months, months.some(m=>!isProjectionMonth(m))); const best = bestMonth(months);
-    const deficitMonths = months.filter(m=>(DATA.monthly[m]?.resultado||0)<0).length;
-    let score = 50;
-    score += Math.max(-25, Math.min(25, margin*2.2));
-    score += deficitMonths===0 ? 12 : -Math.min(18, deficitMonths*3);
-    score -= Math.max(0, topPct-45)*0.35;
-    score -= Math.max(0, fixedOnOut-10)*0.8;
-    score = Math.max(0, Math.min(100, Math.round(score)));
-    const status = score>=75?'SAUDÁVEL':score>=55?'ATENÇÃO':'CRÍTICO';
-    const color = score>=75?'var(--green)':score>=55?'var(--gold-l)':'var(--red)';
-    document.getElementById('directorPeriodLabel').textContent = `${p.short || p.label} · ${months.length} mês(es) analisado(s)`;
-    const verdict=document.getElementById('directorVerdict'); if(verdict){ verdict.style.setProperty('--director-color', color); verdict.innerHTML=`<span>STATUS DO PERÍODO</span><strong>${status}</strong><small>${agg.resultado>=0?'Geração líquida de caixa positiva':'Consumo líquido de caixa no período'} com margem de ${safePct(margin)}.</small>`; }
-    const kpis=[
-      ['Entradas', safeShort(agg.entradas), `${months.length} mês(es)`],
-      ['Saídas gerenciais', safeShort(agg.saidas), `Top: ${top.name}`],
-      ['Resultado', `${agg.resultado>=0?'+':''}${safeShort(agg.resultado)}`, `Margem ${safePct(margin)}`],
-      ['Custo fixo', safeShort(fixed.basis), `${safePct(fixedOnOut)} das saídas`]
-    ];
-    const kg=document.getElementById('directorKpis'); if(kg) kg.innerHTML=kpis.map(k=>`<div class="director-kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
-    document.getElementById('directorScore').textContent = `${score}/100`;
-    const sf=document.getElementById('directorScoreFill'); if(sf) sf.style.width = `${score}%`;
-    const health=[
-      ['Liquidez do período', agg.resultado>=0?'Positiva':'Pressionada', `${safeMoney(agg.resultado)} de resultado líquido.`],
-      ['Concentração', topPct>60?'Alta':'Controlada', `${top.name} representa ${safePct(topPct)} das saídas.`],
-      ['Custos fixos', fixedOnOut>10?'Relevante':'Baixo peso', `${safePct(fixedOnOut)} das saídas gerenciais.`],
-      ['Meses negativos', deficitMonths?`${deficitMonths} mês(es)`: 'Nenhum', deficitMonths?'Há consumo de caixa em parte do recorte.':'Sem déficits no recorte selecionado.']
-    ];
-    const hl=document.getElementById('directorHealthList'); if(hl) hl.innerHTML=health.map(h=>`<div class="director-health-item"><b>${h[0]} · ${h[1]}</b><span>${h[2]}</span></div>`).join('');
-    const att=[
-      {c:'var(--gold)', b:'Categoria dominante', s:`${top.name} concentra ${safeMoney(top.value)} no período.`},
-      {c:(worst?.resultado||0)<0?'var(--red)':'var(--green)', b:'Pior mês observado', s:worst?`${monthName(worst.m)} · ${safeMoney(worst.resultado||0)} de resultado.`:'Sem mês identificado.'},
-      {c:'var(--cyan)', b:'Melhor geração de caixa', s:best?`${monthName(best.m)} · ${safeMoney(best.resultado||0)} de resultado.`:'Sem mês identificado.'}
-    ];
-    const al=document.getElementById('directorAttentionList'); if(al) al.innerHTML=att.map(x=>`<div class="director-attention-item" style="--c:${x.c}"><b>${x.b}</b><span>${x.s}</span></div>`).join('');
-    const ex=document.getElementById('directorExplanation'); if(ex) ex.innerHTML=`No recorte <strong>${p.label || p.short}</strong>, a operação apresenta <strong>${safeMoney(agg.entradas)}</strong> em entradas e <strong>${safeMoney(agg.saidas)}</strong> em saídas gerenciais, resultando em <strong>${safeMoney(agg.resultado)}</strong>. A leitura central para diretoria é a concentração em <strong>${top.name}</strong>, que explica <strong>${safePct(topPct)}</strong> das saídas do período. Os custos fixos somam <strong>${safeMoney(fixed.basis)}</strong>, equivalentes a <strong>${safePct(fixedOnOut)}</strong> das saídas gerenciais.`;
-    const recs=[];
-    if(topPct>55) recs.push(`Validar plano de pagamento e negociação da categoria dominante (${top.name}).`);
-    if(deficitMonths) recs.push(`Endereçar meses deficitários, priorizando ${worst?monthName(worst.m):'o pior mês do período'}.`);
-    if(fixedOnOut>8) recs.push('Acompanhar custos fixos como percentual das saídas para evitar perda de flexibilidade financeira.');
-    recs.push('Manter visão separada entre realizado e projeção para evitar decisões baseadas em meses ainda não confirmados.');
-    const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
-  }
-  // V38 (render) desativado: a Diretoria e renderizada por renderDirectorV40 (script-11, abaixo).
 })();
 
 /* ===== script-10 ===== */

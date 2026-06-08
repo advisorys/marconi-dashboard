@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260608154150
+ * Build: 20260608155919
  * Mode: development
  */
 
@@ -677,7 +677,6 @@ function renderExecutiveSummary() {
   const ctx = document.getElementById('executiveContext');
   if (ctx) ctx.textContent = periodLabelFor(period.months, period.mode);
   if (!container) return;
-  const alerts = getCriticalAlertObjects(period);
   const principal = `No período selecionado, as entradas somaram <strong>${fmtMoneyFull(agg.entradas)}</strong> e as saídas gerenciais somaram <strong>${fmtMoneyFull(agg.saidas)}</strong>, resultando em <strong class="${agg.resultado >= 0 ? 'number-green' : 'number-red'}">${agg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(agg.resultado)}</strong>. Em termos práticos, o período <strong>${resultWord}</strong>, com margem de <strong>${fmtPct(agg.margem)}</strong>. ${topCat ? `A principal pressão de saída foi <strong>${topCat.name}</strong>, enquanto o top 3 (${top3Label}) concentrou <strong>${fmtPct(top3Pct)}</strong> dos desembolsos gerenciais.` : 'Não há saídas classificadas para este recorte.'}`;
   container.innerHTML = `<div class="executive-card">
       <div class="executive-eyebrow">LEITURA DO PERÍODO</div>
@@ -689,63 +688,6 @@ function renderExecutiveSummary() {
         <div class="exec-metric"><div class="lbl">TOP 3 SAÍDAS</div><div class="val">${fmtPct(top3Pct)}</div></div>
       </div>
     </div>`;
-}
-function renderResultChart() {
-  const svg = document.getElementById('resultChart');
-  const summary = document.getElementById('resultSummary');
-  if (!svg || !summary) return;
-  const period = getActivePeriod();
-  const selected = new Set(period.months);
-  const agg = aggregate(period.months);
-  const months = ALL_MONTHS;
-  const maxAbs = Math.max(...months.map(m => Math.abs(DATA.monthly[m].resultado)), 1);
-  const chartTop = 46, chartHeight = 270, zeroY = chartTop + chartHeight / 2, half = chartHeight / 2, startX = 78, endX = 1145, groupSpacing = (endX - startX) / (months.length - 1), barWidth = 42;
-  const positives = period.months.filter(m => DATA.monthly[m].resultado > 0).length;
-  const negatives = period.months.filter(m => DATA.monthly[m].resultado < 0).length;
-  const bestM = period.months.reduce((acc,m) => DATA.monthly[m].resultado > DATA.monthly[acc].resultado ? m : acc, period.months[0]);
-  const worstM = period.months.reduce((acc,m) => DATA.monthly[m].resultado < DATA.monthly[acc].resultado ? m : acc, period.months[0]);
-  const ctx = document.getElementById('resultPeriodContext');
-  if (ctx) ctx.textContent = `Resultado mensal · ${periodLabelFor(period.months, period.mode)}`;
-  summary.innerHTML = `<div class="result-summary-item"><div class="lbl">RESULTADO DO PERÍODO</div><div class="val ${agg.resultado >= 0 ? 'number-green' : 'number-red'}">${agg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(agg.resultado)}</div></div>
-    <div class="result-summary-item"><div class="lbl">MESES POSITIVOS</div><div class="val number-green">${positives} / ${period.months.length}</div></div>
-    <div class="result-summary-item"><div class="lbl">MELHOR MÊS</div><div class="val">${MONTH_NAMES_SHORT[bestM]} · ${fmtMoney(DATA.monthly[bestM].resultado)}</div></div>
-    <div class="result-summary-item"><div class="lbl">PIOR MÊS</div><div class="val ${DATA.monthly[worstM].resultado < 0 ? 'number-red' : ''}">${MONTH_NAMES_SHORT[worstM]} · ${fmtMoney(DATA.monthly[worstM].resultado)}</div></div>`;
-  let grid = '';
-  for (let i = -2; i <= 2; i++) {
-    const y = zeroY - (i / 2) * half;
-    if (i === 0) grid += `<line x1="${startX - 20}" y1="${y}" x2="${endX + 30}" y2="${y}" stroke="#FCD34D" stroke-width="1.2" opacity="0.75"/>`;
-    else grid += `<line x1="${startX - 20}" y1="${y}" x2="${endX + 30}" y2="${y}" stroke="#1F2440" stroke-width="1" stroke-dasharray="4 4"/>`;
-    const val = (maxAbs * i / 2) / 1000000;
-    grid += `<text x="${startX - 32}" y="${y + 4}" text-anchor="end" fill="#5A6580" font-size="10" font-family="Helvetica, Arial">${val.toFixed(1)}M</text>`;
-  }
-  let bars = '';
-  months.forEach((m, i) => {
-    const d = DATA.monthly[m], x = startX + i * groupSpacing;
-    const h = Math.abs(d.resultado) / maxAbs * half;
-    const y = d.resultado >= 0 ? zeroY - h : zeroY;
-    const isProj = isProjectionMonth(m);
-    const inPeriod = selected.has(m);
-    const opacity = inPeriod ? 1 : 0.25;
-    const fill = d.resultado >= 0 ? '#10B981' : '#EF4444';
-    const stroke = activePeriodMode === 'custom' && inPeriod ? 'stroke="#FCD34D" stroke-width="2"' : '';
-    bars += `<g class="result-month" data-month="${m}" opacity="${opacity}">
-      <rect x="${x - barWidth/2}" y="${y}" width="${barWidth}" height="${Math.max(h, 3)}" rx="6" fill="${fill}" ${stroke} ${isProj ? 'stroke-dasharray="3 2"' : ''}/>
-      <text x="${x}" y="${zeroY + half + 28}" text-anchor="middle" fill="${inPeriod ? '#FFFFFF' : '#5A6580'}" font-size="11" font-weight="800" letter-spacing="1.5">${MONTH_NAMES_SHORT[m]}</text>
-      <text x="${x}" y="${d.resultado >= 0 ? y - 10 : y + h + 17}" text-anchor="middle" fill="${fill}" font-size="9" font-weight="800">${formatSmallResult(d.resultado)}</text>
-    </g>`;
-  });
-  svg.innerHTML = `<defs><filter id="resultGlow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${grid}${bars}`;
-  svg.querySelectorAll('.result-month').forEach(g => {
-    const m = Number(g.dataset.month);
-    g.addEventListener('click', () => { toggleMonth(m); applyFilter(); });
-    g.addEventListener('mousemove', e => {
-      const d = DATA.monthly[m];
-      showTip(`Resultado · ${MONTH_NAMES_LONG[m]} / 2026`, [
-        ['Entradas', fmtMoneyFull(d.entradas)], ['Saídas gerenciais', fmtMoneyFull(d.saidas)], ['Resultado', `${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}`], ['Margem', fmtPct(d.entradas > 0 ? d.resultado / d.entradas * 100 : 0)]
-      ], e.clientX, e.clientY);
-    });
-    g.addEventListener('mouseleave', hideTip);
-  });
 }
 function renderCriticalAlerts() {
   const container = document.getElementById('criticalAlerts');
@@ -829,91 +771,6 @@ function renderBarChart() {
     g.addEventListener('mouseleave', hideTip);
   });
 }
-
-// ─── MONTHLY LINE CHART ───
-function renderDailyChart() {
-  const svg = document.getElementById('dailyChart');
-  const summary = document.getElementById('dailySummary');
-  const period = getActivePeriod();
-  const months = normalizeMonths(period.months);
-  const monthData = months.map(m => ({ month: m, ...DATA.monthly[m] }));
-  if (!monthData.length) {
-    summary.innerHTML = `<div class="daily-stat" style="grid-column: 1 / -1; text-align:center;"><div class="lbl">SEM DADOS</div><div class="val" style="font-size:16px;color:var(--text-dim);margin-top:4px;">Não há dados mensais disponíveis para o período selecionado.</div></div>`;
-    svg.innerHTML = `<text x="600" y="190" text-anchor="middle" fill="#5A6580" font-size="18" font-family="Helvetica, Arial" letter-spacing="2">VISÃO MENSAL INDISPONÍVEL</text>`;
-    return;
-  }
-  const totalIn = monthData.reduce((s, d) => s + d.entradas, 0);
-  const totalOut = monthData.reduce((s, d) => s + d.saidas, 0);
-  const dailyRows = DATA.daily.filter(d => months.includes(d.month));
-  const totalGrossOut = dailyRows.reduce((s, d) => s + (d.saidasBrutas ?? d.saidas), 0);
-  const totalAdjust = dailyRows.reduce((s, d) => s + (d.ajustesGerenciais || 0), 0);
-  const result = totalIn - totalOut;
-  const maxMonthIn = monthData.reduce((acc, d) => d.entradas > acc.entradas ? d : acc, monthData[0]);
-  const maxMonthOut = monthData.reduce((acc, d) => d.saidas > acc.saidas ? d : acc, monthData[0]);
-  const projectionNote = months.every(isProjectionMonth) ? 'Período projetado conforme a planilha.' : (months.some(isProjectionMonth) ? 'Período misto: realizado + projeção.' : 'Período realizado conforme a planilha.');
-  summary.innerHTML = `<div class="daily-stat"><div class="lbl">MESES EXIBIDOS</div><div class="val number">${monthData.length}</div></div>
-    <div class="daily-stat"><div class="lbl">ENTRADAS TOTAIS</div><div class="val number-gold number" data-count-to="${totalIn}" data-prefix="R$ " data-divisor="1000000" data-suffix="M" data-decimals="2">R$ 0M</div></div>
-    <div class="daily-stat"><div class="lbl">SAÍDAS GERENCIAIS</div><div class="val number" data-count-to="${totalOut}" data-prefix="R$ " data-divisor="1000000" data-suffix="M" data-decimals="2">R$ 0M</div></div>
-    <div class="daily-stat"><div class="lbl">RESULTADO</div><div class="val number ${result >= 0 ? 'number-green' : 'number-red'}" data-count-to="${Math.abs(result)}" data-prefix="${result >= 0 ? '+R$ ' : '-R$ '}" data-divisor="1000000" data-suffix="M" data-decimals="2">R$ 0M</div></div>
-    <div class="data-note"><strong>Conciliação:</strong> saídas gerenciais = saídas brutas (${fmtMoneyExact(totalGrossOut)}) - ajustes não gerenciais (${fmtMoneyExact(totalAdjust)}). Ajustes: Transferência entre Contas e Importação. ${projectionNote}</div>`;
-  summary.querySelectorAll('[data-count-to]').forEach(el => { el.textContent = (el.dataset.prefix || '') + '0' + (el.dataset.suffix || ''); setTimeout(() => animateCount(el), 60); });
-
-  const showIn = hasFlow('entradas'), showOut = hasFlow('saidas');
-  const maxVal = Math.max(...monthData.map(d => Math.max(showIn ? d.entradas : 0, showOut ? d.saidas : 0)), 1);
-  const chartHeight = 260, chartTop = 40, baseY = chartTop + chartHeight, startX = 80, endX = 1140;
-  const n = monthData.length;
-  const xFor = (i) => n === 1 ? (startX + endX) / 2 : startX + i * ((endX - startX) / (n - 1));
-  let grid = '';
-  for (let i = 0; i <= 5; i++) {
-    const y = chartTop + chartHeight - (chartHeight * i / 5);
-    const val = (maxVal * i / 5) / 1000000;
-    grid += `<line x1="${startX}" y1="${y}" x2="${endX}" y2="${y}" stroke="#1F2440" stroke-width="1" stroke-dasharray="4 4"/>`;
-    grid += `<text x="${startX - 12}" y="${y + 4}" text-anchor="end" fill="#5A6580" font-size="11" font-family="Helvetica, Arial">${val.toFixed(1)}M</text>`;
-  }
-
-  let labels = '';
-  monthData.forEach((d, i) => {
-    const x = xFor(i);
-    const fill = d.projection ? '#94A0B8' : '#FFFFFF';
-    labels += `<text x="${x}" y="${baseY + 28}" text-anchor="middle" fill="${fill}" font-size="11" font-family="Helvetica, Arial" font-weight="700" letter-spacing="1.5">${MONTH_NAMES_SHORT[d.month]}</text>`;
-    labels += `<text x="${x}" y="${baseY + 44}" text-anchor="middle" fill="${d.resultado >= 0 ? '#10B981' : '#EF4444'}" font-size="9" font-family="Helvetica, Arial" font-weight="600">${formatSmallResult(d.resultado)}</text>`;
-  });
-
-  const pathFor = (field) => monthData.map((d, i) => {
-    const x = xFor(i);
-    const y = baseY - (d[field] / maxVal) * chartHeight;
-    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-  }).join(' ');
-  const inPath = pathFor('entradas');
-  const outPath = pathFor('saidas');
-
-  let points = '';
-  monthData.forEach((d, i) => {
-    const x = xFor(i);
-    const yIn = baseY - (d.entradas / maxVal) * chartHeight;
-    const yOut = baseY - (d.saidas / maxVal) * chartHeight;
-    const hoverW = n === 1 ? 80 : Math.max(34, (endX - startX) / Math.max(1, n - 1) * 0.7);
-    points += `<g class="daily-day monthly-point" data-month="${d.month}" data-entradas="${d.entradas}" data-saidas="${d.saidas}" data-result="${d.resultado}">
-      <rect x="${x - hoverW/2}" y="${chartTop}" width="${hoverW}" height="${chartHeight}" fill="transparent" class="day-hover"/>
-      ${showIn ? `<circle data-flow="entradas" cx="${x}" cy="${yIn}" r="5" fill="#6366F1" stroke="${d === maxMonthIn ? '#FCD34D' : '#0A0E1A'}" stroke-width="${d === maxMonthIn ? 3 : 1.5}"/>` : ''}
-      ${showOut ? `<circle data-flow="saidas" cx="${x}" cy="${yOut}" r="5" fill="#06B6D4" stroke="${d === maxMonthOut ? '#FCD34D' : '#0A0E1A'}" stroke-width="${d === maxMonthOut ? 3 : 1.5}"/>` : ''}
-    </g>`;
-  });
-  const defs = `<defs><linearGradient id="monthlyInFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366F1" stop-opacity="0.22"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></linearGradient><linearGradient id="monthlyOutFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity="0.18"/><stop offset="100%" stop-color="#06B6D4" stop-opacity="0"/></linearGradient></defs>`;
-  const areaPath = (path) => n > 1 ? path + ` L ${xFor(n - 1)} ${baseY} L ${xFor(0)} ${baseY} Z` : '';
-  svg.innerHTML = `${defs}${grid}${showIn && n > 1 ? `<path d="${areaPath(inPath)}" fill="url(#monthlyInFill)"/>` : ''}${showOut && n > 1 ? `<path d="${areaPath(outPath)}" fill="url(#monthlyOutFill)"/>` : ''}${showIn ? `<path d="${inPath}" fill="none" stroke="#6366F1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : ''}${showOut ? `<path d="${outPath}" fill="none" stroke="#06B6D4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : ''}${points}${labels}`;
-  svg.querySelectorAll('.monthly-point circle[data-flow]').forEach(c => c.addEventListener('click', (e) => { e.stopPropagation(); setFlow(c.dataset.flow); }));
-  svg.querySelectorAll('.monthly-point').forEach(g => {
-    const m = Number(g.dataset.month);
-    g.addEventListener('click', () => { setSelectedMonths([m]); applyFilter(); });
-    g.addEventListener('mousemove', (e) => {
-      const entradas = parseFloat(g.dataset.entradas), saidas = parseFloat(g.dataset.saidas), result = parseFloat(g.dataset.result);
-      showTip(MONTH_NAMES_LONG[m] + ' / 2026', [['Entradas', fmtMoneyExact(entradas)], ['Saídas gerenciais', fmtMoneyExact(saidas)], ['Resultado', (result >= 0 ? '+' : '') + fmtMoneyExact(result)]], e.clientX, e.clientY);
-    });
-    g.addEventListener('mouseleave', hideTip);
-  });
-}
-
 // ─── DONUT + RANKING ───
 function renderDonut() {
   const svg = document.getElementById('donut');
@@ -1133,44 +990,6 @@ function renderTable() {
   tbody.querySelectorAll('[data-apply-month]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); setSelectedMonths([Number(btn.dataset.applyMonth)], 'custom'); applyFilter(); }));
   tbody.querySelectorAll('[data-close-month-detail]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); selectedMonthDetail = null; renderTable(); }));
 }
-
-// ─── INSIGHTS ───
-function renderInsights() {
-  const period = getActivePeriod();
-  const categories = getCategoryBreakdown(period.months);
-  let insights = [];
-  if (period.months.length === 1) {
-    const m = period.months[0], d = DATA.monthly[m], topCat = categories[0];
-    const basisMonths = isProjectionMonth(m) ? REAL_MONTHS : REAL_MONTHS;
-    const ranking = basisMonths.map(mm => ({ m:mm, res:DATA.monthly[mm].resultado })).sort((a,b) => b.res - a.res);
-    const myRank = ranking.findIndex(r => r.m === m) + 1;
-    const avgEntradas = basisMonths.reduce((s, mm) => s + DATA.monthly[mm].entradas, 0) / basisMonths.length;
-    const vsAvg = avgEntradas ? (d.entradas - avgEntradas) / avgEntradas * 100 : 0;
-    insights = [
-      { cls:d.resultado >= 0 ? 'green':'red', eyebrow:isProjectionMonth(m) ? 'RESULTADO PROJETADO' : 'RESULTADO DO MÊS', month:MONTH_NAMES_LONG[m].toUpperCase() + ' / 2026', value:(d.resultado >= 0 ? '+' : '') + fmtMoney(d.resultado), valueCls:d.resultado >= 0 ? 'number-green':'number-red', desc:`${d.resultado >= 0 ? 'Superávit' : 'Déficit'} no mês com margem de ${fmtPct(d.entradas > 0 ? d.resultado / d.entradas * 100 : 0)}. ${isProjectionMonth(m) ? 'Leitura baseada em projeção; não entra no ranking de pior/melhor realizado.' : 'Leitura baseada em mês realizado.'}` },
-      { cls:'', eyebrow:isProjectionMonth(m) ? 'BASE DE COMPARAÇÃO' : 'POSIÇÃO NO REALIZADO', month:'JAN — JUN / 2026 · REALIZADO', value:isProjectionMonth(m) ? 'N/A' : `${myRank}º / ${basisMonths.length}`, valueCls:'number-gold', desc:isProjectionMonth(m) ? 'Meses projetados não são classificados como melhor ou pior resultado realizado.' : `${MONTH_NAMES_LONG[m]} ocupa o ${myRank}º lugar entre os meses realizados.` },
-      { cls:vsAvg >= 0 ? 'green':'red', eyebrow:'VS. MÉDIA REALIZADA', month:'COMPARATIVO JAN—JUN', value:(vsAvg >= 0 ? '+' : '') + fmtPct(vsAvg), valueCls:vsAvg >= 0 ? 'number-green':'number-red', desc:`Entradas ${vsAvg >= 0 ? 'acima' : 'abaixo'} da média mensal realizada de ${fmtMoney(avgEntradas)}.` },
-      { cls:'cyan', eyebrow:'PRINCIPAL SAÍDA', month:'COMPOSIÇÃO DO MÊS', value:topCat ? fmtPct(topCat.pct) : '0.0%', valueCls:'', desc:topCat ? `${topCat.name} é a maior rubrica de saída do mês, com ${fmtMoneyExact(topCat.value)}.` : 'Sem saídas classificadas no período.' }
-    ];
-  } else {
-    const realizedInSelection = period.months.filter(m => !isProjectionMonth(m));
-    const bestWorstMonths = realizedInSelection.length ? realizedInSelection : REAL_MONTHS;
-    const bestM = bestWorstMonths.reduce((acc,m) => DATA.monthly[m].resultado > DATA.monthly[acc].resultado ? m : acc, bestWorstMonths[0]);
-    const worstM = bestWorstMonths.reduce((acc,m) => DATA.monthly[m].resultado < DATA.monthly[acc].resultado ? m : acc, bestWorstMonths[0]);
-    const surplus = period.months.filter(m => DATA.monthly[m].resultado > 0).length;
-    const top3Pct = categories.slice(0,3).reduce((s,c) => s + c.pct, 0);
-    const compLabel = realizedInSelection.length ? 'NO FILTRO · SOMENTE REALIZADO' : 'JAN — JUN · REALIZADO';
-    insights = [
-      { cls:'green', eyebrow:'MELHOR RESULTADO REALIZADO', month:MONTH_NAMES_LONG[bestM].toUpperCase() + ' / 2026', value:(DATA.monthly[bestM].resultado >= 0 ? '+' : '') + fmtMoney(DATA.monthly[bestM].resultado), valueCls:DATA.monthly[bestM].resultado >= 0 ? 'number-green':'number-red', desc:`Melhor resultado entre meses realizados (${compLabel}). Projeções não entram neste ranking.` },
-      { cls:DATA.monthly[worstM].resultado < 0 ? 'red':'green', eyebrow:'PIOR RESULTADO REALIZADO', month:MONTH_NAMES_LONG[worstM].toUpperCase() + ' / 2026', value:(DATA.monthly[worstM].resultado >= 0 ? '+' : '') + fmtMoney(DATA.monthly[worstM].resultado), valueCls:DATA.monthly[worstM].resultado < 0 ? 'number-red':'number-green', desc:DATA.monthly[worstM].resultado < 0 ? 'Ponto de atenção entre meses realizados: saídas gerenciais superaram entradas.' : 'Mesmo no pior mês realizado, o caixa se manteve positivo.' },
-      { cls:'cyan', eyebrow:'DISTRIBUIÇÃO MENSAL', month:periodLabelFor(period.months, period.mode), value:`${surplus} / ${period.months.length}`, valueCls:'', desc:`${surplus} mês(es) operaram com superávit no período selecionado.` },
-      { cls:'', eyebrow:'CONCENTRAÇÃO DE SAÍDAS', month:'TOP 3 CATEGORIAS', value:fmtPct(top3Pct), valueCls:'number-gold', desc:categories.length ? `${categories.slice(0,3).map(c => c.name).join(', ')} concentram a maior parte do desembolso gerencial.` : 'Sem saídas classificadas no período.' }
-    ];
-  }
-  const grid = document.getElementById('insightsGrid');
-  grid.innerHTML = insights.map(i => `<div class="insight-card ${i.cls}"><div class="insight-eyebrow">${i.eyebrow}</div><div class="insight-month">${i.month}</div><div class="insight-value ${i.valueCls}">${i.value}</div><div class="insight-desc">${i.desc}</div></div>`).join('');
-}
-
 // ─── HERO ───
 function renderHero() {
   const period = getActivePeriod();
@@ -1211,54 +1030,6 @@ function updateControls() {
   const dailyContext = document.getElementById('dailyPeriodContext');
   if (dailyContext) dailyContext.textContent = `Período selecionado: ${periodLabelFor(period.months, period.mode)}`;
 }
-
-function renderMoMAnalysis() {
-  const panel = document.getElementById('momPanel');
-  const ctx = document.getElementById('momContext');
-  if (!panel) return;
-  const period = getActivePeriod();
-  const months = normalizeMonths(period.months).sort((a,b) => a-b);
-  if (ctx) ctx.textContent = `VARIAÇÃO VS. MÊS ANTERIOR · ${period.short}`;
-
-  const metricCell = (current, previous, kind) => {
-    const hasPrev = Number.isFinite(previous);
-    const diff = hasPrev ? current - previous : 0;
-    const pct = hasPrev && Math.abs(previous) > 0.01 ? diff / Math.abs(previous) * 100 : null;
-    const isGood = kind === 'saidas' ? diff <= 0 : diff >= 0;
-    const cls = !hasPrev || Math.abs(diff) < 0.01 ? '' : (isGood ? 'mom-positive' : 'mom-negative');
-    const arrow = !hasPrev || Math.abs(diff) < 0.01 ? '→' : (diff > 0 ? '▲' : '▼');
-    const pctTxt = pct === null ? 'sem base comparativa' : `${arrow} ${fmtMoneyFull(Math.abs(diff))} · ${fmtPct(Math.abs(pct))}`;
-    return `<div class="mom-cell mom-value"><span class="mom-main">${fmtMoneyFull(current)}</span><span class="mom-delta ${cls}">${pctTxt}</span></div>`;
-  };
-
-  const rows = months.map(m => {
-    const d = DATA.monthly[m];
-    const prev = m > 1 ? DATA.monthly[m - 1] : null;
-    const resultDiff = prev ? d.resultado - prev.resultado : 0;
-    const saidaDiff = prev ? d.saidas - prev.saidas : 0;
-    let note;
-    if (!prev) {
-      note = 'Mês inicial do exercício, sem base anterior para comparação.';
-    } else if (Math.abs(resultDiff) < 0.01 && Math.abs(saidaDiff) < 0.01) {
-      note = 'Sem variação relevante em relação ao mês anterior.';
-    } else {
-      const resWord = resultDiff >= 0 ? 'melhora' : 'piora';
-      const outWord = saidaDiff >= 0 ? 'aumento' : 'redução';
-      note = `Resultado apresentou ${resWord} de ${fmtMoneyFull(Math.abs(resultDiff))}; saídas tiveram ${outWord} de ${fmtMoneyFull(Math.abs(saidaDiff))}.`;
-    }
-    return `<div class="mom-row ${isProjectionMonth(m) ? 'projection' : ''}">
-      <div class="mom-cell mom-month">${MONTH_NAMES_SHORT[m]}</div>
-      ${metricCell(d.entradas, prev ? prev.entradas : NaN, 'entradas')}
-      ${metricCell(d.saidas, prev ? prev.saidas : NaN, 'saidas')}
-      ${metricCell(d.resultado, prev ? prev.resultado : NaN, 'resultado')}
-      <div class="mom-cell mom-note">${note}${isProjectionMonth(m) ? ' <strong>◌ Projeção.</strong>' : ''}</div>
-    </div>`;
-  }).join('');
-
-  panel.innerHTML = `<div class="mom-head"><div>Mês</div><div>Entradas</div><div>Saídas</div><div>Resultado</div><div>Leitura gerencial</div></div>${rows}`;
-}
-
-
 function forceVisibleDynamicBlocks() {
   ['momPanel', 'criticalAlerts'].forEach(id => {
     const el = document.getElementById(id);
@@ -1693,131 +1464,6 @@ onDashboardReady(init);
     document.querySelectorAll('.rank-item, .heatmap-name').forEach(el=> el.classList.toggle('v23-context', el.dataset.catName === name));
   }
   function clearContext(){ document.querySelectorAll('.v23-context').forEach(el=>el.classList.remove('v23-context')); }
-
-  
-  function ensureHeatmapSection(){
-    let sec = document.getElementById('heatmap');
-    if(sec) {
-      const h = sec.querySelector('h2'); if(h) h.textContent = 'Concentração mensal de saídas.';
-      const ctx = sec.querySelector('.section-context'); if(ctx) ctx.textContent = 'Cards executivos por mês · top categorias e concentração';
-      const right = sec.querySelector('.section-header .right'); if(right) right.textContent = 'Meses × Rubricas';
-      const card = sec.querySelector('.heatmap-card');
-      if(card) { card.className = 'heatmap-card monthly-cards-mode'; if(!card.querySelector('#v23Heatmap')) card.innerHTML = '<div id="v23Heatmap"></div><div id="v23Outliers" class="outlier-ribbon"></div>'; }
-      return sec;
-    }
-    const categoriesSec = document.getElementById('categories');
-    sec = document.createElement('section'); sec.id='heatmap'; sec.className='v23-section reveal in-view';
-    sec.innerHTML = `<div class="container"><div class="section-header"><div class="left"><div class="eyebrow cyan">CONCENTRAÇÃO MENSAL</div><h2>Concentração mensal de saídas.</h2><div class="section-context">Cards executivos por mês · top categorias e concentração</div></div><div class="right">Meses × Rubricas</div></div><div class="heatmap-card monthly-cards-mode"><div id="v23Heatmap"></div><div id="v23Outliers" class="outlier-ribbon"></div></div></div>`;
-    categoriesSec ? categoriesSec.insertAdjacentElement('afterend', sec) : document.querySelector('main')?.appendChild(sec);
-    const nav = document.querySelector('.top-site-nav .site-nav-links');
-    if(nav && !nav.querySelector('[data-target="heatmap"]')) nav.insertAdjacentHTML('beforeend','<a href="#heatmap" data-target="heatmap">Concentração</a>');
-    return sec;
-  }
-
-  function renderHeatmap(){
-    ensureHeatmapSection();
-    const root = document.getElementById('v23Heatmap'); if(!root) return;
-    const period = getActivePeriod();
-    const periodMonths = period.months && period.months.length ? period.months : ALL_MONTHS;
-    const selected = new Set(periodMonths);
-    const sig = `${period.mode || 'custom'}:${periodMonths.join(',')}`;
-    if (V23.heatPeriodSig !== sig) {
-      V23.heatPeriodSig = sig;
-      V23.heatFocused = false;
-      V23.heatMonth = null;
-    }
-
-    const cats = (DATA.categoryMonthly || DATA.categories).slice(0,10);
-    const colors = ['#6D6AF4','#22C3D6','#20C997','#E2A331','#E75858','#A66BE8','#D957A0','#83C92E','#35BDB3','#7D8BA8'];
-    const monthTotals = {};
-    ALL_MONTHS.forEach(m => monthTotals[m] = cats.reduce((s,c)=>s+(c.months?.[m]||0),0));
-
-    const fallbackMonth = periodMonths.reduce((best,m)=> monthTotals[m] > monthTotals[best] ? m : best, periodMonths[0] || 1);
-    if (V23.heatFocused && (!V23.heatMonth || !periodMonths.includes(V23.heatMonth))) {
-      V23.heatFocused = false;
-      V23.heatMonth = null;
-    }
-    const activeMonth = V23.heatFocused ? V23.heatMonth : fallbackMonth;
-    const isMonthFocused = Boolean(V23.heatFocused && activeMonth);
-
-    const activeTotal = monthTotals[activeMonth] || 0;
-    const activeResult = DATA.monthly[activeMonth]?.resultado || 0;
-    const periodAgg = aggregate(periodMonths);
-    const activeRows = cats.map((c,i)=>({ name:c.name, value:c.months?.[activeMonth]||0, color:colors[i]||'#64748B' })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
-    const periodRows = cats.map((c,i)=>({ name:c.name, value:periodMonths.reduce((s,m)=>s+(c.months?.[m]||0),0), color:colors[i]||'#64748B' })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
-    const leader = isMonthFocused ? activeRows[0] : periodRows[0];
-    const leaderBase = isMonthFocused ? activeTotal : periodRows.reduce((s,d)=>s+d.value,0);
-    const dominance = leader && leaderBase ? leader.value / leaderBase * 100 : 0;
-    const peakCells = cats.flatMap((c,i)=>ALL_MONTHS.map(m=>({cat:c.name, month:m, value:c.months?.[m]||0, color:colors[i]||'#64748B'}))).filter(x=>x.value>0).sort((a,b)=>b.value-a.value).slice(0,6);
-    const totalPeriodClassified = periodMonths.reduce((s,m)=>s+(monthTotals[m]||0),0);
-    const avgMonth = totalPeriodClassified / Math.max(periodMonths.length, 1);
-    const criticalMonths = new Set(periodMonths.filter(m => (DATA.monthly[m]?.resultado||0) < 0 || monthTotals[m] > avgMonth * 1.35));
-
-    const headerLabel = isMonthFocused ? 'Mês ativo' : 'Período ativo';
-    const headerValue = isMonthFocused ? MONTH_NAMES_LONG[activeMonth] : (
-      period.mode === 'year' ? '2026' :
-      period.mode === 'realized' ? 'Realizado' :
-      period.mode === 'projection' ? 'Projeção' :
-      (periodMonths.length <= 3 ? periodMonths.map(m=>MONTH_NAMES_SHORT[m]).join(' + ') : `${periodMonths.length} meses`)
-    );
-    const headerResult = isMonthFocused ? activeResult : periodAgg.resultado;
-
-    let html = `<div class="monthly-focus-header"><div><div class="monthly-focus-kicker">Concentração mensal por categoria</div><div class="monthly-focus-title">Cada mês como uma mini análise executiva.</div><div class="monthly-focus-copy">Os cards abaixo respeitam o <strong>período filtrado</strong>: meses fora do recorte não aparecem, reduzindo ruído visual e mantendo apenas o que precisa ser analisado.</div></div><div class="monthly-focus-stats"><div class="monthly-focus-stat"><div class="lbl">${headerLabel}</div><div class="val">${headerValue}</div></div><div class="monthly-focus-stat"><div class="lbl">Meses exibidos</div><div class="val">${periodMonths.length}</div></div><div class="monthly-focus-stat"><div class="lbl">Resultado</div><div class="val ${headerResult>=0?'good':'bad'}">${headerResult>=0?'+':'-'}${fmtMoney(Math.abs(headerResult))}</div></div></div></div>`;
-    html += `<div class="monthly-concentration-grid">`;
-    periodMonths.forEach(m=>{
-      const total = monthTotals[m] || 0;
-      const result = DATA.monthly[m]?.resultado || 0;
-      const rows = cats.map((c,i)=>({ name:c.name, value:c.months?.[m]||0, color:colors[i]||'#64748B' })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value).slice(0,4);
-      const cls = `monthly-concentration-card in-period ${isMonthFocused && m===activeMonth?'active':''} ${isProjectionMonth(m)?'projection':''} ${criticalMonths.has(m)?'critical':''}`;
-      const badge = criticalMonths.has(m) ? '<span class="monthly-card-badge bad">Atenção</span>' : (isProjectionMonth(m) ? '<span class="monthly-card-badge proj">Projeção</span>' : '<span class="monthly-card-badge">Realizado</span>');
-      html += `<button type="button" class="${cls}" data-month="${m}" aria-label="Ver composição de ${MONTH_NAMES_LONG[m]}"><div class="monthly-card-top"><div class="monthly-card-month">${MONTH_NAMES_SHORT[m]}</div>${badge}</div><div class="monthly-card-metrics"><div class="monthly-card-metric"><span class="lbl">Saídas</span><span class="val">${total?fmtMoney(total):'—'}</span></div><div class="monthly-card-metric"><span class="lbl">Resultado</span><span class="val ${result>=0?'good':'bad'}">${result>=0?'+':'-'}${fmtMoney(Math.abs(result))}</span></div></div>`;
-      if(rows.length){
-        html += `<div class="monthly-category-list">` + rows.map(d=>`<div class="monthly-cat-row" data-cat-name="${safe(d.name)}" data-month="${m}" data-value="${d.value}"><span class="monthly-cat-name"><i class="monthly-cat-dot" style="--cat-color:${d.color}"></i>${safe(d.name)}</span><span class="monthly-cat-value">${fmtMoney(d.value)}</span><span class="monthly-cat-bar"><span class="monthly-cat-fill" style="--cat-color:${d.color};--w:${total ? Math.max(3,d.value/total*100).toFixed(1) : 0}%"></span></span></div>`).join('') + `</div>`;
-      } else {
-        html += `<div class="monthly-empty-card">Sem concentração relevante de saídas classificadas neste mês.</div>`;
-      }
-      html += `</button>`;
-    });
-    html += `</div>`;
-
-    const peakHtml = peakCells.slice(0,5).map((d,i)=>`<div class="monthly-peak-item" style="--cat-color:${d.color}" data-month="${d.month}" data-cat-name="${safe(d.cat)}"><span class="monthly-peak-rank">${String(i+1).padStart(2,'0')}</span><span><div class="monthly-peak-name">${safe(d.cat)}</div><div class="monthly-peak-sub">${MONTH_NAMES_LONG[d.month]}</div></span><span class="monthly-peak-value">${fmtMoney(d.value)}</span></div>`).join('');
-    const baseRows = isMonthFocused ? activeRows : periodRows;
-    const panelTitle = isMonthFocused ? 'Leitura do mês ativo' : 'Leitura do período filtrado';
-    const panelCopy = leader ? (isMonthFocused
-      ? `Em <strong>${MONTH_NAMES_LONG[activeMonth]}</strong>, <strong>${safe(leader.name)}</strong> lidera com <strong>${fmtMoneyFull(leader.value)}</strong>, equivalente a <strong>${dominance.toFixed(1)}%</strong> das saídas classificadas do mês.`
-      : `No período <strong>${period.short || period.label}</strong>, <strong>${safe(leader.name)}</strong> lidera com <strong>${fmtMoneyFull(leader.value)}</strong>, equivalente a <strong>${dominance.toFixed(1)}%</strong> das saídas classificadas do recorte.`
-    ) : (isMonthFocused ? 'O mês selecionado não apresenta concentração material nas categorias classificadas.' : 'O período selecionado não apresenta concentração material nas categorias classificadas.');
-    const leaderHtml = baseRows.slice(0,4).map((d,i)=>`<div class="monthly-peak-item" style="--cat-color:${d.color}" data-month="${isMonthFocused ? activeMonth : ''}" data-cat-name="${safe(d.name)}"><span class="monthly-peak-rank">${String(i+1).padStart(2,'0')}</span><span><div class="monthly-peak-name">${safe(d.name)}</div><div class="monthly-peak-sub">${leaderBase ? (d.value/leaderBase*100).toFixed(1) : '0.0'}% ${isMonthFocused ? 'do mês' : 'do período'}</div></span><span class="monthly-peak-value">${fmtMoney(d.value)}</span></div>`).join('') || `<div class="empty-state"><strong>Sem composição relevante</strong><br>Não há categorias com valor positivo no recorte ativo.</div>`;
-    html += `<div class="monthly-concentration-footer"><div class="monthly-side-panel"><h4>${panelTitle}</h4><div class="monthly-focus-copy" style="margin:0 0 10px;">${panelCopy}</div><div class="monthly-peak-list">${leaderHtml}</div></div><div class="monthly-side-panel"><h4>Maiores picos de 2026</h4><div class="monthly-peak-list">${peakHtml}</div></div></div>`;
-    root.innerHTML = html;
-
-    root.querySelectorAll('.monthly-concentration-card').forEach(card=>{
-      card.addEventListener('mouseenter',()=>highlightMonth(Number(card.dataset.month)));
-      card.addEventListener('mouseleave', clearContext);
-      card.addEventListener('click',()=>{ V23.heatMonth=Number(card.dataset.month); V23.heatFocused=true; renderHeatmap(); });
-    });
-    root.querySelectorAll('.monthly-cat-row,.monthly-peak-item').forEach(item=>{
-      item.addEventListener('mouseenter',()=>{ if(item.dataset.month) highlightMonth(Number(item.dataset.month)); if(item.dataset.catName) highlightCategory(item.dataset.catName); });
-      item.addEventListener('mouseleave', clearContext);
-      item.addEventListener('mousemove', e => {
-        if(!item.dataset.catName || !item.dataset.month) return;
-        const m=Number(item.dataset.month), val=Number(item.dataset.value||0) || cats.find(c=>c.name===item.dataset.catName)?.months?.[m] || 0;
-        const total=monthTotals[m]||1;
-        showTip('Composição mensal', [['Categoria', item.dataset.catName], ['Mês', MONTH_NAMES_LONG[m]], ['Valor', fmtMoneyFull(val)], ['% do mês', (val/total*100).toFixed(1)+'%']], e.clientX, e.clientY);
-      });
-      item.addEventListener('mouseleave', hideTip);
-      item.addEventListener('click',e=>{ e.stopPropagation(); if(item.dataset.month){ V23.heatMonth=Number(item.dataset.month); V23.heatFocused=true; } if(item.dataset.catName) selectedCategoryName=item.dataset.catName; renderHeatmap(); renderRanking(); });
-    });
-  }
-
-function renderOutliers(){
-    const box = document.getElementById('v23Outliers'); if(!box) return;
-    const months = getActivePeriod().months;
-    const vals = months.map(m=>DATA.monthly[m].saidas); const avg = vals.reduce((a,b)=>a+b,0)/Math.max(vals.length,1); const sd = Math.sqrt(vals.reduce((a,b)=>a+Math.pow(b-avg,2),0)/Math.max(vals.length,1)) || 1;
-    const outs = months.map(m=>({m,z:(DATA.monthly[m].saidas-avg)/sd,val:DATA.monthly[m].saidas})).filter(o=>o.z>1.15).sort((a,b)=>b.z-a.z).slice(0,4);
-    box.innerHTML = outs.length ? outs.map(o=>`<button class="outlier-pill" data-month="${o.m}">⚠ ${MONTH_NAMES_SHORT[o.m]} · saída ${o.z.toFixed(1)}σ acima</button>`).join('') : `<span class="outlier-pill" style="border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08);color:#86EFAC;">Sem outlier relevante no período</span>`;
-    box.querySelectorAll('[data-month]').forEach(b=>b.addEventListener('click',()=>{ setSelectedMonths([Number(b.dataset.month)], 'custom'); applyFilter(); }));
-  }
 
   function toggleCompareMonth(m){
     V23.compareMonths = V23.compareMonths.includes(m) ? V23.compareMonths.filter(x=>x!==m) : [...V23.compareMonths, m].slice(-2);
@@ -2590,56 +2236,6 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return months.map(m=>({m, ...(DATA.monthly[m]||{})})).sort((a,b)=>(b.resultado||0)-(a.resultado||0))[0] || null;
   }
   function monthName(m){ try{return MONTH_NAMES_LONG[m]||m;}catch(e){return String(m);} }
-  function render(){
-    const page = document.getElementById('directoria'); if(!page) return;
-    const p = activePeriod(); const months = p.months || [];
-    let agg={entradas:0, saidas:0, resultado:0}; try{agg=aggregate(months);}catch(e){ months.forEach(m=>{const x=DATA.monthly[m]||{};agg.entradas+=x.entradas||0;agg.saidas+=x.saidas||0;agg.resultado+=x.resultado||0;}); }
-    const margin = agg.entradas ? agg.resultado/agg.entradas*100 : 0;
-    const fixed = fixedTotals(months); const fixedOnOut = agg.saidas ? fixed.basis/agg.saidas*100 : 0;
-    const top = topCategory(months); const topPct = agg.saidas ? top.value/agg.saidas*100 : 0;
-    const worst = worstMonth(months, months.some(m=>!isProjectionMonth(m))); const best = bestMonth(months);
-    const deficitMonths = months.filter(m=>(DATA.monthly[m]?.resultado||0)<0).length;
-    let score = 50;
-    score += Math.max(-25, Math.min(25, margin*2.2));
-    score += deficitMonths===0 ? 12 : -Math.min(18, deficitMonths*3);
-    score -= Math.max(0, topPct-45)*0.35;
-    score -= Math.max(0, fixedOnOut-10)*0.8;
-    score = Math.max(0, Math.min(100, Math.round(score)));
-    const status = score>=75?'SAUDÁVEL':score>=55?'ATENÇÃO':'CRÍTICO';
-    const color = score>=75?'var(--green)':score>=55?'var(--gold-l)':'var(--red)';
-    document.getElementById('directorPeriodLabel').textContent = `${p.short || p.label} · ${months.length} mês(es) analisado(s)`;
-    const verdict=document.getElementById('directorVerdict'); if(verdict){ verdict.style.setProperty('--director-color', color); verdict.innerHTML=`<span>STATUS DO PERÍODO</span><strong>${status}</strong><small>${agg.resultado>=0?'Geração líquida de caixa positiva':'Consumo líquido de caixa no período'} com margem de ${safePct(margin)}.</small>`; }
-    const kpis=[
-      ['Entradas', safeShort(agg.entradas), `${months.length} mês(es)`],
-      ['Saídas gerenciais', safeShort(agg.saidas), `Top: ${top.name}`],
-      ['Resultado', `${agg.resultado>=0?'+':''}${safeShort(agg.resultado)}`, `Margem ${safePct(margin)}`],
-      ['Custo fixo', safeShort(fixed.basis), `${safePct(fixedOnOut)} das saídas`]
-    ];
-    const kg=document.getElementById('directorKpis'); if(kg) kg.innerHTML=kpis.map(k=>`<div class="director-kpi"><div class="lbl">${k[0]}</div><div class="val">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
-    document.getElementById('directorScore').textContent = `${score}/100`;
-    const sf=document.getElementById('directorScoreFill'); if(sf) sf.style.width = `${score}%`;
-    const health=[
-      ['Liquidez do período', agg.resultado>=0?'Positiva':'Pressionada', `${safeMoney(agg.resultado)} de resultado líquido.`],
-      ['Concentração', topPct>60?'Alta':'Controlada', `${top.name} representa ${safePct(topPct)} das saídas.`],
-      ['Custos fixos', fixedOnOut>10?'Relevante':'Baixo peso', `${safePct(fixedOnOut)} das saídas gerenciais.`],
-      ['Meses negativos', deficitMonths?`${deficitMonths} mês(es)`: 'Nenhum', deficitMonths?'Há consumo de caixa em parte do recorte.':'Sem déficits no recorte selecionado.']
-    ];
-    const hl=document.getElementById('directorHealthList'); if(hl) hl.innerHTML=health.map(h=>`<div class="director-health-item"><b>${h[0]} · ${h[1]}</b><span>${h[2]}</span></div>`).join('');
-    const att=[
-      {c:'var(--gold)', b:'Categoria dominante', s:`${top.name} concentra ${safeMoney(top.value)} no período.`},
-      {c:(worst?.resultado||0)<0?'var(--red)':'var(--green)', b:'Pior mês observado', s:worst?`${monthName(worst.m)} · ${safeMoney(worst.resultado||0)} de resultado.`:'Sem mês identificado.'},
-      {c:'var(--cyan)', b:'Melhor geração de caixa', s:best?`${monthName(best.m)} · ${safeMoney(best.resultado||0)} de resultado.`:'Sem mês identificado.'}
-    ];
-    const al=document.getElementById('directorAttentionList'); if(al) al.innerHTML=att.map(x=>`<div class="director-attention-item" style="--c:${x.c}"><b>${x.b}</b><span>${x.s}</span></div>`).join('');
-    const ex=document.getElementById('directorExplanation'); if(ex) ex.innerHTML=`No recorte <strong>${p.label || p.short}</strong>, a operação apresenta <strong>${safeMoney(agg.entradas)}</strong> em entradas e <strong>${safeMoney(agg.saidas)}</strong> em saídas gerenciais, resultando em <strong>${safeMoney(agg.resultado)}</strong>. A leitura central para diretoria é a concentração em <strong>${top.name}</strong>, que explica <strong>${safePct(topPct)}</strong> das saídas do período. Os custos fixos somam <strong>${safeMoney(fixed.basis)}</strong>, equivalentes a <strong>${safePct(fixedOnOut)}</strong> das saídas gerenciais.`;
-    const recs=[];
-    if(topPct>55) recs.push(`Validar plano de pagamento e negociação da categoria dominante (${top.name}).`);
-    if(deficitMonths) recs.push(`Endereçar meses deficitários, priorizando ${worst?monthName(worst.m):'o pior mês do período'}.`);
-    if(fixedOnOut>8) recs.push('Acompanhar custos fixos como percentual das saídas para evitar perda de flexibilidade financeira.');
-    recs.push('Manter visão separada entre realizado e projeção para evitar decisões baseadas em meses ainda não confirmados.');
-    const ac=document.getElementById('directorActionsList'); if(ac) ac.innerHTML=recs.slice(0,4).map(r=>`<li>${r}</li>`).join('');
-  }
-  // V38 (render) desativado: a Diretoria e renderizada por renderDirectorV40 (script-11, abaixo).
 })();
 
 /* ===== script-10 ===== */
