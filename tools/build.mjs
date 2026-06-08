@@ -13,7 +13,8 @@ const jsFiles = [
   'src/js/40-fixed-director.js',
   'src/js/50-ux-patches.js',
   'src/js/55-theme-toggle.js',
-  'src/js/60-cinema.js'
+  'src/js/60-cinema.js',
+  'src/js/65-variacoes.js'
 ];
 
 const cssFiles = [
@@ -24,7 +25,8 @@ const cssFiles = [
   'src/css/50-theme-light.css',
   'src/css/60-theme-light-premium.css',
   'src/css/70-solaris.css',
-  'src/css/80-cinema.css'
+  'src/css/80-cinema.css',
+  'src/css/85-variacoes.css'
 ];
 
 const sizeTargets = {
