@@ -8,10 +8,15 @@ const fluxo = payload.fluxo_caixa || {};
 const fixed = payload.custos_fixos || {};
 
 const ALL_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+// Selo realizado/projeção vem do dado (flag por mês), com fallback legado m>=7.
+const monthProjectionFlag = (month) => {
+  const row = fluxo.monthly && (fluxo.monthly[month] || fluxo.monthly[String(month)]);
+  return row && typeof row.projection === 'boolean' ? row.projection : (Number(month) >= 7);
+};
 const PERIODS = {
   year: ALL_MONTHS,
-  realized: [1, 2, 3, 4, 5, 6],
-  projection: [7, 8, 9, 10, 11, 12],
+  realized: ALL_MONTHS.filter(m => !monthProjectionFlag(m)),
+  projection: ALL_MONTHS.filter(m => monthProjectionFlag(m)),
   q1: [1, 2, 3],
   q2: [4, 5, 6],
   q3: [7, 8, 9],
@@ -58,6 +63,8 @@ function validateFluxoCaixa() {
     assertFiniteNumber(row.entradas, `fluxo_caixa.monthly[${month}].entradas`);
     assertFiniteNumber(row.saidas, `fluxo_caixa.monthly[${month}].saidas`);
     assertFiniteNumber(row.resultado, `fluxo_caixa.monthly[${month}].resultado`);
+    if ('projection' in row && typeof row.projection !== 'boolean') fail(`fluxo_caixa.monthly[${month}].projection deve ser booleano`);
+    if ('partial' in row && typeof row.partial !== 'boolean') fail(`fluxo_caixa.monthly[${month}].partial deve ser booleano`);
     const expected = Number(row.entradas) - Number(row.saidas);
     if (Math.abs(expected - Number(row.resultado)) > 0.02) {
       fail(`fluxo_caixa.monthly[${month}].resultado inconsistente`);
@@ -146,14 +153,14 @@ function categoryBreakdown(months) {
 
 function fixedTotals(months) {
   const normalized = normalizeMonths(months);
-  const realizedMonths = normalized.filter(month => month <= 6);
-  const projectionOnly = normalized.every(month => month >= 7);
+  const realizedMonths = normalized.filter(month => !monthProjectionFlag(month));
+  const projectionOnly = normalized.every(month => monthProjectionFlag(month));
   const rows = Array.isArray(fixed.totals) && fixed.totals.length ? fixed.totals : fixed.items || [];
   return rows.reduce((acc, item) => {
     for (const month of normalized) {
       const row = item.months?.[month - 1] || [0, 0, 0, 0];
       acc.est += Number(row[0] || 0);
-      acc.basis += projectionOnly ? Number(row[0] || 0) : (month <= 6 ? Number(row[1] || 0) : Number(row[0] || 0));
+      acc.basis += projectionOnly ? Number(row[0] || 0) : (!monthProjectionFlag(month) ? Number(row[1] || 0) : Number(row[0] || 0));
     }
     for (const month of realizedMonths) {
       const row = item.months?.[month - 1] || [0, 0, 0, 0];

@@ -12,7 +12,7 @@ Dashboard financeiro executivo da Marconi Foods (2026). Site **estático**, publ
 - Diretoria vê saúde geral, riscos e ações recomendadas de relance.
 - Analista filtra mês/período e vê resultado + 10 categorias sem recarregar.
 - 37 itens de custo fixo (2 grupos) com real × orçado × variação mês a mês.
-- Jan–Jun = realizados; Jul–Dez = projeção. Exportação PDF/PPTX lazy (sob demanda).
+- Fronteira **realizado/projeção é DINÂMICA** (selo `projection`/`partial` por mês no dado): mês passado = realizado, mês corrente = parcial ("em andamento"), mês futuro = projeção. O importador carimba por **calendário** → o corte vira sozinho a cada atualização (sem editar código). Hoje (2026-06): Jan–Mai realizados, Jun parcial, Jul–Dez projeção. Exportação PDF/PPTX lazy.
 - Dados sigilosos — uso interno; não compartilhar o link.
 
 ## Regras de ouro (não violar sem aprovação explícita)
@@ -61,7 +61,7 @@ tools/                  build.mjs, precompute-data.mjs, qa-dashboard.mjs
 ## Dados (`data/financeiro.json`) e precompute
 `tools/precompute-data.mjs` **valida** e recalcula agregados (`precomputed`). Modelo:
 - `meta`: `empresa`, `periodo`, `ultima_atualizacao` (todos obrigatórios).
-- `fluxo_caixa.monthly`: chaves `1..12` → `{name, entradas, saidas, resultado, projection}`. Exige `resultado == entradas - saidas` (±0.02).
+- `fluxo_caixa.monthly`: chaves `1..12` → `{name, entradas, saidas, resultado, projection, partial}`. Exige `resultado == entradas - saidas` (±0.02). `projection`/`partial` = selo realizado/projeção (booleanos; setados pelo importador por calendário). A UI lê esse selo via `MarconiFormat.isProjectionMonth/isRealizedMonth/isPartialMonth` — **nunca cravar `m>=7`/`m<=6`**.
 - `fluxo_caixa.categoryMonthly`/`categories`: `[{name, months:{1..12}, value?}]`. Também `daily` (365), `reconciliation` (12).
 - `custos_fixos.items`: `[{name, group, months:[[est, real, diff, basis] ×12]}]` (37 itens). `totals` (2). `months` = rótulos.
 - Precompute falha em: NaN/não-finito, mês 1..12 faltando, estrutura inválida. Não aceita dado não numérico.
@@ -125,3 +125,4 @@ Só publicar com QA verde e mudança real. Sem mudança real → não commitar.
 - CSS com muitos `!important` e patches históricos (reduzir só com QA).
 - `tools/precompute` não valida seções novas além de `fluxo_caixa`/`custos_fixos` — estender ao criar páginas.
 - **`.codex_check_scripts/update_marconi_data.py` CORRIGIDO (2026-06-02)**: removidos `replace_embedded_json` + validação de `embedded-data`; `main()` grava só `financeiro.json` + `summary.json` (`generate_data`/`strip_update_only` intactos). Pendência: validar 1 run completo contra planilhas reais na próxima atualização (parsing não mudou). Fluxo via skill `atualizar-dados` (wrapper).
+- **Fronteira realizado/projeção data-driven (2026-06-08)**: o selo `projection`/`partial` agora é por calendário (helper `month_flags(year,month,today)` no importador externo — passado=realizado, corrente=parcial, futuro=projeção). Rollover automático a cada `/atualizar-dados`, sem editar código. A UI (`MarconiFormat`) e o `precompute` (PERIODS/`fixedTotals`) leem o selo, não o número do mês. **Pendência: rodar 1 import real pra junho virar `partial` no dado publicado** (hoje ainda está como realizado pleno, do import de 02/06). O importador é externo ao repo (mudança local na máquina).
