@@ -175,8 +175,6 @@
     setupCrossfilter();
     setupTableSort();
     sortTableRows();
-    renderHeatmap();
-    renderOutliers();
     renderCompareDock();
     wireInsights();
     pulseAlerts();

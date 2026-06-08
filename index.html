@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260608003232"/>
-<script defer src="assets/bootstrap.js?v=20260608003232"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260608151553"/>
+<script defer src="assets/bootstrap.js?v=20260608151553"></script>
 
 </head>
 <body>
@@ -34,10 +34,8 @@
 <a data-target="kpis" href="#kpis">KPIs</a>
 <a data-target="monthly" href="#monthly">Fluxo</a>
 <a data-target="result" href="#result">Resultado</a>
-<a data-target="mom" href="#mom">Mês x mês</a>
 <a data-target="categories" href="#categories">Categorias</a>
 <a data-target="table" href="#table">Tabela</a>
-<a data-target="insights" href="#insights">Insights</a>
 <a data-target="methodology" href="#methodology">Metodologia</a>
 <a data-fixed-anchor="true" data-target="fixed-costs" href="#fixed-costs">Visão Geral</a>
 <a data-fixed-anchor="true" data-fixed-view-link="control" href="#fixed-costs">Desvios</a>
@@ -219,20 +217,6 @@
 </div>
 </div>
 </section>
-<!-- ━━━━━━━━━━━━━━━━━━━━ MONTH OVER MONTH ━━━━━━━━━━━━━━━━━━━━ -->
-<section id="mom">
-<div class="container">
-<div class="section-header reveal">
-<div class="left">
-<div class="eyebrow cyan">EVOLUÇÃO</div>
-<h2>Análise mês contra mês.</h2>
-<div class="section-context" id="momContext">VARIAÇÃO VS. MÊS ANTERIOR</div>
-</div>
-<div class="right">ENTRADAS · SAÍDAS · RESULTADO</div>
-</div>
-<div class="mom-panel reveal" id="momPanel"></div>
-</div>
-</section>
 <!-- ━━━━━━━━━━━━━━━━━━━━ CRITICAL ALERTS ━━━━━━━━━━━━━━━━━━━━ -->
 <section id="alerts">
 <div class="container">
@@ -244,28 +228,6 @@
 </div>
 </div>
 <div class="critical-alerts-grid reveal" id="criticalAlerts"></div>
-</div>
-</section>
-<!-- ━━━━━━━━━━━━━━━━━━━━ DAILY CHART ━━━━━━━━━━━━━━━━━━━━ -->
-<section id="daily">
-<div class="container">
-<div class="section-header reveal">
-<div class="left">
-<div class="eyebrow gold">TENDÊNCIA MENSAL</div>
-<h2>Movimentação consolidada por mês.</h2>
-<div class="section-context">LINHAS MENSAIS DE ENTRADAS E SAÍDAS GERENCIAIS</div>
-</div>
-</div>
-<div class="daily-card reveal">
-<div class="card-toolbar"><span id="dailyPeriodContext">Período selecionado: 2026</span><span>Cada ponto representa um mês. Use a legenda para alternar entradas/saídas.</span></div>
-<div class="daily-summary" id="dailySummary"></div>
-<svg class="chart-svg" id="dailyChart" preserveaspectratio="xMidYMid meet" viewbox="0 0 1200 380"></svg>
-<div class="chart-legend flow-legend">
-<div class="legend-item" data-flow="entradas"><div class="legend-dot" style="background: #6366F1;"></div>ENTRADAS</div>
-<div class="legend-item" data-flow="saidas"><div class="legend-dot" style="background: #06B6D4;"></div>SAÍDAS GERENCIAIS</div>
-<div class="legend-item"><div class="legend-dot" style="background: transparent; border: 2px solid #FCD34D;"></div>MAIOR MÊS</div>
-</div>
-</div>
 </div>
 </section>
 <!-- ━━━━━━━━━━━━━━━━━━━━ CATEGORIES BREAKDOWN ━━━━━━━━━━━━━━━━━━━━ -->
@@ -401,18 +363,6 @@
 <tbody id="tableBody"></tbody>
 </table>
 </div>
-</div>
-</section>
-<!-- ━━━━━━━━━━━━━━━━━━━━ INSIGHTS ━━━━━━━━━━━━━━━━━━━━ -->
-<section id="insights">
-<div class="container">
-<div class="section-header reveal">
-<div class="left">
-<div class="eyebrow green">DESTAQUES &amp; ANÁLISE</div>
-<h2>Insights dinâmicos<br/>do período.</h2>
-</div>
-</div>
-<div class="insights-grid reveal" id="insightsGrid"></div>
 </div>
 </section>
 <!-- ━━━━━━━━━━━━━━━━━━━━ METHODOLOGY ━━━━━━━━━━━━━━━━━━━━ -->

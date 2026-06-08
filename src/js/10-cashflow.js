@@ -1003,7 +1003,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderMoMAnalysis, renderCriticalAlerts, renderDailyChart, renderDonut, renderRanking, renderTable, renderInsights];
+    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }

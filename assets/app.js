@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260608003232
+ * Build: 20260608151553
  * Mode: development
  */
 
@@ -1280,7 +1280,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderMoMAnalysis, renderCriticalAlerts, renderDailyChart, renderDonut, renderRanking, renderTable, renderInsights];
+    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderResultChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
@@ -1604,8 +1604,6 @@ onDashboardReady(init);
     setupCrossfilter();
     setupTableSort();
     sortTableRows();
-    renderHeatmap();
-    renderOutliers();
     renderCompareDock();
     wireInsights();
     pulseAlerts();
@@ -4465,8 +4463,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   const CACHE_LIMIT = 80;
   const CASH_SECTION_IDS = [
-    'home', 'kpis', 'executive', 'monthly', 'result', 'mom',
-    'alerts', 'daily', 'categories', 'table', 'insights', 'methodology'
+    'home', 'kpis', 'executive', 'monthly', 'result',
+    'alerts', 'categories', 'table', 'methodology'
   ];
 
   function normalizedMonthsKey(months) {

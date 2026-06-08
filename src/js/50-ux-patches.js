@@ -894,8 +894,8 @@
 
   const CACHE_LIMIT = 80;
   const CASH_SECTION_IDS = [
-    'home', 'kpis', 'executive', 'monthly', 'result', 'mom',
-    'alerts', 'daily', 'categories', 'table', 'insights', 'methodology'
+    'home', 'kpis', 'executive', 'monthly', 'result',
+    'alerts', 'categories', 'table', 'methodology'
   ];
 
   function normalizedMonthsKey(months) {
