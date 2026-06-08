@@ -71,6 +71,27 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  // Fronteira realizado/projeção — lê o flag do dado (data-driven), com fallback legado m>=7.
+  function monthProjectionFlag(month) {
+    var m = Number(month);
+    try {
+      var dm = window.__DATA__ && window.__DATA__.monthly;
+      var rec = dm && (dm[m] || dm[String(m)]);
+      if (rec && typeof rec.projection === 'boolean') return rec.projection;
+    } catch (e) {}
+    return m >= 7;
+  }
+  // Mês corrente parcial ("em andamento") — flag opcional do dado; default false.
+  function monthPartialFlag(month) {
+    var m = Number(month);
+    try {
+      var dm = window.__DATA__ && window.__DATA__.monthly;
+      var rec = dm && (dm[m] || dm[String(m)]);
+      if (rec && typeof rec.partial === 'boolean') return rec.partial;
+    } catch (e) {}
+    return false;
+  }
+
   window.MarconiFormat = {
     BRL_FULL_FORMATTER,
     BRL_EXACT_FORMATTER,
@@ -80,7 +101,11 @@
     pct,
     escapeHtml,
     normalizeMonths,
-    isProjectionMonth: month => Number(month) >= 7,
+    isProjectionMonth: monthProjectionFlag,
+    isRealizedMonth: month => !monthProjectionFlag(month),
+    isPartialMonth: monthPartialFlag,
+    realizedMonths: () => { const o = []; for (let m = 1; m <= 12; m++) { if (!monthProjectionFlag(m)) o.push(m); } return o; },
+    projectionMonths: () => { const o = []; for (let m = 1; m <= 12; m++) { if (monthProjectionFlag(m)) o.push(m); } return o; },
     parseMoneyNumber
   };
 })();

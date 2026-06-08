@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260607142509
+ * Build: 20260608003232
  * Mode: development
  */
 
@@ -78,6 +78,27 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  // Fronteira realizado/projeção — lê o flag do dado (data-driven), com fallback legado m>=7.
+  function monthProjectionFlag(month) {
+    var m = Number(month);
+    try {
+      var dm = window.__DATA__ && window.__DATA__.monthly;
+      var rec = dm && (dm[m] || dm[String(m)]);
+      if (rec && typeof rec.projection === 'boolean') return rec.projection;
+    } catch (e) {}
+    return m >= 7;
+  }
+  // Mês corrente parcial ("em andamento") — flag opcional do dado; default false.
+  function monthPartialFlag(month) {
+    var m = Number(month);
+    try {
+      var dm = window.__DATA__ && window.__DATA__.monthly;
+      var rec = dm && (dm[m] || dm[String(m)]);
+      if (rec && typeof rec.partial === 'boolean') return rec.partial;
+    } catch (e) {}
+    return false;
+  }
+
   window.MarconiFormat = {
     BRL_FULL_FORMATTER,
     BRL_EXACT_FORMATTER,
@@ -87,7 +108,11 @@
     pct,
     escapeHtml,
     normalizeMonths,
-    isProjectionMonth: month => Number(month) >= 7,
+    isProjectionMonth: monthProjectionFlag,
+    isRealizedMonth: month => !monthProjectionFlag(month),
+    isPartialMonth: monthPartialFlag,
+    realizedMonths: () => { const o = []; for (let m = 1; m <= 12; m++) { if (!monthProjectionFlag(m)) o.push(m); } return o; },
+    projectionMonths: () => { const o = []; for (let m = 1; m <= 12; m++) { if (monthProjectionFlag(m)) o.push(m); } return o; },
     parseMoneyNumber
   };
 })();
@@ -262,8 +287,8 @@ const PRECOMPUTED = DATA.precomputed || {};
 
 // ─── STATE ───
 const ALL_MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12];
-const REAL_MONTHS = [1,2,3,4,5,6];
-const PROJ_MONTHS = [7,8,9,10,11,12];
+const REAL_MONTHS = ALL_MONTHS.filter(m => !isProjectionMonth(m));
+const PROJ_MONTHS = ALL_MONTHS.filter(m => isProjectionMonth(m));
 let selectedMonths = [...ALL_MONTHS];
 let activePeriodMode = 'year'; // year | realized | projection | custom
 let selectedFlow = 'both'; // both | entradas | saidas
@@ -288,7 +313,7 @@ const fmtMoneyExact = window.MarconiFormat?.moneyExact || ((v) => BRL_EXACT_FORM
 const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFixed(1) : '0.0') + '%');
 
 // ─── HELPERS ───
-function isProjectionMonth(m) { return m >= 7; }
+function isProjectionMonth(m) { return window.MarconiFormat ? window.MarconiFormat.isProjectionMonth(m) : (Number(m) >= 7); }
 function normalizeMonths(months) {
   const uniq = [...new Set(months.map(Number).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
   return uniq.length ? uniq : [...ALL_MONTHS];
@@ -312,7 +337,7 @@ function setSelectedMonths(months, mode = 'custom') {
     selectedMonths = normalized;
     activePeriodMode = mode;
   }
-  dailyMonthView = selectedMonths.length === 1 ? selectedMonths[0] : selectedMonths.find(m => m <= 6) || selectedMonths[0];
+  dailyMonthView = selectedMonths.length === 1 ? selectedMonths[0] : selectedMonths.find(m => !isProjectionMonth(m)) || selectedMonths[0];
 }
 function toggleMonth(m) {
   m = Number(m);
@@ -1751,8 +1776,8 @@ onDashboardReady(init);
       const total = monthTotals[m] || 0;
       const result = DATA.monthly[m]?.resultado || 0;
       const rows = cats.map((c,i)=>({ name:c.name, value:c.months?.[m]||0, color:colors[i]||'#64748B' })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value).slice(0,4);
-      const cls = `monthly-concentration-card in-period ${isMonthFocused && m===activeMonth?'active':''} ${m>=7?'projection':''} ${criticalMonths.has(m)?'critical':''}`;
-      const badge = criticalMonths.has(m) ? '<span class="monthly-card-badge bad">Atenção</span>' : (m>=7 ? '<span class="monthly-card-badge proj">Projeção</span>' : '<span class="monthly-card-badge">Realizado</span>');
+      const cls = `monthly-concentration-card in-period ${isMonthFocused && m===activeMonth?'active':''} ${isProjectionMonth(m)?'projection':''} ${criticalMonths.has(m)?'critical':''}`;
+      const badge = criticalMonths.has(m) ? '<span class="monthly-card-badge bad">Atenção</span>' : (isProjectionMonth(m) ? '<span class="monthly-card-badge proj">Projeção</span>' : '<span class="monthly-card-badge">Realizado</span>');
       html += `<button type="button" class="${cls}" data-month="${m}" aria-label="Ver composição de ${MONTH_NAMES_LONG[m]}"><div class="monthly-card-top"><div class="monthly-card-month">${MONTH_NAMES_SHORT[m]}</div>${badge}</div><div class="monthly-card-metrics"><div class="monthly-card-metric"><span class="lbl">Saídas</span><span class="val">${total?fmtMoney(total):'—'}</span></div><div class="monthly-card-metric"><span class="lbl">Resultado</span><span class="val ${result>=0?'good':'bad'}">${result>=0?'+':'-'}${fmtMoney(Math.abs(result))}</span></div></div>`;
       if(rows.length){
         html += `<div class="monthly-category-list">` + rows.map(d=>`<div class="monthly-cat-row" data-cat-name="${safe(d.name)}" data-month="${m}" data-value="${d.value}"><span class="monthly-cat-name"><i class="monthly-cat-dot" style="--cat-color:${d.color}"></i>${safe(d.name)}</span><span class="monthly-cat-value">${fmtMoney(d.value)}</span><span class="monthly-cat-bar"><span class="monthly-cat-fill" style="--cat-color:${d.color};--w:${total ? Math.max(3,d.value/total*100).toFixed(1) : 0}%"></span></span></div>`).join('') + `</div>`;
@@ -2439,12 +2464,12 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   const money = window.MarconiFormat?.moneyFull || new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format;
   const pct = v => `${Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}%`;
   const monthLabel = m => (window.FIXED_COST_DATA?.months?.[m-1] || ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'][m-1] || '—');
-  const realized = m => m >= 1 && m <= 6;
+  const realized = m => !isProjectionMonth(m);
 
   function currentMonths(){
     const st = window.filterState || {};
-    if (st.period === 'realized') return [1,2,3,4,5,6];
-    if (st.period === 'projection') return [7,8,9,10,11,12];
+    if (st.period === 'realized') return ALL_MONTHS.filter(m => !isProjectionMonth(m));
+    if (st.period === 'projection') return ALL_MONTHS.filter(m => isProjectionMonth(m));
     if (st.period === 'custom' && Array.isArray(st.months) && st.months.length) return st.months.slice().sort((a,b)=>a-b);
     return [1,2,3,4,5,6,7,8,9,10,11,12];
   }
@@ -2556,7 +2581,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   function activePeriod(){ try{return getActivePeriod();}catch(e){return {months:[1,2,3,4,5,6,7,8,9,10,11,12], label:'2026', short:'2026', mode:'year'};} }
   function fixedTotals(months){
     const data = window.FIXED_COST_DATA || {}; const rows = data.totals?.length ? data.totals : (data.items||[]);
-    const realized = m => m<=6;
+    const realized = m => !isProjectionMonth(m);
     let est=0, basis=0, realEst=0, real=0;
     months.forEach(m=> rows.forEach(it=>{ const r=it.months?.[m-1]||[0,0,0]; est+=r[0]||0; basis += realized(m) ? (r[1]||0) : (r[0]||0); if(realized(m)){real+=r[1]||0; realEst+=r[0]||0;} }));
     return {est,basis,real,diff:real-realEst};
@@ -2566,7 +2591,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return cats[0] || {name:'—', value:0};
   }
   function worstMonth(months, realizedOnly=false){
-    const ms = realizedOnly ? months.filter(m=>m<=6) : months;
+    const ms = realizedOnly ? months.filter(m=>!isProjectionMonth(m)) : months;
     return ms.map(m=>({m, ...(DATA.monthly[m]||{})})).sort((a,b)=>(a.resultado||0)-(b.resultado||0))[0] || null;
   }
   function bestMonth(months){
@@ -2580,7 +2605,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const margin = agg.entradas ? agg.resultado/agg.entradas*100 : 0;
     const fixed = fixedTotals(months); const fixedOnOut = agg.saidas ? fixed.basis/agg.saidas*100 : 0;
     const top = topCategory(months); const topPct = agg.saidas ? top.value/agg.saidas*100 : 0;
-    const worst = worstMonth(months, months.some(m=>m<=6)); const best = bestMonth(months);
+    const worst = worstMonth(months, months.some(m=>!isProjectionMonth(m))); const best = bestMonth(months);
     const deficitMonths = months.filter(m=>(DATA.monthly[m]?.resultado||0)<0).length;
     let score = 50;
     score += Math.max(-25, Math.min(25, margin*2.2));
@@ -2667,7 +2692,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
   window.renderFixedDeviationHeatmap=function(months, projectionOnly){
     const el=document.getElementById('fixedCostsHeatmap'); if(!el) return;
-    const realMonths=(months||[]).filter(m=>m<=6);
+    const realMonths=(months||[]).filter(m=>!isProjectionMonth(m));
     if(projectionOnly || !realMonths.length){
       el.innerHTML=`<div class="empty-state"><strong>Mapa de desvios indisponível para projeção.</strong><br>Os meses previstos ainda não possuem realização para comparação.</div>`;
       return;
@@ -2735,8 +2760,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         const est = Number(tuple[0]||0), real = Number(tuple[1]||0), diff = Number(tuple[2]||0);
         acc.est += est;
         acc.real += real;
-        acc.diff += (m <= 6 ? diff : 0);
-        acc.basis += (m <= 6 ? real : est);
+        acc.diff += (!isProjectionMonth(m) ? diff : 0);
+        acc.basis += (!isProjectionMonth(m) ? real : est);
       });
       return acc;
     }, {basis:0, est:0, real:0, diff:0});
