@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const ASSET_VERSION = '20260609135215';
+  const ASSET_VERSION = '20260609143943';
   const DATA_URL = 'data/financeiro.json';
   const APP_URL = 'assets/app.js';
   window.DASHBOARD_ASSET_VERSION = ASSET_VERSION;

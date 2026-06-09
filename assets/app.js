@@ -1,6 +1,6 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260609135215
- * Mode: development
+ * Build: 20260609143943
+ * Mode: production
  */
 
 /* ===== src/js/00-foundation.js ===== */
@@ -911,8 +911,9 @@ function renderCategoryDetail() {
 
 // ─── TABLE ───
 function getMonthVariationExplanation(m) {
-  if (!JUSTIFICATIVAS || !JUSTIFICATIVAS.periodos || m < 2) return null;
-  const period = JUSTIFICATIVAS.periodos.find(p => p.ano === 2026 && p.de === (m - 1) && p.para === m);
+  if (!JUSTIFICATIVAS || !JUSTIFICATIVAS.periodos || m < 1 || m > 12) return null;
+  const de = m === 1 ? 12 : m - 1;  // Dez/25 → Jan/26 cruza o ano
+  const period = JUSTIFICATIVAS.periodos.find(p => p.ano === 2026 && p.de === de && p.para === m);
   if (!period) return null;
   // dedup: remove duplicate justificativas, manter a de maior magnitude
   const map = {};
@@ -928,8 +929,7 @@ function getMonthVariationExplanation(m) {
     }
   });
   const deduped = Object.keys(map).map(k => map[k])
-    .sort((a, b) => Math.abs(Number(b.delta) || 0) - Math.abs(Number(a.delta) || 0))
-    .slice(0, 6);  // top 6 drivers
+    .sort((a, b) => Math.abs(Number(b.delta) || 0) - Math.abs(Number(a.delta) || 0));
   return deduped.length ? deduped : null;
 }
 
@@ -978,26 +978,36 @@ function renderMonthDetailRow(m) {
           <div class="month-detail-reading">${getMonthCriticalReading(m)}</div>
           <div class="month-detail-reading" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
             <strong>Variação vs. mês anterior:</strong><br>
-            ${prev ? (() => {
+            ${(() => {
+              const escJ = (s) => (window.MarconiFormat && window.MarconiFormat.escapeHtml) ? window.MarconiFormat.escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s);
               const explntn = getMonthVariationExplanation(m);
-              const dDelta = d.resultado - prev.resultado;
-              const deltaDir = dDelta >= 0 ? '▲ ganho' : '▼ queda';
-              const deltaMag = fmtMoney(Math.abs(dDelta));
-              const deltaPct = fmtDeltaPct(d.resultado, prev.resultado);
-              let html = `<div style="margin-bottom:12px;"><strong>${deltaDir} de ${deltaMag}</strong> no resultado (${deltaPct})</div>`;
-              html += `Entradas: ${fmtDeltaAbs(d.entradas - prev.entradas)} (${fmtDeltaPct(d.entradas, prev.entradas)}).<br>`;
-              html += `Saídas: ${fmtDeltaAbs(d.saidas - prev.saidas)} (${fmtDeltaPct(d.saidas, prev.saidas)}).<br>`;
-              html += `Resultado: ${fmtDeltaAbs(prevResultDelta)} (${fmtDeltaPct(d.resultado, prev.resultado)}).`;
+              let html = '';
+              if (prev) {
+                const dDelta = d.resultado - prev.resultado;
+                const deltaDir = dDelta >= 0 ? '▲ ganho' : '▼ queda';
+                const deltaMag = fmtMoney(Math.abs(dDelta));
+                const deltaPct = fmtDeltaPct(d.resultado, prev.resultado);
+                html += `<div style="margin-bottom:10px;"><strong class="${dDelta >= 0 ? 'number-green' : 'number-red'}">${deltaDir} de ${deltaMag}</strong> no resultado (${deltaPct})</div>`;
+                html += `<div style="font-size:12px; line-height:1.7; opacity:.85;">Entradas: ${fmtDeltaAbs(d.entradas - prev.entradas)} (${fmtDeltaPct(d.entradas, prev.entradas)})<br>Saídas: ${fmtDeltaAbs(d.saidas - prev.saidas)} (${fmtDeltaPct(d.saidas, prev.saidas)})<br>Resultado: ${fmtDeltaAbs(prevResultDelta)} (${fmtDeltaPct(d.resultado, prev.resultado)})</div>`;
+              } else {
+                html += `<div style="font-size:12px; opacity:.7;">Mês de abertura do exercício — sem mês anterior no painel para comparar os valores.</div>`;
+              }
               if (explntn && explntn.length) {
-                html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08);"><strong>Por quê:</strong><br>`;
-                html += explntn.map((it, i) => {
-                  const dStr = it.delta != null ? ` [${it.delta >= 0 ? '+' : ''}${fmtMoney(it.delta)}]` : '';
-                  return `<small style="display:block; margin-bottom:6px; line-height:1.4;">• ${it.conta}: ${it.justificativa}${dStr}</small>`;
+                html += `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">`;
+                html += `<div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-mute); margin-bottom:10px;">O que explica · controladoria <span style="opacity:.6;">(${explntn.length})</span></div>`;
+                html += `<div style="max-height:320px; overflow-y:auto; padding-right:6px;">`;
+                html += explntn.map(it => {
+                  const hasDelta = it.delta != null;
+                  const cls = hasDelta ? (it.delta >= 0 ? 'number-green' : 'number-red') : '';
+                  const dStr = hasDelta ? `<span class="${cls}" style="font-weight:600; white-space:nowrap; margin-left:8px;">${it.delta >= 0 ? '+' : ''}${fmtMoney(it.delta)}</span>` : '';
+                  return `<div style="margin-bottom:11px;"><div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><strong style="font-size:12px;">${escJ(it.conta)}</strong>${dStr}</div><div style="font-size:12px; opacity:.78; line-height:1.45; margin-top:2px;">${escJ(it.justificativa)}</div></div>`;
                 }).join('');
-                html += '</div>';
+                html += `</div></div>`;
+              } else if (prev) {
+                html += `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text-mute); font-style:italic;">Justificativas da controladoria ainda não disponíveis para esta transição.</div>`;
               }
               return html;
-            })() : 'Sem comparação anterior disponível.'}
+            })()}
           </div>
         </div>
       </div>
@@ -1184,7 +1194,11 @@ function init() {
   // Carrega justificativas de variação (assincronamente, não bloqueia)
   if (!JUSTIFICATIVAS) {
     const url = 'data/justificativas.json' + (window.DASHBOARD_ASSET_VERSION ? '?v=' + encodeURIComponent(window.DASHBOARD_ASSET_VERSION) : '');
-    fetch(url).then(r => r.json()).then(j => { JUSTIFICATIVAS = j; }).catch(e => console.warn('[10-cashflow] falha ao carregar justificativas:', e));
+    fetch(url).then(r => r.json()).then(j => {
+      JUSTIFICATIVAS = j;
+      // Se um mês está aberto no detalhe, re-renderiza pra mostrar as justificativas
+      if (selectedMonthDetail) renderTable();
+    }).catch(e => console.warn('[10-cashflow] falha ao carregar justificativas:', e));
   }
 
   const makeButtonLike = (el, handler) => {
