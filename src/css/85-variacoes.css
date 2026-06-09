@@ -1,62 +1,65 @@
-/* ===== Variações & Justificativas (camada da Diretoria) ===== */
-.variacoes-block { margin-top: 56px; }
-.variacoes-head { margin-bottom: 8px; }
-.variacoes-head h2 { margin: 6px 0 6px; }
-
-.variacoes-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 24px; }
-.vrc-tab {
+/* ===== "O que explica a variação do caixa" (Fluxo de Caixa) ===== */
+.cashvar-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 24px; }
+.cashvar-tab {
   background: var(--surface-2, #1A1F35);
   color: var(--text-dim, #94A0B8);
   border: 1px solid rgba(255, 255, 255, .08);
   border-radius: 999px;
-  padding: 8px 16px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: .3px;
+  padding: 9px 18px;
+  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .3px;
   cursor: pointer;
   transition: background .18s ease, color .18s ease, border-color .18s ease;
 }
-.vrc-tab small { opacity: .6; font-weight: 500; margin-left: 4px; }
-.vrc-tab:hover { color: var(--text, #fff); border-color: rgba(255, 255, 255, .18); }
-.vrc-tab.active { background: var(--gold, #F59E0B); color: #1A1207; border-color: var(--gold, #F59E0B); }
-.vrc-tab.active small { opacity: .7; }
+.cashvar-tab:hover { color: var(--text, #fff); border-color: rgba(255, 255, 255, .18); }
+.cashvar-tab.active { background: var(--gold, #F59E0B); color: #1A1207; border-color: var(--gold, #F59E0B); }
 
-.variacoes-highlights { margin-bottom: 32px; }
-.vrc-hi-label { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute, #5A6580); margin-bottom: 12px; }
-.vrc-hi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-.vrc-hi {
+.cashvar-empty {
+  color: var(--text-dim, #94A0B8); font-size: 14px; line-height: 1.5;
+  padding: 26px; background: var(--surface, #131829);
+  border: 1px dashed rgba(255, 255, 255, .12); border-radius: 14px;
+}
+
+/* headline — o movimento do caixa */
+.cashvar-headline {
+  background: linear-gradient(180deg, var(--surface, #131829), var(--surface-2, #1A1F35));
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-left: 4px solid var(--text-mute, #5A6580);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 30px;
+}
+.cashvar-headline.up { border-left-color: var(--green, #10B981); }
+.cashvar-headline.down { border-left-color: var(--red, #EF4444); }
+.cashvar-metric-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute, #5A6580); margin-bottom: 12px; }
+.cashvar-flow { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-feature-settings: 'tnum'; }
+.cashvar-from, .cashvar-to { font-size: 30px; font-weight: 700; color: var(--text, #fff); line-height: 1.1; }
+.cashvar-from { opacity: .5; }
+.cashvar-arrow { color: var(--text-mute, #5A6580); font-size: 22px; }
+.cashvar-bigdelta { font-size: 17px; font-weight: 700; margin-top: 12px; font-feature-settings: 'tnum'; }
+.cashvar-headline.up .cashvar-bigdelta { color: var(--green, #10B981); }
+.cashvar-headline.down .cashvar-bigdelta { color: var(--red, #EF4444); }
+.cashvar-subdeltas { display: flex; gap: 26px; margin-top: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim, #94A0B8); }
+.cashvar-subdeltas b { font-feature-settings: 'tnum'; font-weight: 700; margin-left: 4px; }
+.cashvar-subdeltas b.up { color: var(--green, #10B981); }
+.cashvar-subdeltas b.down { color: var(--red, #EF4444); }
+
+/* "o que aconteceu" — drivers explicados */
+.cashvar-why-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mute, #5A6580); margin-bottom: 14px; }
+.cashvar-why-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.cashvar-driver {
   background: var(--surface, #131829);
   border: 1px solid rgba(255, 255, 255, .06);
-  border-left: 3px solid var(--text-mute, #5A6580);
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 14px 16px;
 }
-.vrc-hi.up { border-left-color: var(--green, #10B981); }
-.vrc-hi.down { border-left-color: var(--red, #EF4444); }
-.vrc-hi-conta { font-size: 11px; letter-spacing: .6px; color: var(--text-dim, #94A0B8); text-transform: uppercase; }
-.vrc-hi-delta { font-size: 22px; font-weight: 700; margin: 4px 0 8px; font-feature-settings: 'tnum'; }
-.vrc-hi.up .vrc-hi-delta { color: var(--green, #10B981); }
-.vrc-hi.down .vrc-hi-delta { color: var(--red, #EF4444); }
-.vrc-hi-justif { font-size: 13px; line-height: 1.5; color: var(--text-dim, #94A0B8); }
-
-.vrc-group { margin-bottom: 26px; }
-.vrc-group-head {
-  font-size: 13px; font-weight: 700; letter-spacing: .5px;
-  color: var(--text, #fff); text-transform: uppercase;
-  padding-bottom: 10px; margin-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, .1);
-}
-.vrc-group-head small { color: var(--text-mute, #5A6580); font-weight: 500; margin-left: 8px; }
-.vrc-item { padding: 14px 2px; border-bottom: 1px solid rgba(255, 255, 255, .05); }
-.vrc-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.vrc-conta { font-size: 14px; font-weight: 600; color: var(--text, #fff); }
-.vrc-delta { font-size: 14px; font-weight: 700; white-space: nowrap; font-feature-settings: 'tnum'; }
-.vrc-delta.up { color: var(--green, #10B981); }
-.vrc-delta.down { color: var(--red, #EF4444); }
-.vrc-justif { font-size: 13px; line-height: 1.55; color: var(--text-dim, #94A0B8); margin-top: 4px; }
+.cashvar-driver-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.cashvar-driver-conta { font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--text, #fff); }
+.cashvar-driver-delta { font-size: 13px; font-weight: 700; white-space: nowrap; font-feature-settings: 'tnum'; }
+.cashvar-driver-delta.up { color: var(--green, #10B981); }
+.cashvar-driver-delta.down { color: var(--red, #EF4444); }
+.cashvar-driver-text { font-size: 13px; line-height: 1.55; color: var(--text-dim, #94A0B8); }
 
 @media (max-width: 640px) {
-  .vrc-hi-grid { grid-template-columns: 1fr; }
-  .vrc-item-head { gap: 4px; }
+  .cashvar-from, .cashvar-to { font-size: 24px; }
+  .cashvar-why-list { grid-template-columns: 1fr; }
 }

@@ -5,6 +5,9 @@
     {
       "periodo": "Out → Nov / 2025",
       "ordem": 1,
+      "de": 10,
+      "para": 11,
+      "ano": 2025,
       "aba": "Balancete_out_nov",
       "qtd": 8,
       "itens": [
@@ -93,6 +96,9 @@
     {
       "periodo": "Nov → Dez / 2025",
       "ordem": 2,
+      "de": 11,
+      "para": 12,
+      "ano": 2025,
       "aba": "NOV_DEZ",
       "qtd": 31,
       "itens": [
@@ -411,6 +417,9 @@
     {
       "periodo": "Dez/25 → Jan/26",
       "ordem": 3,
+      "de": 12,
+      "para": 1,
+      "ano": 2026,
       "aba": "DEZ_JAN",
       "qtd": 28,
       "itens": [
@@ -699,6 +708,9 @@
     {
       "periodo": "Jan → Fev / 2026",
       "ordem": 4,
+      "de": 1,
+      "para": 2,
+      "ano": 2026,
       "aba": "JAN_FEV",
       "qtd": 34,
       "itens": [
@@ -1047,6 +1059,9 @@
     {
       "periodo": "Fev → Mar / 2026",
       "ordem": 5,
+      "de": 2,
+      "para": 3,
+      "ano": 2026,
       "aba": "previa março",
       "qtd": 41,
       "itens": [
