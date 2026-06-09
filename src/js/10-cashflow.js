@@ -1,7 +1,7 @@
 /* ===== script-4 ===== */
 const DATA = window.__DATA__ || {};
 const PRECOMPUTED = DATA.precomputed || {};
-
+let JUSTIFICATIVAS = null;  // carregado assincronamente
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -633,6 +633,29 @@ function renderCategoryDetail() {
 }
 
 // ─── TABLE ───
+function getMonthVariationExplanation(m) {
+  if (!JUSTIFICATIVAS || !JUSTIFICATIVAS.periodos || m < 2) return null;
+  const period = JUSTIFICATIVAS.periodos.find(p => p.ano === 2026 && p.de === (m - 1) && p.para === m);
+  if (!period) return null;
+  // dedup: remove duplicate justificativas, manter a de maior magnitude
+  const map = {};
+  (period.itens || []).forEach(it => {
+    const k = (it.justificativa || '').trim().toLowerCase();
+    if (!k || k.length < 6) return;
+    const mag = Math.abs(Number(it.delta) || 0);
+    if (!map[k] || mag > (map[k]._mag || 0)) {
+      const c = {};
+      for (let p in it) { if (Object.prototype.hasOwnProperty.call(it, p)) c[p] = it[p]; }
+      c._mag = mag;
+      map[k] = c;
+    }
+  });
+  const deduped = Object.keys(map).map(k => map[k])
+    .sort((a, b) => Math.abs(Number(b.delta) || 0) - Math.abs(Number(a.delta) || 0))
+    .slice(0, 6);  // top 6 drivers
+  return deduped.length ? deduped : null;
+}
+
 function renderMonthDetailRow(m) {
   const d = DATA.monthly[m];
   const prev = m > 1 ? DATA.monthly[m - 1] : null;
@@ -678,7 +701,26 @@ function renderMonthDetailRow(m) {
           <div class="month-detail-reading">${getMonthCriticalReading(m)}</div>
           <div class="month-detail-reading" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
             <strong>Variação vs. mês anterior:</strong><br>
-            ${prev ? `Entradas: ${fmtDeltaAbs(d.entradas - prev.entradas)} (${fmtDeltaPct(d.entradas, prev.entradas)}).<br>Saídas: ${fmtDeltaAbs(d.saidas - prev.saidas)} (${fmtDeltaPct(d.saidas, prev.saidas)}).<br>Resultado: ${fmtDeltaAbs(prevResultDelta)} (${fmtDeltaPct(d.resultado, prev.resultado)}).` : 'Sem comparação anterior disponível.'}
+            ${prev ? (() => {
+              const explntn = getMonthVariationExplanation(m);
+              const dDelta = d.resultado - prev.resultado;
+              const deltaDir = dDelta >= 0 ? '▲ ganho' : '▼ queda';
+              const deltaMag = fmtMoney(Math.abs(dDelta));
+              const deltaPct = fmtDeltaPct(d.resultado, prev.resultado);
+              let html = `<div style="margin-bottom:12px;"><strong>${deltaDir} de ${deltaMag}</strong> no resultado (${deltaPct})</div>`;
+              html += `Entradas: ${fmtDeltaAbs(d.entradas - prev.entradas)} (${fmtDeltaPct(d.entradas, prev.entradas)}).<br>`;
+              html += `Saídas: ${fmtDeltaAbs(d.saidas - prev.saidas)} (${fmtDeltaPct(d.saidas, prev.saidas)}).<br>`;
+              html += `Resultado: ${fmtDeltaAbs(prevResultDelta)} (${fmtDeltaPct(d.resultado, prev.resultado)}).`;
+              if (explntn && explntn.length) {
+                html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08);"><strong>Por quê:</strong><br>`;
+                html += explntn.map((it, i) => {
+                  const dStr = it.delta != null ? ` [${it.delta >= 0 ? '+' : ''}${fmtMoney(it.delta)}]` : '';
+                  return `<small style="display:block; margin-bottom:6px; line-height:1.4;">• ${it.conta}: ${it.justificativa}${dStr}</small>`;
+                }).join('');
+                html += '</div>';
+              }
+              return html;
+            })() : 'Sem comparação anterior disponível.'}
           </div>
         </div>
       </div>
@@ -862,6 +904,12 @@ function setupSideNav() {
 
 // ─── INIT ───
 function init() {
+  // Carrega justificativas de variação (assincronamente, não bloqueia)
+  if (!JUSTIFICATIVAS) {
+    const url = 'data/justificativas.json' + (window.DASHBOARD_ASSET_VERSION ? '?v=' + encodeURIComponent(window.DASHBOARD_ASSET_VERSION) : '');
+    fetch(url).then(r => r.json()).then(j => { JUSTIFICATIVAS = j; }).catch(e => console.warn('[10-cashflow] falha ao carregar justificativas:', e));
+  }
+
   const makeButtonLike = (el, handler) => {
     if (!el) return;
     el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0');
