@@ -1,6 +1,6 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260616153941
- * Mode: development
+ * Build: 20260616154121
+ * Mode: production
  */
 
 /* ===== src/js/00-foundation.js ===== */

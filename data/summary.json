@@ -1,0 +1,189 @@
+{
+  "spreadsheets": [
+    "Custos Fixos.xlsx",
+    "Fluxo de Caixa.xlsx"
+  ],
+  "data_changed": true,
+  "old_meta": {
+    "empresa": "Marconi Foods",
+    "periodo": "2026",
+    "ultima_atualizacao": "2026-06-09T12:38:09-03:00",
+    "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
+    "versao_dashboard": "1.0",
+    "consultor": "Felipe — Consultoria Financeira"
+  },
+  "new_meta": {
+    "empresa": "Marconi Foods",
+    "periodo": "2026",
+    "ultima_atualizacao": "2026-06-16T12:41:05-03:00",
+    "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
+    "versao_dashboard": "1.0",
+    "consultor": "Felipe — Consultoria Financeira"
+  },
+  "monthly": {
+    "1": {
+      "name": "Janeiro",
+      "entradas": 4459257.29,
+      "saidas": 2873789.58,
+      "resultado": 1585467.71,
+      "projection": false,
+      "partial": false
+    },
+    "2": {
+      "name": "Fevereiro",
+      "entradas": 3907607.26,
+      "saidas": 3588898.97,
+      "resultado": 318708.29,
+      "projection": false,
+      "partial": false
+    },
+    "3": {
+      "name": "Março",
+      "entradas": 7593708.91,
+      "saidas": 7449097.62,
+      "resultado": 144611.29,
+      "projection": false,
+      "partial": false
+    },
+    "4": {
+      "name": "Abril",
+      "entradas": 9666003.72,
+      "saidas": 9800919.88,
+      "resultado": -134916.16,
+      "projection": false,
+      "partial": false
+    },
+    "5": {
+      "name": "Maio",
+      "entradas": 4419228.71,
+      "saidas": 4346841.48,
+      "resultado": 72387.23,
+      "projection": false,
+      "partial": false
+    },
+    "6": {
+      "name": "Junho",
+      "entradas": 2263674.77,
+      "saidas": 2158846.57,
+      "resultado": 104828.2,
+      "projection": false,
+      "partial": true
+    },
+    "7": {
+      "name": "Julho",
+      "entradas": 241758.1,
+      "saidas": 171389.84,
+      "resultado": 70368.26,
+      "projection": true,
+      "partial": false
+    },
+    "8": {
+      "name": "Agosto",
+      "entradas": 4000.0,
+      "saidas": 168889.84,
+      "resultado": -164889.84,
+      "projection": true,
+      "partial": false
+    },
+    "9": {
+      "name": "Setembro",
+      "entradas": 4000.0,
+      "saidas": 168889.84,
+      "resultado": -164889.84,
+      "projection": true,
+      "partial": false
+    },
+    "10": {
+      "name": "Outubro",
+      "entradas": 5000.0,
+      "saidas": 171389.84,
+      "resultado": -166389.84,
+      "projection": true,
+      "partial": false
+    },
+    "11": {
+      "name": "Novembro",
+      "entradas": 4000.0,
+      "saidas": 169251.73,
+      "resultado": -165251.73,
+      "projection": true,
+      "partial": false
+    },
+    "12": {
+      "name": "Dezembro",
+      "entradas": 5000.0,
+      "saidas": 171751.73,
+      "resultado": -166751.73,
+      "projection": true,
+      "partial": false
+    }
+  },
+  "reconciliation": [
+    {
+      "month": 1,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 2,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 3,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 4,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 5,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 6,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 7,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 8,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 9,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 10,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 11,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    },
+    {
+      "month": 12,
+      "entradasDiff": 0.0,
+      "saidasDiff": 0.0
+    }
+  ],
+  "counts": {
+    "daily": 365,
+    "categories": 10,
+    "fixed_items": 37,
+    "fixed_totals": 2
+  }
+}
