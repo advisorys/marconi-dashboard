@@ -107,9 +107,13 @@ function validateDre() {
   const dre = payload.dre;
   if (!dre) return; // seção opcional — só valida se existir
   assertObject(dre, 'dre');
+  if (!Array.isArray(dre.months) || dre.months.length < 12) fail('dre.months invalido');
+  if (!Array.isArray(dre.monthsFilled) || !dre.monthsFilled.length) fail('dre.monthsFilled vazio');
+  dre.monthsFilled.forEach((m, i) => assertFiniteNumber(m, `dre.monthsFilled[${i}]`));
   if (!Array.isArray(dre.lines) || !dre.lines.length) fail('dre.lines vazio');
   dre.lines.forEach((line, index) => {
     assertObject(line, `dre.lines[${index}]`);
+    assertText(line.key, `dre.lines[${index}].key`);    // o renderer (KPIs) busca linhas por key
     assertText(line.label, `dre.lines[${index}].label`);
     assertObject(line.values, `dre.lines[${index}].values`);
     for (const month of ALL_MONTHS) {

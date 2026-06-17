@@ -6,7 +6,7 @@ Detalhes longos e histórico ficam em `HANDOFF_COMPLETO_MARCONI_CLAUDE_COWORK_20
 ## O que é
 Dashboard financeiro executivo da Marconi Foods (2026). Site **estático**, publicado no **GitHub Pages**, **sem backend**.
 - Repo: `advisorys/marconi-dashboard` · Branch: `main` · URL: https://advisorys.github.io/marconi-dashboard/
-- 3 páginas: **Diretoria** (`director`), **Fluxo de Caixa** (`cash`), **Custos Fixos** (`fixed`).
+- 4 páginas: **Diretoria** (`director`), **Fluxo de Caixa** (`cash`), **Custos Fixos** (`fixed`), **DRE** (`dre`).
 
 **Objetivos de negócio:** dar visibilidade executiva do caixa 2026 em < 5 s.
 - Diretoria vê saúde geral, riscos e ações recomendadas de relance.
@@ -53,8 +53,9 @@ tools/                  build.mjs, precompute-data.mjs, qa-dashboard.mjs
 
 ## Build (sempre via script — nunca editar assets à mão)
 `tools/build.mjs` concatena os fontes em ordem fixa e atualiza a versão dos assets.
-- JS: `00-foundation → 10-cashflow → 20-interactions → 30-export-loader → 40-fixed-director → 50-ux-patches → 55-theme-toggle`
-- CSS: `00-theme-base → 20-fixed-director → 30-executive-interactions → 40-ux-patches → 50-theme-light → 60-theme-light-premium`
+- JS: `00-foundation → 10-cashflow → 20-interactions → 30-export-loader → 40-fixed-director → 45-dre → 50-ux-patches → 55-theme-toggle → 60-cinema`
+- CSS: `00-theme-base → 20-fixed-director → 30-executive-interactions → 40-ux-patches → 45-dre → 50-theme-light → 60-theme-light-premium → 70-solaris → 80-cinema`
+- **`45-dre.js` PRECISA ficar entre 40 e 50**: ele envolve `window.__baseSetDashboardPage` (definido por 40) ANTES de `50-ux-patches` capturá-lo. Mover 45 pra antes de 40 quebraria o render da DRE silenciosamente (há backup via evento `page:changed`, mas não confie nele).
 - `--prod` tenta minificar com `terser`/`lightningcss` (opcionais, hoje ausentes → avisa e segue).
 - Atualiza `?v=` em `index.html` e `ASSET_VERSION` em `assets/bootstrap.js`.
 
@@ -126,3 +127,4 @@ Só publicar com QA verde e mudança real. Sem mudança real → não commitar.
 - `tools/precompute` não valida seções novas além de `fluxo_caixa`/`custos_fixos` — estender ao criar páginas.
 - **`.codex_check_scripts/update_marconi_data.py` CORRIGIDO (2026-06-02)**: removidos `replace_embedded_json` + validação de `embedded-data`; `main()` grava só `financeiro.json` + `summary.json` (`generate_data`/`strip_update_only` intactos). Pendência: validar 1 run completo contra planilhas reais na próxima atualização (parsing não mudou). Fluxo via skill `atualizar-dados` (wrapper).
 - **Fronteira realizado/projeção data-driven (2026-06-08)**: o selo `projection`/`partial` agora é por calendário (helper `month_flags(year,month,today)` no importador externo — passado=realizado, corrente=parcial, futuro=projeção). Rollover automático a cada `/atualizar-dados`, sem editar código. A UI (`MarconiFormat`) e o `precompute` (PERIODS/`fixedTotals`) leem o selo, não o número do mês. **Pendência: rodar 1 import real pra junho virar `partial` no dado publicado** (hoje ainda está como realizado pleno, do import de 02/06). O importador é externo ao repo (mudança local na máquina).
+- **MIGRAÇÃO FONTE BLING + DRE (2026-06-16, branch `claude/bling-dre-v2`)**: o **Fluxo** deixou de vir da planilha do Diogo e passa a vir do **extrato Bling** (`Fonte de Dados Dashboard - Marconi.xlsx`: abas `Cola_Bling`+`DePara_Bling`+`d_CategCustos`), fiel ao `CONTRATO_ROBO` da planilha. Regras: joins com trim; descarta `Tipo='S'`; dedup por Id; **exclui só Classe `AJUSTE`** (transferências); **Importação conta como saída real**; categorias = saídas por Grupo DRE; só realizado (mês futuro = 0). Bate 100% com a aba `CONTROLE`. **Custos Fixos seguem vindo da planilha da consultoria** (`Custos Fixos.xlsx`). Importador reescrito em `.codex_check_scripts/update_marconi_data.py` (mesma interface `generate_data`/`strip_update_only` do wrapper). Nova seção **`dre`** no JSON: DRE contábil (regime de competência) lida do `.xlsb "DRE 26 NOVO"` (`generate_dre`, requer `pyxlsb`), renderizada pela página `dre`. Selo realizado/projeção e custos fixos inalterados. Variações/justificativas removidas. **Pendências da fonte (revisar com a consultoria, não são bug):** (1) "Descontos Concedidos" ~R$14,9M domina deduções — possível contra-receita; (2) 15 lançamentos "sem categoria no Bling"; (3) AJUSTE de Janeiro não é wash perfeito (líq. −R$311k); (4) IRPJ/CSLL de Janeiro somado de volta ao lucro no `.xlsb`.
