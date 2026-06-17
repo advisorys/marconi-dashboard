@@ -110,6 +110,135 @@ function alerts(ms,cats,a){ const realized=ms.filter(m=>!isProj(m)); const base=
     ].join('');
     document.body.appendChild(report);
   }
+  /* ============================================================
+     PACOTE DO CONSELHO (E2 · Onda 5) — PDF executivo consolidado
+     Constrói UM relatório paginado A4 na ordem:
+       1. Capa Diretoria (veredito + selo + caixa gerado RJ)
+       2. Fluxo de Caixa
+       3. Custos Fixos
+       4. DRE assinada (Priori)
+       5. Recuperação Judicial
+       6. Metodologia (caixa Bling × competência Priori)
+     Reaproveita a infra de paginação existente (page/header/footer,
+     pdf-page, A4 landscape). Tudo DERIVADO de window.DASHBOARD_DATA —
+     nenhum número inventado. É lazy (só carrega com export.js).
+     ============================================================ */
+  function fullData(){ return window.DASHBOARD_DATA || window.__DATA__ || {}; }
+  function realizedMonthsList(){ return months().filter(m=>!isProj(m)); }
+
+  // RJ — rubricas do processo (espelha 47-rj.js, batidas 1:1 contra os dados).
+  const COUNCIL_RJ_RUBRICS = [
+    'Honorários advocatícios-AJ', 'Honorários consultoria', 'Reembolso consultoria',
+    'Honorários advocatícios', 'Honorários contábeis'
+  ];
+  function councilRjCost(){
+    const cf = fullData().custos_fixos;
+    const out = { rubrics: [], rjTotal: 0, fixedTotal: 0, opTotal: 0, pct: 0 };
+    if (!cf || !Array.isArray(cf.items)) return out;
+    const byName = {};
+    cf.items.forEach(it=>{ const real=(it.months||[]).reduce((s,m)=>s+(Number(m&&m[1])||0),0); out.fixedTotal+=real; byName[it.name]=(byName[it.name]||0)+real; });
+    COUNCIL_RJ_RUBRICS.forEach(name=>{ const v=byName[name]||0; if(v>0||byName.hasOwnProperty(name)){ out.rubrics.push({name,value:v}); out.rjTotal+=v; } });
+    out.opTotal = out.fixedTotal - out.rjTotal;
+    out.pct = out.fixedTotal>0 ? out.rjTotal/out.fixedTotal*100 : 0;
+    return out;
+  }
+  function councilOpCash(){
+    const out = { accum: 0, series: [] };
+    const mov = {};
+    (DATA.categoryMonthly||[]).forEach(c=>{ if(c && /Mov\.\s*Financeiras/i.test(c.name||'')){ const mm=c.months||{}; for(let m=1;m<=12;m++) mov[m]=Number(mm[m]!=null?mm[m]:mm[String(m)])||0; } });
+    realizedMonthsList().forEach(m=>{ const rec=DATA.monthly[m]; if(!rec) return; const opGen=(Number(rec.resultado)||0)+(mov[m]||0); out.series.push({m,opGen}); out.accum+=opGen; });
+    return out;
+  }
+  // DRE — leitura das linhas assinadas (acum autoritativo).
+  function dreLine(key){ const dre=fullData().dre; if(!dre||!Array.isArray(dre.lines)) return null; return dre.lines.find(l=>l.key===key)||null; }
+  function dreAcum(key){ const l=dreLine(key); return l && typeof l.acum==='number' ? l.acum : 0; }
+
+  function councilDirectorVerdict(opAccum, lucro){
+    // Veredito derivado do número-chave de caixa + lucro assinado.
+    if (opAccum < 0) return { word: 'QUEIMA DE CAIXA', tone: 'red' };
+    if (lucro < 0) return { word: 'PREJUÍZO CONTÁBIL', tone: 'red' };
+    if (opAccum < 300000) return { word: 'GERAÇÃO MAGRA', tone: 'gold' };
+    return { word: 'CAIXA POSITIVO', tone: 'green' };
+  }
+
+  function councilFixedTable(){
+    const cf = fullData().custos_fixos; if(!cf||!Array.isArray(cf.totals)) return '';
+    const realized = realizedMonthsList();
+    const rows = cf.totals.map(t=>{
+      let est=0, real=0; realized.forEach(m=>{ const r=t.months[m-1]||[0,0,0,0]; est+=r[0]||0; real+=r[1]||0; });
+      const diff = real-est; const pct = est? diff/est*100 : 0;
+      return `<tr><td><b>${esc(t.name)}</b></td><td class="num">${moneyFull(est)}</td><td class="num">${moneyFull(real)}</td><td class="num" style="color:${diff<=0?'#20D39B':'#F87171'}">${diff>=0?'+':'-'}${moneyFull(Math.abs(diff))}</td><td class="num">${percent(pct)}</td></tr>`;
+    }).join('');
+    let estT=0, realT=0; cf.totals.forEach(t=>{ realized.forEach(m=>{ const r=t.months[m-1]||[0,0,0,0]; estT+=r[0]||0; realT+=r[1]||0; }); });
+    const diffT = realT-estT;
+    return `<table class="pdf-table"><thead><tr><th>Grupo</th><th class="num">Orçado (realizado)</th><th class="num">Realizado</th><th class="num">Desvio</th><th class="num">%</th></tr></thead><tbody>${rows}<tr style="font-weight:800"><td>TOTAL</td><td class="num">${moneyFull(estT)}</td><td class="num">${moneyFull(realT)}</td><td class="num" style="color:${diffT<=0?'#20D39B':'#F87171'}">${diffT>=0?'+':'-'}${moneyFull(Math.abs(diffT))}</td><td class="num">${percent(estT?diffT/estT*100:0)}</td></tr></tbody></table>`;
+  }
+
+  function councilDreTable(){
+    const dre = fullData().dre; if(!dre||!Array.isArray(dre.lines)) return '';
+    const labels = { receita_bruta:'Receita Bruta', rec_fin:'Receitas Financeiras', deducoes:'(–) Deduções', receita_liquida:'Receita Líquida', cmv:'(–) CMV / CPV', lucro_bruto:'Lucro Bruto', desp_vendas:'(–) Despesas com Vendas', desp_adm:'(–) Despesas Administrativas', desp_gerais:'(–) Despesas Gerais', desp_fin:'(–) Despesas Financeiras', descontos:'(–) Descontos Concedidos', resultado:'Resultado Líquido' };
+    const rl = dreAcum('receita_liquida') || 1;
+    const order = ['receita_bruta','deducoes','receita_liquida','cmv','lucro_bruto','desp_vendas','desp_adm','desp_gerais','desp_fin','resultado'];
+    const rows = order.map(k=>{ const l=dreLine(k); if(!l) return ''; const v=typeof l.acum==='number'?l.acum:0; const av=rl?v/rl*100:0; const strong=(k==='receita_liquida'||k==='lucro_bruto'||k==='resultado'); return `<tr${strong?' style="font-weight:800;background:rgba(148,160,184,.06)"':''}><td>${esc(labels[k]||k)}</td><td class="num" style="color:${v>=0?'#E8ECF4':'#F87171'}">${v>=0?'':'-'}${moneyFull(Math.abs(v))}</td><td class="num">${percent(av)}</td></tr>`; }).join('');
+    return `<table class="pdf-table"><thead><tr><th>Linha (acumulado assinado)</th><th class="num">Valor</th><th class="num">AV% (s/ RL)</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function councilRjCostTable(rj){
+    const rows = rj.rubrics.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${moneyFull(r.value)}</td><td class="num">${percent(rj.fixedTotal?r.value/rj.fixedTotal*100:0)}</td></tr>`).join('');
+    return `<table class="pdf-table"><thead><tr><th>Rubrica do processo de RJ</th><th class="num">Realizado</th><th class="num">% do custo fixo</th></tr></thead><tbody>${rows}<tr style="font-weight:800"><td>TOTAL CUSTO DA RJ</td><td class="num">${moneyFull(rj.rjTotal)}</td><td class="num gold">${percent(rj.pct)}</td></tr><tr><td>Estrutura operacional pura (resto)</td><td class="num">${moneyFull(rj.opTotal)}</td><td class="num">${percent(100-rj.pct)}</td></tr></tbody></table>`;
+  }
+
+  function councilMethodology(){
+    return `<div class="pdf-method-grid"><div class="pdf-method-card"><h4>Duas bases distintas</h4><p>O Fluxo de Caixa segue o <b>regime de caixa</b> (extrato Bling). A DRE segue o <b>regime de competência</b> (contabilidade Priori, demonstrações assinadas Jan–Abr). Por isso o caixa girado e o lucro contábil <b>não coincidem</b> e não devem ser somados.</p></div><div class="pdf-method-card"><h4>Fluxo (caixa Bling)</h4><p>Saídas por Grupo DRE; Importação conta como saída real; exclui-se apenas a Classe AJUSTE (transferências). Só realizado — meses futuros = 0.</p></div><div class="pdf-method-card"><h4>DRE (competência Priori)</h4><p>Linhas e totais usam o <b>acumulado assinado</b> (autoritativo). A soma dos meses pode divergir do acumulado por reclassificações contábeis.</p></div><div class="pdf-method-card"><h4>Camada de RJ</h4><p>Custo da RJ e geração de caixa operacional são <b>derivados em runtime</b> dos dados já publicados. Estimativas <b>gerenciais</b> — não constituem plano homologado.</p></div></div>`;
+  }
+
+  function buildCouncilReport(){
+    const data = fullData();
+    if (typeof DATA === 'undefined' || !DATA.monthly) return;
+    const old=document.getElementById('councilReport'); if(old) old.remove();
+    const realized = realizedMonthsList();
+    const aReal = agg(realized.length?realized:months());
+    const rj = councilRjCost();
+    const op = councilOpCash();
+    const lucro = dreAcum('resultado');
+    const rob = dreAcum('receita_bruta');
+    const cmv = dreAcum('cmv');
+    const rl = dreAcum('receita_liquida');
+    const verdict = councilDirectorVerdict(op.accum, lucro);
+    const realizedLabel = realized.length ? `${mLong(realized[0])}–${mLong(realized[realized.length-1])}/2026` : '2026';
+    const T = 6;
+    const report=document.createElement('div'); report.id='councilReport';
+    report.innerHTML = [
+      // 1 · Capa Diretoria
+      page('Pacote do Conselho · Capa',1,T,`<div class="pdf-content-fill"><div style="height:6mm"></div><div class="pdf-badge">EM RECUPERAÇÃO JUDICIAL · ${esc(realizedLabel)}</div><h1 class="pdf-title" style="font-size:34pt;margin-top:7mm;max-width:170mm">Pacote do Conselho<br>Performance Financeira 2026</h1><p class="pdf-subtitle">Documento executivo consolidado para conselho, administrador judicial e assembleias de credores. Consolida fluxo de caixa, custos fixos, DRE assinada e a camada de Recuperação Judicial em um único relatório paginado.</p><div class="pdf-card" style="margin-top:6mm;border-left:3px solid var(--accent, #34D399)"><div class="pdf-label">Veredito do período</div><div class="pdf-value ${verdict.tone}">${esc(verdict.word)}</div><div class="pdf-note">Caixa operacional gerado (acum. realizado, exclui antecipações/empréstimos): <b style="color:${op.accum>=0?'#20D39B':'#F87171'}">${op.accum>=0?'+':'-'}${moneyFull(Math.abs(op.accum))}</b>. Resultado contábil assinado (acum.): <b style="color:${lucro>=0?'#20D39B':'#F87171'}">${lucro>=0?'+':'-'}${moneyFull(Math.abs(lucro))}</b>.</div></div><div class="pdf-grid-3" style="margin-top:6mm"><div class="pdf-card"><div class="pdf-label">Entradas (caixa realizado)</div><div class="pdf-value gold">${moneyFull(aReal.entradas)}</div></div><div class="pdf-card"><div class="pdf-label">Saídas gerenciais</div><div class="pdf-value">${moneyFull(aReal.saidas)}</div></div><div class="pdf-card"><div class="pdf-label">Custo da RJ</div><div class="pdf-value red">${moneyFull(rj.rjTotal)}</div></div></div></div>`),
+      // 2 · Fluxo de Caixa
+      page('Fluxo de Caixa',2,T,`<div class="pdf-content-fill"><h2 class="pdf-section-title">Fluxo de Caixa (regime de caixa · Bling)</h2><div class="pdf-card"><div class="pdf-label">Entradas, saídas e resultado por mês</div>${lineChart(realized.length?realized:months())}<div class="pdf-note">Linhas: entradas em roxo, saídas gerenciais em ciano, resultado positivo em verde tracejado. Recorte: meses realizados.</div></div><div class="pdf-card" style="margin-top:5mm"><div class="pdf-label">Detalhamento mensal</div>${monthlyTable(months())}</div></div>`),
+      // 3 · Custos Fixos
+      page('Custos Fixos',3,T,`<div class="pdf-content-fill"><h2 class="pdf-section-title">Custos Fixos — orçado × realizado</h2><div class="pdf-card">${councilFixedTable()}<div class="pdf-note">Orçado e realizado somados sobre os meses realizados (${esc(realizedLabel)}); desvio negativo = abaixo do orçado.</div></div></div>`),
+      // 4 · DRE assinada
+      page('DRE assinada',4,T,`<div class="pdf-content-fill"><h2 class="pdf-section-title">DRE contábil assinada (Priori · competência)</h2><div class="pdf-card">${councilDreTable()}<div class="pdf-note">Valores em <b>acumulado assinado</b> (autoritativo). AV% = participação na Receita Líquida. ROB ${moneyShort(rob)} · CMV ${moneyShort(Math.abs(cmv))} (${percent(rl?Math.abs(cmv)/rl*100:0)} da RL) · Resultado ${lucro>=0?'+':'-'}${moneyShort(Math.abs(lucro))}.</div></div></div>`),
+      // 5 · Recuperação Judicial
+      page('Recuperação Judicial',5,T,`<div class="pdf-content-fill"><h2 class="pdf-section-title">Camada de Recuperação Judicial</h2><div class="pdf-card">${councilRjCostTable(rj)}<div class="pdf-note">O custo do processo de RJ representa <b class="gold">${percent(rj.pct)}</b> de todo o custo fixo realizado; a estrutura operacional pura é o restante. Honorários AJ, consultoria e advocatícios isolados das demais despesas.</div></div><div class="pdf-callout" style="margin-top:5mm"><b>Caixa operacional gerado</b> (acum. realizado, excluindo antecipações/empréstimos): <b style="color:${op.accum>=0?'#20D39B':'#F87171'}">${op.accum>=0?'+':'-'}${moneyFull(Math.abs(op.accum))}</b>. Runway depende do saldo de caixa (a expor pelo importador) — estimativa gerencial, não plano homologado.</div></div>`),
+      // 6 · Metodologia
+      page('Metodologia',6,T,`<div class="pdf-content-fill"><h2 class="pdf-section-title">Metodologia — caixa Bling × competência Priori</h2>${councilMethodology()}<div class="pdf-callout" style="margin-top:5mm"><b>Leitura conjunta:</b> o caixa girou na ordem de dezenas de milhões enquanto o resultado contábil foi marginal — as duas bases respondem a perguntas diferentes (liquidez vs. resultado econômico) e por isso convivem neste pacote sem serem somadas.</div></div>`)
+    ].join('');
+    document.body.appendChild(report);
+  }
+  function councilToast(){ let t=document.getElementById('pdfExportToast'); if(!t){ t=document.createElement('div'); t.id='pdfExportToast'; t.className='pdf-export-toast'; document.body.appendChild(t); } t.textContent='Preparando Pacote do Conselho (PDF)'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+  function runCouncilExport(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); if(typeof e.stopImmediatePropagation==='function') e.stopImmediatePropagation(); }
+    // Garante o modo "pacote do conselho": esconde o relatório de fluxo padrão para não duplicar páginas.
+    const std=document.getElementById(REPORT_ID); if(std) std.remove();
+    councilToast();
+    buildCouncilReport();
+    document.body.classList.add('council-export-active');
+    const cleanup=()=>{ document.body.classList.remove('council-export-active'); window.removeEventListener('afterprint',cleanup); };
+    window.addEventListener('afterprint',cleanup);
+    setTimeout(()=>window.print(),200);
+  }
+  window.buildCouncilReportV1 = buildCouncilReport;
+  window.runCouncilExport = runCouncilExport;
+
   function toast(){ let t=document.getElementById('pdfExportToast'); if(!t){ t=document.createElement('div'); t.id='pdfExportToast'; t.className='pdf-export-toast'; document.body.appendChild(t); } t.textContent='Preparando relatório PDF paginado'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
   function runPrint(e){ if(e){ e.preventDefault(); e.stopImmediatePropagation(); } toast(); buildPrintReport(); setTimeout(()=>window.print(),180); }
   window.buildPrintReportV27 = buildPrintReport;

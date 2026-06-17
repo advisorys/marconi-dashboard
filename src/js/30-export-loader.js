@@ -78,20 +78,70 @@
     }
   }
 
+  async function runCouncilPackageExport(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    const btn = document.getElementById('councilExport');
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      if (!btn.dataset.councilOriginalHtml) btn.dataset.councilOriginalHtml = btn.innerHTML;
+      btn.innerHTML = 'Montando pacote...';
+    }
+    try {
+      await loadExportModule();
+      if (btn) {
+        btn.disabled = false;
+        btn.setAttribute('aria-busy', 'false');
+        if (btn.dataset.councilOriginalHtml) btn.innerHTML = btn.dataset.councilOriginalHtml;
+      }
+      if (typeof window.runCouncilExport === 'function') {
+        return window.runCouncilExport(event);
+      }
+      if (typeof window.buildCouncilReportV1 === 'function') {
+        window.buildCouncilReportV1();
+        document.body.classList.add('council-export-active');
+      }
+      return window.print();
+    } catch (error) {
+      console.error('[Export] Falha ao carregar pacote do conselho:', error);
+      if (btn) {
+        btn.disabled = false;
+        btn.setAttribute('aria-busy', 'false');
+        if (btn.dataset.councilOriginalHtml) btn.innerHTML = btn.dataset.councilOriginalHtml;
+      }
+      window.alert('N\u00e3o foi poss\u00edvel carregar o pacote do conselho. Tente novamente.');
+    }
+  }
+
   function prepareExportButton() {
     const btn = document.getElementById('printDashboard');
-    if (!btn || btn.dataset.lazyExportReady === 'true') return;
-    btn.dataset.lazyExportReady = 'true';
-    btn.innerHTML = btn.innerHTML.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTA\u00c7\u00c3O');
-    btn.setAttribute('aria-label', 'Exportar apresentacao executiva');
-    btn.addEventListener('click', runDashboardExport, true);
-    btn.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
-    }, true);
+    if (btn && btn.dataset.lazyExportReady !== 'true') {
+      btn.dataset.lazyExportReady = 'true';
+      btn.innerHTML = btn.innerHTML.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTA\u00c7\u00c3O');
+      btn.setAttribute('aria-label', 'Exportar apresentacao executiva');
+      btn.addEventListener('click', runDashboardExport, true);
+      btn.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
+      }, true);
+    }
+    const council = document.getElementById('councilExport');
+    if (council && council.dataset.lazyCouncilReady !== 'true') {
+      council.dataset.lazyCouncilReady = 'true';
+      council.setAttribute('aria-label', 'Exportar pacote do conselho em PDF consolidado');
+      council.addEventListener('click', runCouncilPackageExport, true);
+      council.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') runCouncilPackageExport(event);
+      }, true);
+    }
   }
 
   window.loadDashboardExportModule = loadExportModule;
   window.runDashboardExport = runDashboardExport;
+  window.runCouncilPackageExport = runCouncilPackageExport;
   window.prepareDashboardExportButton = prepareExportButton;
   onDashboardReady(prepareExportButton);
 })();

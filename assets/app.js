@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617165041
+ * Build: 20260617171808
  * Mode: production
  */
 
@@ -1914,20 +1914,70 @@ onDashboardReady(init);
     }
   }
 
+  async function runCouncilPackageExport(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    const btn = document.getElementById('councilExport');
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      if (!btn.dataset.councilOriginalHtml) btn.dataset.councilOriginalHtml = btn.innerHTML;
+      btn.innerHTML = 'Montando pacote...';
+    }
+    try {
+      await loadExportModule();
+      if (btn) {
+        btn.disabled = false;
+        btn.setAttribute('aria-busy', 'false');
+        if (btn.dataset.councilOriginalHtml) btn.innerHTML = btn.dataset.councilOriginalHtml;
+      }
+      if (typeof window.runCouncilExport === 'function') {
+        return window.runCouncilExport(event);
+      }
+      if (typeof window.buildCouncilReportV1 === 'function') {
+        window.buildCouncilReportV1();
+        document.body.classList.add('council-export-active');
+      }
+      return window.print();
+    } catch (error) {
+      console.error('[Export] Falha ao carregar pacote do conselho:', error);
+      if (btn) {
+        btn.disabled = false;
+        btn.setAttribute('aria-busy', 'false');
+        if (btn.dataset.councilOriginalHtml) btn.innerHTML = btn.dataset.councilOriginalHtml;
+      }
+      window.alert('N\u00e3o foi poss\u00edvel carregar o pacote do conselho. Tente novamente.');
+    }
+  }
+
   function prepareExportButton() {
     const btn = document.getElementById('printDashboard');
-    if (!btn || btn.dataset.lazyExportReady === 'true') return;
-    btn.dataset.lazyExportReady = 'true';
-    btn.innerHTML = btn.innerHTML.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTA\u00c7\u00c3O');
-    btn.setAttribute('aria-label', 'Exportar apresentacao executiva');
-    btn.addEventListener('click', runDashboardExport, true);
-    btn.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
-    }, true);
+    if (btn && btn.dataset.lazyExportReady !== 'true') {
+      btn.dataset.lazyExportReady = 'true';
+      btn.innerHTML = btn.innerHTML.replace(/EXPORTAR\s*PDF/i, 'EXPORTAR APRESENTA\u00c7\u00c3O');
+      btn.setAttribute('aria-label', 'Exportar apresentacao executiva');
+      btn.addEventListener('click', runDashboardExport, true);
+      btn.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') runDashboardExport(event);
+      }, true);
+    }
+    const council = document.getElementById('councilExport');
+    if (council && council.dataset.lazyCouncilReady !== 'true') {
+      council.dataset.lazyCouncilReady = 'true';
+      council.setAttribute('aria-label', 'Exportar pacote do conselho em PDF consolidado');
+      council.addEventListener('click', runCouncilPackageExport, true);
+      council.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') runCouncilPackageExport(event);
+      }, true);
+    }
   }
 
   window.loadDashboardExportModule = loadExportModule;
   window.runDashboardExport = runDashboardExport;
+  window.runCouncilPackageExport = runCouncilPackageExport;
   window.prepareDashboardExportButton = prepareExportButton;
   onDashboardReady(prepareExportButton);
 })();
@@ -5566,12 +5616,16 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   const PAGE_LABELS = {
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
-    fixed: 'Custos Fixos'
+    fixed: 'Custos Fixos',
+    dre: 'DRE',
+    rj: 'Recuperação Judicial'
   };
   const PAGE_CONTROLS = {
     director: 'directoria',
     cash: 'kpis',
-    fixed: 'fixed-costs'
+    fixed: 'fixed-costs',
+    dre: 'dre-page',
+    rj: 'rj-page'
   };
 
   function textOf(el, selector) {
@@ -5607,12 +5661,17 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
   function syncFixedTabs() {
     const current = document.body?.dataset.fixedView || 'overview';
+    let activeTabId = '';
     document.querySelectorAll('.fixed-view-tab').forEach(function(tab) {
       const active = tab.dataset.fixedView === current;
       tab.setAttribute('role', 'tab');
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('aria-controls', 'fixedCostsGrid');
       tab.tabIndex = active ? 0 : -1;
+      if (active && tab.id) activeTabId = tab.id;
     });
+    const grid = document.getElementById('fixedCostsGrid');
+    if (grid && activeTabId) grid.setAttribute('aria-labelledby', activeTabId);
   }
 
   function labelCards() {
@@ -5753,12 +5812,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const current = normalizeView(view || document.body?.dataset.fixedView);
     if (document.body && document.body.dataset.fixedView !== current) document.body.dataset.fixedView = current;
     tagFixedPanels();
+    let activeTabId = '';
     document.querySelectorAll('.fixed-view-tab[data-fixed-view]').forEach(function(tab) {
       const active = tab.dataset.fixedView === current;
       tab.classList.toggle('active', active);
+      tab.setAttribute('role', 'tab');
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('aria-controls', 'fixedCostsGrid');
       tab.tabIndex = active ? 0 : -1;
+      if (active && tab.id) activeTabId = tab.id;
     });
+    const grid = document.getElementById('fixedCostsGrid');
+    if (grid && activeTabId) grid.setAttribute('aria-labelledby', activeTabId);
     const hint = document.getElementById('fixedPageHint');
     if (hint && hint.textContent !== VIEW_HINTS[current]) hint.textContent = VIEW_HINTS[current];
   }

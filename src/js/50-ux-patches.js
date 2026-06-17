@@ -1071,12 +1071,16 @@
   const PAGE_LABELS = {
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
-    fixed: 'Custos Fixos'
+    fixed: 'Custos Fixos',
+    dre: 'DRE',
+    rj: 'Recuperação Judicial'
   };
   const PAGE_CONTROLS = {
     director: 'directoria',
     cash: 'kpis',
-    fixed: 'fixed-costs'
+    fixed: 'fixed-costs',
+    dre: 'dre-page',
+    rj: 'rj-page'
   };
 
   function textOf(el, selector) {
@@ -1112,12 +1116,17 @@
 
   function syncFixedTabs() {
     const current = document.body?.dataset.fixedView || 'overview';
+    let activeTabId = '';
     document.querySelectorAll('.fixed-view-tab').forEach(function(tab) {
       const active = tab.dataset.fixedView === current;
       tab.setAttribute('role', 'tab');
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('aria-controls', 'fixedCostsGrid');
       tab.tabIndex = active ? 0 : -1;
+      if (active && tab.id) activeTabId = tab.id;
     });
+    const grid = document.getElementById('fixedCostsGrid');
+    if (grid && activeTabId) grid.setAttribute('aria-labelledby', activeTabId);
   }
 
   function labelCards() {
@@ -1258,12 +1267,18 @@
     const current = normalizeView(view || document.body?.dataset.fixedView);
     if (document.body && document.body.dataset.fixedView !== current) document.body.dataset.fixedView = current;
     tagFixedPanels();
+    let activeTabId = '';
     document.querySelectorAll('.fixed-view-tab[data-fixed-view]').forEach(function(tab) {
       const active = tab.dataset.fixedView === current;
       tab.classList.toggle('active', active);
+      tab.setAttribute('role', 'tab');
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('aria-controls', 'fixedCostsGrid');
       tab.tabIndex = active ? 0 : -1;
+      if (active && tab.id) activeTabId = tab.id;
     });
+    const grid = document.getElementById('fixedCostsGrid');
+    if (grid && activeTabId) grid.setAttribute('aria-labelledby', activeTabId);
     const hint = document.getElementById('fixedPageHint');
     if (hint && hint.textContent !== VIEW_HINTS[current]) hint.textContent = VIEW_HINTS[current];
   }

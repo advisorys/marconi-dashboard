@@ -84,6 +84,19 @@
     --switcher-border-rgb: 54,63,99;
     --action-outline-text: #A5B4FC;
     --control-active-border: rgba(252,211,77,0.55);
+    /* Régua de KPIs (E4 · Onda 5): escala única de radius/espaçamento/tipografia
+       compartilhada pelas 5 grades de KPI (Diretoria, Fluxo, Custos Fixos, DRE, RJ).
+       Só consistência visual — nenhum número/conteúdo muda. */
+    --kpi-grid-gap: 18px;
+    /* radius alinhado ao register dominante: os patches V36–V40 cravam
+       var(--r-lg) !important em .kpi-card/.fixed-kpi; a régua leva DRE/RJ
+       (que não têm esse !important) ao MESMO raio, convergindo de verdade.
+       Fallback 12px caso --r-lg não esteja definido em algum contexto. */
+    --kpi-radius: var(--r-lg, 12px);
+    --kpi-label-size: 11px;
+    --kpi-label-spacing: 1.8px;
+    --kpi-value-size: clamp(24px, 2.2vw, 30px);
+    --kpi-sub-size: 12px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -112,6 +125,39 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  /* ━━━ Skip-link (acessibilidade) ━━━ */
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: -9999px;
+    z-index: 4000;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: var(--gold);
+    color: #0A0E1A;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transition: none;
+  }
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    left: 16px;
+    outline: 2px solid var(--gold-l);
+    outline-offset: 2px;
+  }
+
+  /* ━━━ Foco visível global para teclado ━━━ */
+  :focus-visible {
+    outline: 2px solid var(--gold-l);
+    outline-offset: 2px;
+  }
+  #main-content:focus,
+  .dashboard-main section[id]:focus { outline: none; }
 
   /* ━━━ Mouse-follow glow ━━━ */
   .mouse-glow {

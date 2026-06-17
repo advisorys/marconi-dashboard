@@ -15,11 +15,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260617165041"/>
-<script defer src="assets/bootstrap.js?v=20260617165041"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260617171808"/>
+<script defer src="assets/bootstrap.js?v=20260617171808"></script>
 
 </head>
 <body>
+<a class="skip-link" href="#main-content">Pular para o conteúdo</a>
 <div class="mouse-glow" id="mouseGlow"></div>
 <div class="scroll-progress" id="scrollProgress"></div>
 <!-- ━━━━━━━━━━━━━━━━━━━━ TOP NAVIGATION ━━━━━━━━━━━━━━━━━━━━ -->
@@ -27,7 +28,7 @@
 <div class="top-site-title">
 <span>MARCONI FOODS</span>
 <small>Fluxo de Caixa 2026</small>
-</div><div aria-label="Páginas do dashboard" class="page-switcher"><button class="page-tab" data-page-link="director" type="button">Diretoria</button><button class="page-tab active" data-page-link="cash" type="button">Fluxo de Caixa</button><button class="page-tab" data-page-link="fixed" type="button">Custos Fixos</button><button class="page-tab" data-page-link="dre" type="button">DRE</button><button class="page-tab" data-page-link="rj" type="button">Recuperação Judicial</button></div>
+</div><div aria-label="Páginas do dashboard" class="page-switcher" role="tablist"><button aria-controls="directoria" aria-selected="false" class="page-tab" data-page-link="director" role="tab" type="button">Diretoria</button><button aria-controls="kpis" aria-selected="true" class="page-tab active" data-page-link="cash" role="tab" type="button">Fluxo de Caixa</button><button aria-controls="fixed-costs" aria-selected="false" class="page-tab" data-page-link="fixed" role="tab" type="button">Custos Fixos</button><button aria-controls="dre-page" aria-selected="false" class="page-tab" data-page-link="dre" role="tab" type="button">DRE</button><button aria-controls="rj-page" aria-selected="false" class="page-tab" data-page-link="rj" role="tab" type="button">Recuperação Judicial</button></div>
 <nav aria-label="Seções do relatório" class="top-site-links">
 <a class="active" data-target="home" href="#home">Início</a>
 <a data-target="executive" href="#executive">Resumo</a>
@@ -100,6 +101,7 @@
 <div class="sidebar-section-title">Ações</div>
 <button class="sidebar-action cyan" id="filterReset" type="button">↻ Resetar filtros</button>
 <button class="sidebar-action gold" id="printDashboard" type="button">⎙ Exportar PDF</button>
+<button class="sidebar-action outline" id="councilExport" type="button">⎙ Exportar pacote do conselho</button>
 <button class="sidebar-action outline" id="presentationMode" type="button">Modo apresentação</button>
 <button class="sidebar-action outline" id="themeToggle" type="button" aria-pressed="false" aria-label="Alternar tema claro e escuro">Tema escuro</button>
 </div>
@@ -269,15 +271,15 @@
 
 <div class="fixed-page-toolbar reveal">
 <div aria-label="Visualizações de custos fixos" class="fixed-view-tabs" role="tablist">
-<button class="fixed-view-tab active" data-fixed-view="overview" type="button">Visão geral</button>
-<button class="fixed-view-tab" data-fixed-view="control" type="button">Desvios &amp; rubricas</button>
-<button class="fixed-view-tab" data-fixed-view="matrix" type="button">Mapa de desvios</button>
+<button aria-controls="fixedCostsGrid" aria-selected="true" class="fixed-view-tab active" data-fixed-view="overview" id="fixedViewTabOverview" role="tab" type="button">Visão geral</button>
+<button aria-controls="fixedCostsGrid" aria-selected="false" class="fixed-view-tab" data-fixed-view="control" id="fixedViewTabControl" role="tab" type="button">Desvios &amp; rubricas</button>
+<button aria-controls="fixedCostsGrid" aria-selected="false" class="fixed-view-tab" data-fixed-view="matrix" id="fixedViewTabMatrix" role="tab" type="button">Mapa de desvios</button>
 </div>
 <div class="fixed-page-hint" id="fixedPageHint">Clique em uma rubrica para abrir o painel analítico.</div>
 </div>
 <div aria-live="polite" class="fixed-focus-panel" id="fixedFocusPanel"></div>
 <div class="status-seal reveal" id="fixedStatusSeal"></div>
-<div class="fixed-costs-grid">
+<div class="fixed-costs-grid" id="fixedCostsGrid" role="tabpanel" aria-labelledby="fixedViewTabOverview">
 <div class="fixed-kpi-grid" data-fixed-panel="kpis" data-fixed-slot="kpis" id="fixedCostsKpis"></div>
 <div class="fixed-card fixed-chart-card" data-fixed-panel="overview" data-fixed-slot="chart">
 <div class="fixed-card-head">

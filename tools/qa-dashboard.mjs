@@ -320,11 +320,25 @@ async function run() {
         bootstrap,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         topbar: topbar ? { left: topbar.left, width: topbar.width } : null,
-        active: document.querySelector('.page-tab.active')?.dataset.pageLink || null
+        active: document.querySelector('.page-tab.active')?.dataset.pageLink || null,
+        skipLink: (() => {
+          const a = document.querySelector('a.skip-link');
+          return !!(a && a.getAttribute('href') === '#main-content' && !!document.getElementById('main-content'));
+        })(),
+        pageTabsAria: [...document.querySelectorAll('[data-page-link]')].every(el =>
+          el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && (el.getAttribute('aria-controls') || '').trim().length > 0
+          && !!document.getElementById(el.getAttribute('aria-controls'))),
+        councilBtn: !!document.getElementById('councilExport')
       };
     })()`);
     pushResult('desktop_initial_load', initial.ready === 'complete' && initial.hasData && !initial.dataError, JSON.stringify(initial));
     pushResult('export_lazy_initial', initial.exportLoaded === false, `exportLoaded=${initial.exportLoaded}`);
+    // (Onda 5) Acessibilidade: skip-link presente e aponta para #main-content.
+    pushResult('skip_link_present', initial.skipLink === true, `skipLink=${initial.skipLink}`);
+    // (Onda 5) ARIA completo nas abas de página (inclui DRE e RJ): role=tab + aria-selected + aria-controls válido.
+    pushResult('tabs_aria_complete', initial.pageTabsAria === true, `pageTabsAria=${initial.pageTabsAria}`);
+    // (Onda 5) Botão do Pacote do Conselho presente (export segue lazy — validado por export_lazy_initial).
+    pushResult('council_export_present', initial.councilBtn === true, `councilBtn=${initial.councilBtn}`);
     pushResult(
       'cache_versioned_assets',
       !!initial.assetVersion && initial.stylesheet.includes(`?v=${initial.assetVersion}`) && initial.bootstrap.includes(`?v=${initial.assetVersion}`),
@@ -456,7 +470,12 @@ async function run() {
           a11y: {
             tabs: [...document.querySelectorAll('[data-page-link]')].every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && el.hasAttribute('aria-controls')),
             cards: [...document.querySelectorAll('.fixed-kpi, .director-kpi')].every(el => el.hasAttribute('tabindex') && el.hasAttribute('aria-label')),
-            regions: [...document.querySelectorAll('.data-table, .fixed-heatmap-wrap')].every(el => el.getAttribute('role') === 'region')
+            regions: [...document.querySelectorAll('.data-table, .fixed-heatmap-wrap')].every(el => el.getAttribute('role') === 'region'),
+            fixedTabs: (() => {
+              const tabs = [...document.querySelectorAll('.fixed-view-tab')];
+              if (!tabs.length) return true;
+              return tabs.every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && !!document.getElementById(el.getAttribute('aria-controls') || ''));
+            })()
           },
           cache: window.__MARCONI_PHASE3_QA ? window.__MARCONI_PHASE3_QA.cache() : null
         };
@@ -485,6 +504,17 @@ async function run() {
         pushResult('dre_margin_erosion_trend', state.dreTrend === true, `dreTrend=${state.dreTrend}`);
         // (B1) Ponte Caixa × Competência (waterfall) presente com os 5 blocos e seletor de mês.
         pushResult('bridge_present', state.dreBridge === true, `dreBridge=${state.dreBridge}`);
+        // (E4 · Onda 5) Régua de KPIs consistente: o raio das grades DRE e Fluxo
+        // converge para o mesmo register (--r-lg) no desktop, e os tokens resolvem.
+        const ruler = await evaluate(`(() => {
+          const root = getComputedStyle(document.documentElement);
+          const token = root.getPropertyValue('--kpi-radius').trim();
+          const rlg = root.getPropertyValue('--r-lg').trim();
+          const dre = document.querySelector('.dre-kpi');
+          const dreR = dre ? getComputedStyle(dre).borderRadius : '';
+          return { token, rlg, dreR, match: !!rlg && !!dreR && dreR === rlg };
+        })()`);
+        pushResult('kpi_ruler_consistent', ruler.match === true && !!ruler.token, JSON.stringify(ruler));
         await screenshot('dre-desktop');
       }
       if (target === 'rj') {
@@ -508,6 +538,8 @@ async function run() {
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
         pushResult('fixed_accessibility_labels', state.a11y.tabs && state.a11y.cards && state.a11y.regions, JSON.stringify(state.a11y));
+        // (Onda 5) Sub-abas de Custos Fixos com role=tab + aria-selected + aria-controls válido.
+        pushResult('fixed_tabs_aria_complete', state.a11y.fixedTabs === true, JSON.stringify(state.a11y));
         pushResult(
           'fixed_kpi_countup_not_stuck',
           Array.isArray(fixedAnimationProbe) && fixedAnimationProbe.some(sample => Array.isArray(sample.values) && sample.values.every(item => item.final && item.text && item.text !== 'R$ 0' && item.text !== '+R$ 0' && item.text !== '0.0%')),
@@ -753,6 +785,29 @@ async function run() {
     pushResult('cinema_live_charts_and_countup', cinema.hasCount === true && cinema.hasCharts === true, `count=${cinema.hasCount} charts=${cinema.hasCharts}`);
     pushResult('cinema_theme_aware', /rgb\(2[0-9],/.test(cinema.lightColor || '') || /rgb\(1[0-9],/.test(cinema.lightColor || ''), `lightColor=${cinema.lightColor}`);
     pushResult('cinema_esc_closes', cinema.closed === true, `closed=${cinema.closed}`);
+
+    // (Onda 5 · E2) Pacote do Conselho — lazy-load do módulo e build do relatório
+    // consolidado (6 páginas A4 na ordem capa→fluxo→custos→DRE→RJ→metodologia),
+    // sem disparar window.print(). Reaproveita a infra de paginação existente.
+    const council = await evaluate(`(async () => {
+      try {
+        if (typeof window.loadDashboardExportModule !== 'function') return { ok: false, reason: 'no-loader' };
+        await window.loadDashboardExportModule();
+        if (typeof window.buildCouncilReportV1 !== 'function') return { ok: false, reason: 'no-builder' };
+        window.buildCouncilReportV1();
+        const report = document.getElementById('councilReport');
+        const pages = report ? report.querySelectorAll('.pdf-page').length : 0;
+        const kickers = report ? [...report.querySelectorAll('.pdf-page-kicker')].map(k => (k.textContent || '').trim()) : [];
+        const hasDre = !!(report && /DRE assinada/i.test(report.textContent || ''));
+        const hasRj = !!(report && /Recuperação Judicial/i.test(report.textContent || ''));
+        const hasFixed = !!(report && /Custos Fixos/i.test(report.textContent || ''));
+        const hasMethod = !!(report && /Metodologia/i.test(report.textContent || ''));
+        if (report) report.remove();
+        document.body.classList.remove('council-export-active');
+        return { ok: pages >= 6 && hasDre && hasRj && hasFixed && hasMethod, pages, kickers, hasDre, hasRj, hasFixed, hasMethod };
+      } catch (e) { return { ok: false, reason: String(e && e.message || e) }; }
+    })()`);
+    pushResult('council_export_builds', council.ok === true, JSON.stringify(council));
 
     clearInterval(collectEvents);
     const relevantErrors = errors.filter(Boolean).filter(e => !/favicon/i.test(e));

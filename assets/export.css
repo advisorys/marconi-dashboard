@@ -3,6 +3,7 @@
 
 /* ===== pdf-export-v27-style ===== */
 #printReport { display: none; }
+#councilReport { display: none; }
   .pdf-export-toast {
     position: fixed;
     right: 28px;
@@ -37,8 +38,13 @@
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
-    body > *:not(#printReport) { display: none !important; }
-    #printReport {
+    body:not(.council-export-active) > *:not(#printReport) { display: none !important; }
+    /* Pacote do Conselho (E2): quando ativo, imprime o relatório consolidado
+       em vez do relatório de fluxo padrão, reaproveitando toda a paginação A4. */
+    body.council-export-active > *:not(#councilReport) { display: none !important; }
+    body.council-export-active #councilReport { display: block !important; }
+    body:not(.council-export-active) #printReport,
+    body.council-export-active #councilReport {
       display: block !important;
       position: static !important;
       width: 297mm !important;
