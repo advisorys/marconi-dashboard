@@ -1,6 +1,6 @@
 /* Marconi Dashboard stylesheet bundle. Source: src/css. Run: node tools/build.mjs
- * Build: 20260617175242
- * Mode: production
+ * Build: 20260617185910
+ * Mode: development
  */
 
 /* ===== src/css/00-theme-base.css ===== */
@@ -4145,6 +4145,13 @@ body[data-page="director"] .top-site-title small::after{content:' · Diretoria';
 .page-tab[data-page-link="director"]{order:0;}
 .page-tab[data-page-link="cash"]{order:1;}
 .page-tab[data-page-link="fixed"]{order:2;}
+/* DRE e RJ foram adicionadas depois; sem order explícito caíam em 0 e furavam a fila
+   (ficavam antes de Fluxo/Custos). Completar a sequência mantém a ordem do DOM. */
+.page-tab[data-page-link="dre"]{order:3;}
+.page-tab[data-page-link="rj"]{order:4;}
+/* Switcher pode rolar (5 abas em telas estreitas/mobile); rola limpo, sem barra visivel. */
+.page-switcher{scrollbar-width:none!important;}
+.page-switcher::-webkit-scrollbar{display:none!important;}
 
 .director-cover{display:grid!important; grid-template-columns:minmax(0,1fr) 390px!important; grid-template-areas:'copy brand' 'verdict verdict'!important; gap:34px 60px!important; align-items:center!important; min-height:520px!important; padding:34px 0 42px!important; border-bottom:1px solid rgba(54,63,99,.58); margin-bottom:34px!important;}
 .director-cover-copy{grid-area:copy;}

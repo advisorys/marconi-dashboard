@@ -612,6 +612,35 @@ async function run() {
     });
     pushResult('topbar_stable_desktop', stable, JSON.stringify(topbarRects));
 
+    // ===== Regressao da barra de navegacao (5 abas) =====
+    // Pontos cegos historicos: ordem das abas embaralhada por `order` faltando em
+    // DRE/RJ, e o switcher (centralizado) invadindo o titulo em telas < ~1560px.
+    const switcherLayout = await evaluate(`(() => {
+      const header = document.querySelector('header.top-site-nav');
+      const sw = document.querySelector('header.top-site-nav .page-switcher');
+      const title = document.querySelector('.top-site-title');
+      const tabs = [...document.querySelectorAll('.page-tab')].sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+      const order = tabs.map(t => t.dataset.pageLink);
+      const titleVisible = !!title && getComputedStyle(title).display !== 'none';
+      const tr = title ? title.getBoundingClientRect() : null;
+      const first = tabs[0] ? tabs[0].getBoundingClientRect() : null;
+      const overlap = (titleVisible && tr && first) ? Math.round(tr.right - first.left) : -999;
+      const swr = sw ? sw.getBoundingClientRect() : null;
+      const hr = header ? header.getBoundingClientRect() : null;
+      const withinHeader = !!(swr && hr) && swr.right <= hr.right + 2 && swr.left >= hr.left - 2;
+      const activeInView = (() => {
+        const a = document.querySelector('.page-tab.active');
+        if (!a || !swr) return false;
+        const r = a.getBoundingClientRect();
+        return r.left >= swr.left - 1 && r.right <= swr.right + 1;
+      })();
+      return { order, overlap, titleVisible, withinHeader, activeInView, overflow: document.documentElement.scrollWidth - window.innerWidth };
+    })()`);
+    pushResult('switcher_visual_order', JSON.stringify(switcherLayout.order) === JSON.stringify(['director', 'cash', 'fixed', 'dre', 'rj']), JSON.stringify(switcherLayout.order));
+    pushResult('switcher_no_title_overlap', switcherLayout.overlap <= 0, JSON.stringify(switcherLayout));
+    pushResult('switcher_within_header', switcherLayout.withinHeader === true, JSON.stringify(switcherLayout));
+    pushResult('switcher_active_tab_visible_desktop', switcherLayout.activeInView === true, JSON.stringify(switcherLayout));
+
     const controlledUx = await evaluate(`(async () => {
       const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
       document.querySelector('[data-page-link="cash"]')?.click();
@@ -740,11 +769,20 @@ async function run() {
       overflow: document.documentElement.scrollWidth - window.innerWidth,
       visible: getComputedStyle(document.getElementById('dre-page')).display !== 'none',
       kpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
-      table: !!document.querySelector('#dreTableWrap .dre-table')
+      table: !!document.querySelector('#dreTableWrap .dre-table'),
+      activeTabInView: (() => {
+        const sw = document.querySelector('header.top-site-nav .page-switcher');
+        const a = document.querySelector('.page-tab.active');
+        if (!sw || !a) return false;
+        const s = sw.getBoundingClientRect(), r = a.getBoundingClientRect();
+        return r.left >= s.left - 1 && r.right <= s.right + 1;
+      })()
     }))()`);
     pushResult('mobile_dre_nav', mobileDre.page === 'dre' && mobileDre.active === 'dre' && mobileDre.visible, JSON.stringify(mobileDre));
     pushResult('mobile_dre_no_overflow', mobileDre.overflow <= 2, `overflow=${mobileDre.overflow}`);
     pushResult('mobile_dre_render', mobileDre.kpis >= 4 && mobileDre.table === true, JSON.stringify(mobileDre));
+    // (Bug 3) Aba ativa precisa ficar visivel no switcher rolavel do mobile.
+    pushResult('mobile_dre_active_tab_visible', mobileDre.activeTabInView === true, JSON.stringify(mobileDre));
     await screenshot('dre-mobile');
 
     await evaluate(`document.querySelector('[data-page-link="rj"]')?.click()`);
@@ -755,11 +793,20 @@ async function run() {
       overflow: document.documentElement.scrollWidth - window.innerWidth,
       visible: getComputedStyle(document.getElementById('rj-page')).display !== 'none',
       kpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
-      costRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length
+      costRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length,
+      activeTabInView: (() => {
+        const sw = document.querySelector('header.top-site-nav .page-switcher');
+        const a = document.querySelector('.page-tab.active');
+        if (!sw || !a) return false;
+        const s = sw.getBoundingClientRect(), r = a.getBoundingClientRect();
+        return r.left >= s.left - 1 && r.right <= s.right + 1;
+      })()
     }))()`);
     pushResult('mobile_rj_nav', mobileRj.page === 'rj' && mobileRj.active === 'rj' && mobileRj.visible, JSON.stringify(mobileRj));
     pushResult('mobile_rj_no_overflow', mobileRj.overflow <= 2, `overflow=${mobileRj.overflow}`);
     pushResult('mobile_rj_render', mobileRj.kpis >= 4 && mobileRj.costRows >= 4, JSON.stringify(mobileRj));
+    // (Bug 3) Aba ativa precisa ficar visivel no switcher rolavel do mobile.
+    pushResult('mobile_rj_active_tab_visible', mobileRj.activeTabInView === true, JSON.stringify(mobileRj));
     await screenshot('rj-mobile');
     await screenshot('phase5-mobile-fixed');
 

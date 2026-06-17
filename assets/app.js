@@ -1,6 +1,6 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617175242
- * Mode: production
+ * Build: 20260617185910
+ * Mode: development
  */
 
 /* ===== src/js/00-foundation.js ===== */
@@ -5522,6 +5522,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (el) el.style.setProperty(prop, value, 'important');
   }
 
+  // Mantem a aba da pagina atual visivel quando o switcher precisa rolar
+  // (desktop estreito 1261-1559px e mobile, onde 5 abas nao cabem).
+  function scrollActivePageTabIntoView() {
+    const switcher = document.querySelector('header.top-site-nav .page-switcher');
+    if (!switcher) return;
+    const active = switcher.querySelector('.page-tab.active, .page-tab[aria-selected="true"]');
+    if (!active) return;
+    if (switcher.scrollWidth <= switcher.clientWidth + 2) { switcher.scrollLeft = 0; return; }
+    const target = active.offsetLeft - (switcher.clientWidth - active.offsetWidth) / 2;
+    switcher.scrollLeft = Math.max(0, target);
+  }
+
   function applyTopbarGeometry() {
     const topbar = document.querySelector('header.top-site-nav');
     const switcher = topbar && topbar.querySelector('.page-switcher');
@@ -5543,6 +5555,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         setImportant(switcher, 'position', 'static');
         setImportant(switcher, 'transform', 'none');
         setImportant(switcher, 'transition', 'none');
+        scrollActivePageTabIntoView();
       }
       return;
     }
@@ -5561,12 +5574,37 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     setImportant(topbar, 'grid-template-columns', 'minmax(220px, .8fr) auto minmax(0, .8fr)');
 
     if (switcher) {
+      // Centro real quando ha espaco; senao, centra no espaco a direita do titulo;
+      // se nem assim couber, encosta apos o titulo e rola (com a aba ativa a vista).
+      // Antes era left:50% fixo -> com 5 abas o switcher invadia o titulo em 1261-1559px.
+      const GAP = 18, RIGHT_INSET = 18;
+      const headerW = topbar.clientWidth;
+      const titleEl = topbar.querySelector('.top-site-title');
+      const titleVisible = titleEl && getComputedStyle(titleEl).display !== 'none';
+      const tbLeft = topbar.getBoundingClientRect().left;
+      const reserve = titleVisible ? Math.max(0, titleEl.getBoundingClientRect().right - tbLeft + GAP) : 0;
+      setImportant(switcher, 'overflow-x', 'auto');
+      setImportant(switcher, 'min-width', '0'); // vence o min-width:max-content de patches antigos p/ poder rolar
+      setImportant(switcher, 'max-width', 'none');
+      const swW = switcher.scrollWidth;
+      const avail = headerW - RIGHT_INSET;
+      const centeredLeft = (headerW - swW) / 2;
+      let leftPx;
+      if (centeredLeft >= reserve) {
+        leftPx = centeredLeft;
+      } else if (reserve + swW <= avail) {
+        leftPx = reserve + (avail - reserve - swW) / 2;
+      } else {
+        leftPx = reserve;
+        setImportant(switcher, 'max-width', Math.max(160, avail - reserve) + 'px');
+      }
       setImportant(switcher, 'position', 'absolute');
-      setImportant(switcher, 'left', '50%');
+      setImportant(switcher, 'left', Math.round(leftPx) + 'px');
       setImportant(switcher, 'top', '50%');
-      setImportant(switcher, 'transform', 'translate3d(-50%, -50%, 0)');
+      setImportant(switcher, 'transform', 'translate3d(0, -50%, 0)');
       setImportant(switcher, 'transition', 'none');
     }
+    scrollActivePageTabIntoView();
   }
 
   function lockTopbar(ms) {
