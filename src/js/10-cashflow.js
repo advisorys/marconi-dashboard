@@ -281,6 +281,28 @@ function setAnimatedValue(el, target, prefix, divisor, suffix, decimals) {
   animateCount(el);
 }
 
+// ─── STATUS SEAL (E1) — número-chave do Fluxo = resultado do período ───
+function renderCashSeal() {
+  if (!window.MarconiSeal) return;
+  const period = getActivePeriod();
+  const agg = aggregate(period.months);
+  const res = agg.resultado;
+  let tone, verdict;
+  if (res < 0) { tone = 'risk'; verdict = 'DÉFICIT'; }
+  else if (agg.margem < 1.5) { tone = 'watch'; verdict = 'APERTADO'; }
+  else { tone = 'good'; verdict = 'SUPERAVITÁRIO'; }
+  window.MarconiSeal.render('cashStatusSeal', {
+    label: 'STATUS DO FLUXO · ' + period.short,
+    verdict: verdict,
+    tone: tone,
+    metricValue: (res >= 0 ? '+' : '') + fmtMoneyFull(res),
+    metricLabel: 'resultado do período · margem ' + fmtPct(agg.margem),
+    desc: res >= 0
+      ? 'O período gerou caixa líquido. Caixa de competência é tratado na DRE.'
+      : 'O período consumiu caixa líquido — revisar calendário de pagamentos e recebíveis.'
+  });
+}
+
 // ─── KPI CARDS ───
 function renderKPIs() {
   const period = getActivePeriod();
@@ -510,7 +532,42 @@ function renderBarChart() {
       ${partialMark}
     </g>`;
   });
-  svg.innerHTML = defs + grid + bars;
+  // ─── Caixa acumulado corrido (running total) sobreposto ao gráfico de barras ───
+  // Linha/área do resultado acumulado pelos meses realizados FECHADOS — mostra a trajetória
+  // (Jan +95k → … → Mai ~+201k) e o mergulho do déficit de Abril na inclinação.
+  let accOverlay = '';
+  const groupCenterX = (i) => startX + 20 + i * groupSpacing + 30;
+  const closedPts = [];
+  let acc = 0;
+  months.forEach((m, i) => {
+    if (!isClosedRealizedMonth(m)) return;
+    acc += DATA.monthly[m].resultado;
+    closedPts.push({ i, m, acc });
+  });
+  if (closedPts.length >= 2) {
+    const accVals = closedPts.map(p => p.acc);
+    const accMax = Math.max(...accVals, 0);
+    const accMin = Math.min(...accVals, 0);
+    const accRange = (accMax - accMin) || 1;
+    // Mapeia o acumulado numa faixa superior do gráfico (não colide com as barras altas).
+    const accTop = chartTop + 8, accBottom = chartTop + chartHeight * 0.42;
+    const yAcc = (v) => accBottom - ((v - accMin) / accRange) * (accBottom - accTop);
+    const linePts = closedPts.map(p => `${groupCenterX(p.i)},${yAcc(p.acc)}`).join(' ');
+    const areaPts = `${groupCenterX(closedPts[0].i)},${accBottom} ${linePts} ${groupCenterX(closedPts[closedPts.length - 1].i)},${accBottom}`;
+    const dots = closedPts.map(p => {
+      const cx = groupCenterX(p.i), cy = yAcc(p.acc);
+      return `<g class="acc-dot-group"><circle cx="${cx}" cy="${cy}" r="4" fill="#10B981" stroke="#0A0E1A" stroke-width="1.5"/>` +
+        `<text x="${cx}" y="${cy - 10}" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700" font-family="Helvetica, Arial">${formatSmallResult(p.acc)}</text></g>`;
+    }).join('');
+    accOverlay = `<g class="cash-acc-overlay" pointer-events="none">
+      <defs><linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity="0.28"/><stop offset="100%" stop-color="#10B981" stop-opacity="0.02"/></linearGradient></defs>
+      <polygon points="${areaPts}" fill="url(#accGrad)"/>
+      <polyline points="${linePts}" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      <text x="${groupCenterX(closedPts[0].i)}" y="${accTop - 2}" text-anchor="start" fill="#10B981" font-size="9" font-weight="700" letter-spacing="1.5" font-family="Helvetica, Arial" opacity="0.85">CAIXA ACUMULADO CORRIDO (REALIZADO FECHADO)</text>
+    </g>`;
+  }
+  svg.innerHTML = defs + grid + bars + accOverlay;
   svg.querySelectorAll('.bar-group rect[data-flow]').forEach(r => {
     r.addEventListener('click', (e) => { e.stopPropagation(); setFlow(r.dataset.flow); });
   });
@@ -678,7 +735,7 @@ function renderMonthDetailRow(m) {
       <div class="month-cat-pct">${fmtPct(c.pct)}</div>
     </div>`).join('') : '<div class="month-detail-reading">Sem saídas classificadas para este mês.</div>';
 
-  return `<tr class="month-detail-row"><td colspan="6">
+  return `<tr class="month-detail-row"><td colspan="7">
     <div class="month-detail-panel">
       <div class="month-detail-top">
         <div class="month-detail-title">
@@ -715,12 +772,16 @@ function renderMonthDetailRow(m) {
 function renderTable() {
   const tbody = document.getElementById('tableBody');
   let html = '';
+  // Caixa acumulado corrido: running total do resultado pelos meses realizados FECHADOS,
+  // em ordem cronológica (Jan +95k → … → Mai ~+201k). Parcial/projeção não entram no corrido.
+  let runningClosed = 0;
   ALL_MONTHS.forEach(m => {
     const d = DATA.monthly[m];
     const isSelected = activePeriodMode === 'custom' && selectedMonths.includes(m);
     const isOpen = selectedMonthDetail === m;
     const isProj = isProjectionMonth(m);
     const isPartial = !isProj && isPartialMonth(m);
+    const isClosed = isClosedRealizedMonth(m);
     let rowCls = 'row-month';
     if (isSelected) rowCls += ' selected';
     if (isOpen) rowCls += ' open';
@@ -730,13 +791,22 @@ function renderTable() {
     const status = isProj ? 'forecast' : (isPartial ? 'partial' : (d.resultado >= 0 ? 'surplus' : 'deficit'));
     const statusText = isProj ? '◌ Projeção' : (isPartial ? '◐ Parcial' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'));
     const partialTag = isPartial ? ' <span class="month-partial-tag" title="Mês em andamento — dados parciais (Bling até a data de importação). Excluído de Melhor Mês e da média de saídas.">PARCIAL</span>' : '';
-    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
+    let accCell;
+    if (isClosed) {
+      runningClosed += d.resultado;
+      accCell = `<td class="num cash-acc ${runningClosed >= 0 ? 'number-green' : 'number-red'}" title="Caixa acumulado corrido até ${MONTH_NAMES_LONG[m]} (meses realizados fechados)">${runningClosed >= 0 ? '+' : ''}${fmtMoneyFull(runningClosed)}</td>`;
+    } else {
+      accCell = `<td class="num cash-acc cash-acc-na" title="${isProj ? 'Mês projetado — fora do corrido realizado' : 'Mês parcial em andamento — fora do corrido realizado'}">—</td>`;
+    }
+    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td>${accCell}<td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
     if (isOpen) html += renderMonthDetailRow(m);
   });
   const realAgg = aggregate(REAL_MONTHS), fullAgg = aggregate(ALL_MONTHS), activeAgg = aggregate(selectedMonths);
-  html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
+  // Acumulado corrido FECHADO (exclui parcial) = caixa "honrado" da série realizada.
+  const closedAgg = aggregate(REAL_MONTHS.filter(isClosedRealizedMonth));
+  html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num cash-acc ${closedAgg.resultado >= 0 ? 'number-green' : 'number-red'}" title="Caixa acumulado corrido dos meses realizados fechados">${closedAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(closedAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
   tbody.innerHTML = html;
   tbody.querySelectorAll('.row-month').forEach(tr => tr.addEventListener('click', () => { selectedMonthDetail = selectedMonthDetail === Number(tr.dataset.rowMonth) ? null : Number(tr.dataset.rowMonth); renderTable(); }));
   tbody.querySelectorAll('[data-apply-month]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); setSelectedMonths([Number(btn.dataset.applyMonth)], 'custom'); applyFilter(); }));
@@ -800,7 +870,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
+    const renderSteps = [renderHero, renderCashSeal, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }

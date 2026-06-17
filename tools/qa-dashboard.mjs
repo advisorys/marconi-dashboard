@@ -412,6 +412,16 @@ async function run() {
           dreKpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
           dreTable: !!document.querySelector('#dreTableWrap .dre-table'),
           dreResultRows: document.querySelectorAll('.dre-row--resultado, .dre-row--subtotal').length,
+          dreAvColumn: !!document.querySelector('#dreTableWrap .dre-th-av') && document.querySelectorAll('#dreTableWrap .dre-td-av').length >= 3,
+          dreMargins: document.querySelectorAll('#dreMargins .dre-margin-card').length,
+          dreCmvBar: !!document.querySelector('#dreTableWrap .dre-row--cmv .dre-cmv-bar-fill'),
+          dreTrend: !!document.querySelector('#dreTrend .dre-trend-svg') && !!document.querySelector('#dreTrend .dre-trend-note'),
+          cashAccColumn: document.querySelectorAll('#tableBody .cash-acc').length,
+          statusSeal: (() => {
+            const sealId = { cash: 'cashStatusSeal', fixed: 'fixedStatusSeal', director: 'directorStatusSeal', dre: 'dreStatusSeal' }[document.body.dataset.page];
+            const el = sealId && document.getElementById(sealId);
+            return !!(el && el.classList.contains('status-seal') && el.querySelector('.status-seal-word') && (el.querySelector('.status-seal-word').textContent || '').trim() && el.dataset.tone);
+          })(),
           a11y: {
             tabs: [...document.querySelectorAll('[data-page-link]')].every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && el.hasAttribute('aria-controls')),
             cards: [...document.querySelectorAll('.fixed-kpi, .director-kpi')].every(el => el.hasAttribute('tabindex') && el.hasAttribute('aria-label')),
@@ -426,9 +436,18 @@ async function run() {
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
       const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE' };
       pushResult(`title_${target}`, state.title === `Marconi Foods · ${titleLabels[target]} · 2026`, state.title);
+      // Selo de status padronizado (E1) — presente e populado nas 4 páginas.
+      pushResult(`status_seal_present_${target}`, state.statusSeal === true, `statusSeal=${state.statusSeal}`);
+      if (target === 'cash') {
+        pushResult('cash_running_total_column', state.cashAccColumn >= 12, `cashAccColumn=${state.cashAccColumn}`);
+      }
       if (target === 'dre') {
         pushResult('dre_render_on_active', state.dreKpis >= 4 && state.dreTable === true, JSON.stringify({ kpis: state.dreKpis, table: state.dreTable, resultRows: state.dreResultRows }));
         pushResult('dre_result_rows_present', state.dreResultRows >= 3, `resultRows=${state.dreResultRows}`);
+        pushResult('dre_av_column', state.dreAvColumn === true, `dreAvColumn=${state.dreAvColumn}`);
+        pushResult('dre_margins_band', state.dreMargins >= 3, `dreMargins=${state.dreMargins}`);
+        pushResult('dre_cmv_highlight', state.dreCmvBar === true, `dreCmvBar=${state.dreCmvBar}`);
+        pushResult('dre_margin_erosion_trend', state.dreTrend === true, `dreTrend=${state.dreTrend}`);
         await screenshot('dre-desktop');
       }
       if (target === 'fixed') {

@@ -689,6 +689,11 @@
     text-transform: uppercase;
   }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  /* Convenção parcial (E3): listrado-âmbar */
+  .legend-dot-partial {
+    background: repeating-linear-gradient(45deg, #FCD34D, #FCD34D 2px, rgba(245,158,11,0.25) 2px, rgba(245,158,11,0.25) 4px);
+    border: 1px solid #FCD34D;
+  }
 
   /* ━━━ Daily chart with month selector ━━━ */
   .daily-card {
@@ -1187,6 +1192,13 @@
     font-weight: 700;
     font-size: 15px;
     border-top: 2px solid var(--gold);
+  }
+  .data-table .cash-acc {
+    background: color-mix(in srgb, var(--green) 6%, transparent);
+    font-variant-numeric: tabular-nums;
+  }
+  .data-table .cash-acc-na {
+    color: var(--text-mute);
   }
   .data-table tbody tr.row-month {
     cursor: pointer;
@@ -3519,4 +3531,45 @@
   @keyframes v35RankRefresh { from { opacity:.52; transform:translateY(8px); } to { opacity:1; transform:none; } }
   @media (max-width: 1180px) {
     .rank-item.v35-sorted { grid-template-columns:36px minmax(220px,1fr) minmax(118px,132px) 72px 30px 28px !important; }
+  }
+
+  /* ── Selo de status padronizado (E1) — visual idêntico nas 4 páginas ── */
+  .status-seal {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) minmax(160px, 240px) 1fr;
+    gap: 22px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--seal-color, var(--gold));
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+  }
+  .status-seal[data-tone="good"] { --seal-color: var(--green); }
+  .status-seal[data-tone="watch"] { --seal-color: var(--gold-l); }
+  .status-seal[data-tone="risk"] { --seal-color: var(--red); }
+  .status-seal[data-tone="neutral"] { --seal-color: var(--text-mute); }
+  .status-seal .status-seal-eyebrow {
+    display: block;
+    font-size: 10px; letter-spacing: 2.4px; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 800; margin-bottom: 8px;
+  }
+  .status-seal .status-seal-word {
+    font-size: clamp(26px, 3vw, 34px); line-height: 1;
+    color: var(--seal-color, var(--gold-l)); font-weight: 800; letter-spacing: .3px;
+  }
+  .status-seal .status-seal-metric { min-width: 0; }
+  .status-seal .status-seal-metric-val {
+    font-size: clamp(20px, 2.2vw, 28px); font-weight: 700;
+    font-feature-settings: 'tnum'; line-height: 1.1; color: var(--text);
+  }
+  .status-seal .status-seal-metric-lbl {
+    font-size: 11px; color: var(--text-dim); margin-top: 6px; line-height: 1.45;
+  }
+  .status-seal .status-seal-desc {
+    font-size: 13px; color: var(--text-dim); line-height: 1.55;
+  }
+  @media (max-width: 880px) {
+    .status-seal { grid-template-columns: 1fr; gap: 12px; padding: 18px; }
   }

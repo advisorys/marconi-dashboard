@@ -70,6 +70,155 @@
     return (Math.round((v || 0) * 10) / 10).toLocaleString('pt-BR') + '%';
   }
 
+  // ── Selo de status padronizado (E1) — número-chave da DRE = margem líquida ──
+  function renderSeal(dre, filled) {
+    if (!window.MarconiSeal) return;
+    var rlV = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var mLiquida = rlV > 0 ? (resV / rlV * 100) : 0;
+    var tone, verdict;
+    if (mLiquida < 0) { tone = 'risk'; verdict = 'PREJUÍZO'; }
+    else if (mLiquida < 3) { tone = 'watch'; verdict = 'MARGEM NO LIMITE'; }
+    else { tone = 'good'; verdict = 'MARGEM POSITIVA'; }
+    window.MarconiSeal.render('dreStatusSeal', {
+      label: 'STATUS DA DRE · REGIME DE COMPETÊNCIA',
+      verdict: verdict,
+      tone: tone,
+      metricValue: fmtPct(mLiquida),
+      metricLabel: 'margem líquida (Lucro Líq. ÷ Receita Líq.)',
+      desc: (resV >= 0 ? 'Lucro líquido acumulado de ' + money(resV) : 'Prejuízo acumulado de ' + money(resV)) +
+        '. Margem ' + (mLiquida < 3 ? 'no fio da navalha — atenção ao peso do CMV.' : 'saudável no acumulado assinado.')
+    });
+  }
+
+  // ── Faixa de margens (derivadas, base padronizada na Receita Líquida) ──
+  // Cumpre o header que promete "margens": Bruta gerencial, Operacional e Líquida.
+  function renderMargins(dre, filled) {
+    var host = document.getElementById('dreMargins');
+    if (!host) return;
+    var rlV = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var cmvV = accumOf(findLine(dre, 'cmv'), filled);
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var despFin = accumOf(findLine(dre, 'desp_fin'), filled);
+    var recFin = accumOf(findLine(dre, 'rec_fin'), filled);
+    // Margem bruta gerencial = (RL − |CMV|) ÷ RL.
+    var mBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
+    // Margem líquida = Resultado ÷ RL.
+    var mLiquida = rlV > 0 ? (resV / rlV * 100) : 0;
+    // Margem operacional = resultado ANTES do financeiro ÷ RL (resultado − rec.fin. + |desp.fin.|).
+    var resOper = resV - recFin + Math.abs(despFin);
+    var mOper = rlV > 0 ? (resOper / rlV * 100) : 0;
+
+    var items = [
+      { lbl: 'Margem Bruta', val: mBruta, sub: '(RL − CMV) ÷ RL · gerencial', tone: mBruta >= 0 ? 'pos' : 'neg' },
+      { lbl: 'Margem Operacional', val: mOper, sub: 'antes do resultado financeiro ÷ RL', tone: mOper >= 0 ? 'pos' : 'neg' },
+      { lbl: 'Margem Líquida', val: mLiquida, sub: 'Lucro Líquido ÷ RL', tone: mLiquida >= 0 ? 'pos' : 'neg' }
+    ];
+    var head = '<div class="dre-margins-head"><span class="dre-margins-title">MARGENS</span>' +
+      '<span class="dre-margins-base">base: Receita Líquida acumulada (' + esc(money(rlV)) + ')</span></div>';
+    var cards = '<div class="dre-margins-grid">' + items.map(function (it) {
+      return '<div class="dre-margin-card dre-margin--' + it.tone + '">' +
+        '<div class="dre-margin-lbl">' + esc(it.lbl) + '</div>' +
+        '<div class="dre-margin-val ' + (it.tone === 'pos' ? 'number-green' : 'number-red') + '">' + esc(fmtPct(it.val)) + '</div>' +
+        '<div class="dre-margin-sub">' + esc(it.sub) + '</div></div>';
+    }).join('') + '</div>';
+    host.innerHTML = head + cards;
+  }
+
+  // ── Legenda unificada / aviso de regime ──
+  function renderLegend(dre, filled) {
+    var host = document.getElementById('dreLegend');
+    if (!host) return;
+    var first = MONTH_FULL[filled[0]] || '';
+    var last = MONTH_FULL[filled[filled.length - 1]] || '';
+    var range = (first === last ? first : (first + '—' + last)).toUpperCase();
+    host.innerHTML =
+      '<span class="dre-legend-tag dre-legend-regime">REGIME DE COMPETÊNCIA · ' + esc(range) + ' ASSINADO</span>' +
+      '<span class="dre-legend-item"><i class="dre-legend-swatch sw-av"></i>AV% = % da Receita Líquida</span>' +
+      '<span class="dre-legend-item"><i class="dre-legend-swatch sw-diverg">Δ</i>soma dos meses ≠ acum. assinado</span>';
+  }
+
+  // ── Mini-gráfico de erosão de margem / peso do CMV (tendência mensal) ──
+  // Margem líquida mensal e CMV/RL por mês, ambos derivados de dre.lines.values.
+  function renderTrend(dre, filled) {
+    var host = document.getElementById('dreTrend');
+    if (!host) return;
+    var rl = findLine(dre, 'receita_liquida');
+    var cmv = findLine(dre, 'cmv');
+    var res = findLine(dre, 'resultado');
+    var abbr = dre.months || ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    // Só meses com Receita Líquida > 0 (evita divisão por zero / meses vazios).
+    var pts = filled.filter(function (m) { return valOf(rl, m) > 0; }).map(function (m) {
+      var rlv = valOf(rl, m);
+      return {
+        m: m,
+        margem: rlv > 0 ? (valOf(res, m) / rlv * 100) : 0,
+        cmvPeso: rlv > 0 ? (Math.abs(valOf(cmv, m)) / rlv * 100) : 0
+      };
+    });
+    if (pts.length < 2) { host.innerHTML = ''; return; }
+
+    var W = 720, H = 220, padL = 44, padR = 44, padT = 26, padB = 34;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = pts.length;
+    function x(i) { return padL + (n === 1 ? plotW / 2 : i * plotW / (n - 1)); }
+    // Eixo esquerdo: CMV/RL (0–100%). Eixo direito: margem líquida (auto, com folga).
+    var maxMarg = Math.max.apply(null, pts.map(function (p) { return p.margem; }).concat([3]));
+    var minMarg = Math.min.apply(null, pts.map(function (p) { return p.margem; }).concat([0]));
+    var margRange = (maxMarg - minMarg) || 1;
+    function yCmv(v) { return padT + plotH - (Math.min(100, v) / 100) * plotH; }
+    function yMarg(v) { return padT + plotH - ((v - minMarg) / margRange) * plotH; }
+
+    var grid = '';
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      var yy = yCmv(t);
+      grid += '<line class="dre-trend-grid" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+      grid += '<text class="dre-trend-axis" x="' + (padL - 8) + '" y="' + (yy + 3) + '" text-anchor="end">' + t + '%</text>';
+    });
+    var labels = pts.map(function (p, i) {
+      return '<text class="dre-trend-xlabel" x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle">' + esc(abbr[p.m - 1] || ('M' + p.m)) + '</text>';
+    }).join('');
+    var cmvLine = pts.map(function (p, i) { return x(i) + ',' + yCmv(p.cmvPeso); }).join(' ');
+    var margLine = pts.map(function (p, i) { return x(i) + ',' + yMarg(p.margem); }).join(' ');
+    var cmvDots = pts.map(function (p, i) {
+      return '<circle class="dre-trend-dot dot-cmv" cx="' + x(i) + '" cy="' + yCmv(p.cmvPeso) + '" r="3.5"><title>' + esc(abbr[p.m - 1]) + ' · CMV ' + esc(fmtPct(p.cmvPeso)) + ' da RL</title></circle>';
+    }).join('');
+    var margDots = pts.map(function (p, i) {
+      return '<circle class="dre-trend-dot dot-marg" cx="' + x(i) + '" cy="' + yMarg(p.margem) + '" r="3.5"><title>' + esc(abbr[p.m - 1]) + ' · margem líquida ' + esc(fmtPct(p.margem)) + '</title></circle>';
+    }).join('');
+    var svg = '<svg class="dre-trend-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tendência mensal: peso do CMV sobre a Receita Líquida e margem líquida">' +
+      grid +
+      '<polyline class="dre-trend-cmv" fill="none" points="' + cmvLine + '"/>' +
+      '<polyline class="dre-trend-marg" fill="none" points="' + margLine + '"/>' +
+      cmvDots + margDots + labels +
+      '</svg>';
+
+    // Texto automático: alerta de erosão a partir do último mês.
+    var lastP = pts[pts.length - 1];
+    var prevP = pts[pts.length - 2];
+    var cmvUp = lastP.cmvPeso > prevP.cmvPeso;
+    var margDown = lastP.margem < prevP.margem;
+    var lastLbl = MONTH_FULL[lastP.m] || ('mês ' + lastP.m);
+    var auto = 'O CMV consumiu <strong>' + fmtPct(lastP.cmvPeso) + '</strong> da receita líquida em <strong>' + esc(lastLbl) + '</strong>';
+    if (cmvUp && margDown) {
+      auto += ' — peso do custo subindo e <strong class="number-red">margem comprimindo</strong>.';
+    } else if (cmvUp) {
+      auto += ' — peso do custo em alta no mês.';
+    } else if (margDown) {
+      auto += ', com <strong class="number-red">margem líquida em queda</strong> no mês.';
+    } else {
+      auto += ', com margem líquida estável ou em recuperação.';
+    }
+
+    var legend = '<div class="dre-trend-legend">' +
+      '<span class="dre-trend-key"><i class="sw-cmv"></i>CMV ÷ Receita Líquida</span>' +
+      '<span class="dre-trend-key"><i class="sw-marg"></i>Margem líquida</span></div>';
+    host.innerHTML =
+      '<div class="dre-trend-head"><div class="dre-trend-title">EROSÃO DE MARGEM · CMV vs MARGEM LÍQUIDA</div>' + legend + '</div>' +
+      svg +
+      '<div class="dre-trend-note">' + auto + '</div>';
+  }
+
   function renderTable(dre, filled) {
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
@@ -78,11 +227,18 @@
     var rlAcum = accumOf(findLine(dre, 'receita_liquida'), filled);
     var cmvAcum = accumOf(findLine(dre, 'cmv'), filled);
     var margemBrutaGer = rlAcum > 0 ? ((rlAcum - Math.abs(cmvAcum)) / rlAcum * 100) : 0;
+    // Análise vertical (AV%): cada linha como % da Receita Líquida acumulada (base padronizada).
+    function avPct(v) { return rlAcum > 0 ? (v / rlAcum * 100) : 0; }
+    // Peso do CMV sobre a RL (acum) p/ a barra proporcional inline na linha do CMV.
+    var cmvWeight = rlAcum > 0 ? Math.min(100, Math.abs(cmvAcum) / rlAcum * 100) : 0;
 
     var head = '<thead><tr><th class="dre-th-label">Linha</th>';
     filled.forEach(function (m) { head += '<th class="num">' + esc(abbr[m - 1] || ('M' + m)) + '</th>'; });
-    head += '<th class="num dre-th-total">Acum.</th></tr></thead>';
+    head += '<th class="num dre-th-total">Acum.</th>';
+    head += '<th class="num dre-th-av" title="Análise vertical: cada linha como % da Receita Líquida acumulada" aria-label="Análise vertical (percentual da Receita Líquida)">AV% <small>da RL</small></th>';
+    head += '</tr></thead>';
 
+    var colCount = filled.length + 3;
     var body = '<tbody>';
     dre.lines.forEach(function (line) {
       var total = accumOf(line, filled);
@@ -92,11 +248,19 @@
       var somaMeses = sumLine(line, filled);
       var delta = somaMeses - total;
       var hasDiverg = (typeof line.acum === 'number') && Math.abs(delta) > 1;
-      body += '<tr class="' + rowCls + '">';
+      var isCmv = (line.key === 'cmv');
+      body += '<tr class="' + rowCls + (isCmv ? ' dre-row--cmv' : '') + '">';
       var labelHtml = esc(line.label);
       if (line.key === 'lucro_bruto') {
         var gerNote = 'Estrutura oficial: Lucro Bruto = Receita Líquida (o CMV é deduzido em “Despesas com Vendas”). Margem bruta gerencial (RL − CMV) ÷ RL ≈ ' + fmtPct(margemBrutaGer) + '.';
         labelHtml += ' <span class="dre-ger-note" title="' + esc(gerNote) + '" aria-label="' + esc(gerNote) + '">margem bruta gerencial ' + esc(fmtPct(margemBrutaGer)) + '</span>';
+      }
+      if (isCmv) {
+        // Barra proporcional inline: o CMV consome ~86% da RL → fica claro o quanto sobra.
+        var cmvNote = 'O CMV consome ' + fmtPct(cmvWeight) + ' da Receita Líquida acumulada.';
+        labelHtml += ' <span class="dre-cmv-bar" role="img" title="' + esc(cmvNote) + '" aria-label="' + esc(cmvNote) + '">' +
+          '<span class="dre-cmv-bar-fill" style="width:' + cmvWeight.toFixed(1) + '%"></span>' +
+          '<span class="dre-cmv-bar-pct">' + esc(fmtPct(cmvWeight)) + ' da RL</span></span>';
       }
       body += '<td class="dre-cell-label">' + labelHtml + '</td>';
       filled.forEach(function (m) {
@@ -111,11 +275,15 @@
         badge = '<span class="dre-diverg-badge" role="img" aria-label="' + esc(dlabel) + '" title="' + esc(dlabel) + '">Δ</span>';
       }
       body += '<td class="num dre-td-total' + (hasDiverg ? ' dre-td-diverg' : '') + ' ' + tc + '">' + (total ? cell(total) : '—') + badge + '</td>';
+      // AV% (análise vertical): % sobre a Receita Líquida acumulada.
+      var av = avPct(total);
+      var avTxt = (rlAcum > 0 && total) ? fmtPct(av) : '—';
+      body += '<td class="num dre-td-av">' + esc(avTxt) + '</td>';
       body += '</tr>';
     });
     body += '</tbody>';
 
-    wrap.innerHTML = '<table class="dre-table">' + head + body + '</table>';
+    wrap.innerHTML = '<table class="dre-table" data-col-count="' + colCount + '">' + head + body + '</table>';
   }
 
   function renderDrePage() {
@@ -125,7 +293,9 @@
     if (!dre || !dre.lines || !dre.lines.length) {
       var wrap = document.getElementById('dreTableWrap');
       if (wrap) wrap.innerHTML = '<div class="dre-empty">DRE contábil ainda não disponível para este período.</div>';
-      var kp = document.getElementById('dreKpis'); if (kp) kp.innerHTML = '';
+      ['dreKpis', 'dreMargins', 'dreTrend', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.innerHTML = '';
+      });
       return;
     }
     var filled = (dre.monthsFilled && dre.monthsFilled.length) ? dre.monthsFilled.slice() : [1, 2, 3, 4, 5];
@@ -136,7 +306,11 @@
       var last = MONTH_FULL[filled[filled.length - 1]] || '';
       ctx.textContent = 'REGIME DE COMPETÊNCIA · ' + (first === last ? first : (first + '—' + last)).toUpperCase();
     }
+    renderSeal(dre, filled);
     renderKpis(dre, filled);
+    renderMargins(dre, filled);
+    renderTrend(dre, filled);
+    renderLegend(dre, filled);
     renderTable(dre, filled);
     if (foot) {
       var src = dre.source || {};

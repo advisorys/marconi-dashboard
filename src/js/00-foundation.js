@@ -110,6 +110,47 @@
   };
 })();
 
+/* Selo de status padronizado (E1) — componente reutilizável nas 4 páginas.
+   Cada página alimenta com seu número-chave; o visual é idêntico em todas. */
+(function () {
+  'use strict';
+  if (window.MarconiSeal) return;
+
+  function esc(s) {
+    return (window.MarconiFormat && window.MarconiFormat.escapeHtml)
+      ? window.MarconiFormat.escapeHtml(String(s == null ? '' : s))
+      : String(s == null ? '' : s);
+  }
+
+  // tone: 'good' | 'watch' | 'risk' | 'neutral'
+  function render(host, opts) {
+    var el = typeof host === 'string' ? document.getElementById(host) : host;
+    if (!el) return;
+    opts = opts || {};
+    var tone = opts.tone || 'neutral';
+    el.classList.add('status-seal');
+    el.dataset.tone = tone;
+    el.setAttribute('role', 'status');
+    var label = esc(opts.label || 'STATUS DO PERÍODO');
+    var verdict = esc(opts.verdict || '—');
+    var metricVal = esc(opts.metricValue == null ? '' : opts.metricValue);
+    var metricLbl = esc(opts.metricLabel || '');
+    var desc = esc(opts.desc || '');
+    var metricHtml = metricVal
+      ? '<div class="status-seal-metric"><div class="status-seal-metric-val">' + metricVal + '</div>' +
+        (metricLbl ? '<div class="status-seal-metric-lbl">' + metricLbl + '</div>' : '') + '</div>'
+      : '';
+    el.innerHTML =
+      '<div class="status-seal-verdict"><span class="status-seal-eyebrow">' + label + '</span>' +
+      '<strong class="status-seal-word">' + verdict + '</strong></div>' +
+      metricHtml +
+      (desc ? '<div class="status-seal-desc">' + desc + '</div>' : '');
+    el.setAttribute('aria-label', (opts.label || 'Status') + ': ' + (opts.verdict || '') + '. ' + (opts.desc || ''));
+  }
+
+  window.MarconiSeal = { render: render };
+})();
+
 /* Shared motion helpers for final UI polish. */
 (function () {
   'use strict';

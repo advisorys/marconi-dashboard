@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260617061025"/>
-<script defer src="assets/bootstrap.js?v=20260617061025"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260617161204"/>
+<script defer src="assets/bootstrap.js?v=20260617161204"></script>
 
 </head>
 <body>
@@ -154,6 +154,7 @@
 </div>
 <div class="right">CLIQUE NOS MESES PARA FILTRAR</div>
 </div>
+<div class="status-seal reveal" id="cashStatusSeal"></div>
 <div class="kpi-grid reveal" id="kpiGrid">
 <!-- Will be populated by JS -->
 </div>
@@ -190,7 +191,9 @@
 <div class="chart-legend flow-legend">
 <div class="legend-item" data-flow="entradas"><div class="legend-dot" style="background: linear-gradient(180deg,#6366F1,#4F46E5);"></div>ENTRADAS</div>
 <div class="legend-item" data-flow="saidas"><div class="legend-dot" style="background: linear-gradient(180deg,#06B6D4,#0891B2);"></div>SAÍDAS GERENCIAIS</div>
-<div class="legend-item"><div class="legend-dot" style="background: linear-gradient(180deg,rgba(99,102,241,0.4),rgba(79,70,229,0.2)); border: 1px dashed #6366F1;"></div>PROJEÇÃO</div>
+<div class="legend-item" title="Mês realizado fechado"><div class="legend-dot" style="background: linear-gradient(180deg,#06B6D4,#0891B2);"></div>REALIZADO</div>
+<div class="legend-item" title="Mês em andamento — dados parciais"><div class="legend-dot legend-dot-partial"></div>PARCIAL</div>
+<div class="legend-item" title="Mês projetado"><div class="legend-dot" style="background: linear-gradient(180deg,rgba(99,102,241,0.4),rgba(79,70,229,0.2)); border: 1px dashed #6366F1;"></div>PROJEÇÃO</div>
 <div class="legend-item"><div class="legend-dot" style="background: transparent; border: 2px solid #FCD34D; box-shadow: 0 0 10px rgba(245,158,11,0.45);"></div>SELECIONADO</div>
 </div>
 <div class="chart-click-hint">Clique na legenda para filtrar entrada/saída · clique em barras ou linhas da tabela para criar uma seleção personalizada</div>
@@ -258,6 +261,7 @@
 <div class="fixed-page-hint" id="fixedPageHint">Clique em uma rubrica para abrir o painel analítico.</div>
 </div>
 <div aria-live="polite" class="fixed-focus-panel" id="fixedFocusPanel"></div>
+<div class="status-seal reveal" id="fixedStatusSeal"></div>
 <div class="fixed-costs-grid">
 <div class="fixed-kpi-grid" data-fixed-panel="kpis" data-fixed-slot="kpis" id="fixedCostsKpis"></div>
 <div class="fixed-card fixed-chart-card" data-fixed-panel="overview" data-fixed-slot="chart">
@@ -336,6 +340,7 @@
 <th class="num">ENTRADAS</th>
 <th class="num">SAÍDAS GERENCIAIS</th>
 <th class="num">RESULTADO</th>
+<th class="num" title="Caixa acumulado corrido dos meses realizados fechados">ACUMULADO</th>
 <th class="num">MARGEM</th>
 <th>STATUS</th>
 </tr>
@@ -412,6 +417,8 @@
 
     <div class="director-kpi-grid reveal" id="directorKpis"></div>
 
+    <div class="status-seal reveal" id="directorStatusSeal"></div>
+
     <div class="director-grid reveal">
       <div class="director-card director-wide" id="directorHealth">
         <div class="director-card-head">
@@ -475,8 +482,12 @@
 </div>
 <div class="right">Receita → margens → EBITDA → lucro líquido</div>
 </div>
+<div class="status-seal reveal" id="dreStatusSeal"></div>
 <div class="dre-kpi-grid reveal" id="dreKpis"></div>
+<div class="dre-margins-band reveal" id="dreMargins"></div>
+<div class="dre-trend-card reveal" id="dreTrend"></div>
 <div class="dre-table-card reveal">
+<div class="dre-legend" id="dreLegend"></div>
 <div class="dre-table-wrap" id="dreTableWrap"></div>
 <div class="dre-foot" id="dreFoot"></div>
 </div>

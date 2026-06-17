@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617061025
+ * Build: 20260617161204
  * Mode: production
  */
 
@@ -115,6 +115,47 @@
     projectionMonths: () => { const o = []; for (let m = 1; m <= 12; m++) { if (monthProjectionFlag(m)) o.push(m); } return o; },
     parseMoneyNumber
   };
+})();
+
+/* Selo de status padronizado (E1) — componente reutilizável nas 4 páginas.
+   Cada página alimenta com seu número-chave; o visual é idêntico em todas. */
+(function () {
+  'use strict';
+  if (window.MarconiSeal) return;
+
+  function esc(s) {
+    return (window.MarconiFormat && window.MarconiFormat.escapeHtml)
+      ? window.MarconiFormat.escapeHtml(String(s == null ? '' : s))
+      : String(s == null ? '' : s);
+  }
+
+  // tone: 'good' | 'watch' | 'risk' | 'neutral'
+  function render(host, opts) {
+    var el = typeof host === 'string' ? document.getElementById(host) : host;
+    if (!el) return;
+    opts = opts || {};
+    var tone = opts.tone || 'neutral';
+    el.classList.add('status-seal');
+    el.dataset.tone = tone;
+    el.setAttribute('role', 'status');
+    var label = esc(opts.label || 'STATUS DO PERÍODO');
+    var verdict = esc(opts.verdict || '—');
+    var metricVal = esc(opts.metricValue == null ? '' : opts.metricValue);
+    var metricLbl = esc(opts.metricLabel || '');
+    var desc = esc(opts.desc || '');
+    var metricHtml = metricVal
+      ? '<div class="status-seal-metric"><div class="status-seal-metric-val">' + metricVal + '</div>' +
+        (metricLbl ? '<div class="status-seal-metric-lbl">' + metricLbl + '</div>' : '') + '</div>'
+      : '';
+    el.innerHTML =
+      '<div class="status-seal-verdict"><span class="status-seal-eyebrow">' + label + '</span>' +
+      '<strong class="status-seal-word">' + verdict + '</strong></div>' +
+      metricHtml +
+      (desc ? '<div class="status-seal-desc">' + desc + '</div>' : '');
+    el.setAttribute('aria-label', (opts.label || 'Status') + ': ' + (opts.verdict || '') + '. ' + (opts.desc || ''));
+  }
+
+  window.MarconiSeal = { render: render };
 })();
 
 /* Shared motion helpers for final UI polish. */
@@ -558,6 +599,28 @@ function setAnimatedValue(el, target, prefix, divisor, suffix, decimals) {
   animateCount(el);
 }
 
+// ─── STATUS SEAL (E1) — número-chave do Fluxo = resultado do período ───
+function renderCashSeal() {
+  if (!window.MarconiSeal) return;
+  const period = getActivePeriod();
+  const agg = aggregate(period.months);
+  const res = agg.resultado;
+  let tone, verdict;
+  if (res < 0) { tone = 'risk'; verdict = 'DÉFICIT'; }
+  else if (agg.margem < 1.5) { tone = 'watch'; verdict = 'APERTADO'; }
+  else { tone = 'good'; verdict = 'SUPERAVITÁRIO'; }
+  window.MarconiSeal.render('cashStatusSeal', {
+    label: 'STATUS DO FLUXO · ' + period.short,
+    verdict: verdict,
+    tone: tone,
+    metricValue: (res >= 0 ? '+' : '') + fmtMoneyFull(res),
+    metricLabel: 'resultado do período · margem ' + fmtPct(agg.margem),
+    desc: res >= 0
+      ? 'O período gerou caixa líquido. Caixa de competência é tratado na DRE.'
+      : 'O período consumiu caixa líquido — revisar calendário de pagamentos e recebíveis.'
+  });
+}
+
 // ─── KPI CARDS ───
 function renderKPIs() {
   const period = getActivePeriod();
@@ -787,7 +850,42 @@ function renderBarChart() {
       ${partialMark}
     </g>`;
   });
-  svg.innerHTML = defs + grid + bars;
+  // ─── Caixa acumulado corrido (running total) sobreposto ao gráfico de barras ───
+  // Linha/área do resultado acumulado pelos meses realizados FECHADOS — mostra a trajetória
+  // (Jan +95k → … → Mai ~+201k) e o mergulho do déficit de Abril na inclinação.
+  let accOverlay = '';
+  const groupCenterX = (i) => startX + 20 + i * groupSpacing + 30;
+  const closedPts = [];
+  let acc = 0;
+  months.forEach((m, i) => {
+    if (!isClosedRealizedMonth(m)) return;
+    acc += DATA.monthly[m].resultado;
+    closedPts.push({ i, m, acc });
+  });
+  if (closedPts.length >= 2) {
+    const accVals = closedPts.map(p => p.acc);
+    const accMax = Math.max(...accVals, 0);
+    const accMin = Math.min(...accVals, 0);
+    const accRange = (accMax - accMin) || 1;
+    // Mapeia o acumulado numa faixa superior do gráfico (não colide com as barras altas).
+    const accTop = chartTop + 8, accBottom = chartTop + chartHeight * 0.42;
+    const yAcc = (v) => accBottom - ((v - accMin) / accRange) * (accBottom - accTop);
+    const linePts = closedPts.map(p => `${groupCenterX(p.i)},${yAcc(p.acc)}`).join(' ');
+    const areaPts = `${groupCenterX(closedPts[0].i)},${accBottom} ${linePts} ${groupCenterX(closedPts[closedPts.length - 1].i)},${accBottom}`;
+    const dots = closedPts.map(p => {
+      const cx = groupCenterX(p.i), cy = yAcc(p.acc);
+      return `<g class="acc-dot-group"><circle cx="${cx}" cy="${cy}" r="4" fill="#10B981" stroke="#0A0E1A" stroke-width="1.5"/>` +
+        `<text x="${cx}" y="${cy - 10}" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700" font-family="Helvetica, Arial">${formatSmallResult(p.acc)}</text></g>`;
+    }).join('');
+    accOverlay = `<g class="cash-acc-overlay" pointer-events="none">
+      <defs><linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity="0.28"/><stop offset="100%" stop-color="#10B981" stop-opacity="0.02"/></linearGradient></defs>
+      <polygon points="${areaPts}" fill="url(#accGrad)"/>
+      <polyline points="${linePts}" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      <text x="${groupCenterX(closedPts[0].i)}" y="${accTop - 2}" text-anchor="start" fill="#10B981" font-size="9" font-weight="700" letter-spacing="1.5" font-family="Helvetica, Arial" opacity="0.85">CAIXA ACUMULADO CORRIDO (REALIZADO FECHADO)</text>
+    </g>`;
+  }
+  svg.innerHTML = defs + grid + bars + accOverlay;
   svg.querySelectorAll('.bar-group rect[data-flow]').forEach(r => {
     r.addEventListener('click', (e) => { e.stopPropagation(); setFlow(r.dataset.flow); });
   });
@@ -955,7 +1053,7 @@ function renderMonthDetailRow(m) {
       <div class="month-cat-pct">${fmtPct(c.pct)}</div>
     </div>`).join('') : '<div class="month-detail-reading">Sem saídas classificadas para este mês.</div>';
 
-  return `<tr class="month-detail-row"><td colspan="6">
+  return `<tr class="month-detail-row"><td colspan="7">
     <div class="month-detail-panel">
       <div class="month-detail-top">
         <div class="month-detail-title">
@@ -992,12 +1090,16 @@ function renderMonthDetailRow(m) {
 function renderTable() {
   const tbody = document.getElementById('tableBody');
   let html = '';
+  // Caixa acumulado corrido: running total do resultado pelos meses realizados FECHADOS,
+  // em ordem cronológica (Jan +95k → … → Mai ~+201k). Parcial/projeção não entram no corrido.
+  let runningClosed = 0;
   ALL_MONTHS.forEach(m => {
     const d = DATA.monthly[m];
     const isSelected = activePeriodMode === 'custom' && selectedMonths.includes(m);
     const isOpen = selectedMonthDetail === m;
     const isProj = isProjectionMonth(m);
     const isPartial = !isProj && isPartialMonth(m);
+    const isClosed = isClosedRealizedMonth(m);
     let rowCls = 'row-month';
     if (isSelected) rowCls += ' selected';
     if (isOpen) rowCls += ' open';
@@ -1007,13 +1109,22 @@ function renderTable() {
     const status = isProj ? 'forecast' : (isPartial ? 'partial' : (d.resultado >= 0 ? 'surplus' : 'deficit'));
     const statusText = isProj ? '◌ Projeção' : (isPartial ? '◐ Parcial' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'));
     const partialTag = isPartial ? ' <span class="month-partial-tag" title="Mês em andamento — dados parciais (Bling até a data de importação). Excluído de Melhor Mês e da média de saídas.">PARCIAL</span>' : '';
-    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
+    let accCell;
+    if (isClosed) {
+      runningClosed += d.resultado;
+      accCell = `<td class="num cash-acc ${runningClosed >= 0 ? 'number-green' : 'number-red'}" title="Caixa acumulado corrido até ${MONTH_NAMES_LONG[m]} (meses realizados fechados)">${runningClosed >= 0 ? '+' : ''}${fmtMoneyFull(runningClosed)}</td>`;
+    } else {
+      accCell = `<td class="num cash-acc cash-acc-na" title="${isProj ? 'Mês projetado — fora do corrido realizado' : 'Mês parcial em andamento — fora do corrido realizado'}">—</td>`;
+    }
+    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td>${accCell}<td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
     if (isOpen) html += renderMonthDetailRow(m);
   });
   const realAgg = aggregate(REAL_MONTHS), fullAgg = aggregate(ALL_MONTHS), activeAgg = aggregate(selectedMonths);
-  html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
+  // Acumulado corrido FECHADO (exclui parcial) = caixa "honrado" da série realizada.
+  const closedAgg = aggregate(REAL_MONTHS.filter(isClosedRealizedMonth));
+  html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num cash-acc ${closedAgg.resultado >= 0 ? 'number-green' : 'number-red'}" title="Caixa acumulado corrido dos meses realizados fechados">${closedAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(closedAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
   tbody.innerHTML = html;
   tbody.querySelectorAll('.row-month').forEach(tr => tr.addEventListener('click', () => { selectedMonthDetail = selectedMonthDetail === Number(tr.dataset.rowMonth) ? null : Number(tr.dataset.rowMonth); renderTable(); }));
   tbody.querySelectorAll('[data-apply-month]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); setSelectedMonths([Number(btn.dataset.applyMonth)], 'custom'); applyFilter(); }));
@@ -1077,7 +1188,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
+    const renderSteps = [renderHero, renderCashSeal, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
@@ -1910,6 +2021,38 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     </div>`).join('');
   }
 
+  // Selo de status padronizado (E1) — número-chave de Custos Fixos = % vs orçado (base fechada).
+  function renderFixedSeal(closedDev, projectionOnly, totals) {
+    if (!window.MarconiSeal) return;
+    const dev = closedDev || {diff:0, est:0, months:[]};
+    const baseMonths = (dev.months || []).length;
+    if (projectionOnly || !baseMonths) {
+      window.MarconiSeal.render('fixedStatusSeal', {
+        label: 'ADERÊNCIA ORÇAMENTÁRIA',
+        verdict: 'SEM BASE FECHADA',
+        tone: 'neutral',
+        metricValue: fixedMoney(totals ? totals.est : 0),
+        metricLabel: 'orçado no recorte · sem mês fechado para desvio',
+        desc: 'Meses projetados não têm realização — leitura correta é orçamento previsto, não desvio.'
+      });
+      return;
+    }
+    const pct = dev.est ? dev.diff / Math.abs(dev.est) * 100 : (dev.diff ? 100 : 0);
+    let tone, verdict;
+    if (dev.diff <= 0) { tone = 'good'; verdict = 'DENTRO DO ORÇADO'; }
+    else if (pct <= 5) { tone = 'good'; verdict = 'NO ALVO'; }
+    else if (pct <= 15) { tone = 'watch'; verdict = 'ATENÇÃO'; }
+    else { tone = 'risk'; verdict = 'ACIMA DO ORÇADO'; }
+    window.MarconiSeal.render('fixedStatusSeal', {
+      label: 'ADERÊNCIA ORÇAMENTÁRIA',
+      verdict: verdict,
+      tone: tone,
+      metricValue: (pct >= 0 ? '+' : '') + fixedPct(pct),
+      metricLabel: `desvio vs orçado · base ${baseMonths} mês(es) fechado(s)`,
+      desc: `Realizado fechado contra orçado: ${dev.diff >= 0 ? '+' : ''}${fixedMoney(dev.diff)}${dev.hasPartial ? ' (mês parcial excluído).' : '.'}`
+    });
+  }
+
   window.renderFixedCosts = function renderFixedCosts() {
     const section = document.getElementById('fixed-costs');
     if (!section) return;
@@ -1971,6 +2114,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }
     animateFixedKpiCards(kpiEl, kpis);
     renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev);
+    renderFixedSeal(closedDev, projectionOnly, totals);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);
@@ -2492,6 +2636,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const pl=document.getElementById('directorPeriodLabel'); if(pl) pl.textContent=p.detail.toUpperCase();
     const v=document.getElementById('directorVerdict');
     if(v){ v.style.setProperty('--director-color',color); v.innerHTML=`<span>Status do período</span><strong>${verdict}</strong><small>${desc}</small>`; }
+    // Selo de status padronizado (E1) — mesmo componente das outras páginas; número-chave = resultado.
+    if(window.MarconiSeal){
+      const sealTone = agg.resultado < 0 ? 'risk' : (verdict==='ATENÇÃO' ? 'watch' : 'good');
+      window.MarconiSeal.render('directorStatusSeal', {
+        label:'STATUS DO PERÍODO · '+p.short,
+        verdict:verdict,
+        tone:sealTone,
+        metricValue:(agg.resultado>=0?'+':'')+fmtShort(agg.resultado),
+        metricLabel:`resultado do período · margem ${pct(margin)}`,
+        desc:desc
+      });
+    }
     const kpis=[
       {label:'Entradas', raw:agg.entradas, text:fmtShort(agg.entradas), sub:`${months.length} mês(es)`, cls:'positive', c:'var(--green)'},
       {label:'Saídas gerenciais', raw:agg.saidas, text:fmtShort(agg.saidas), sub:`Top: ${top.name}`, cls:'cyan', c:'var(--cyan)'},
@@ -3285,6 +3441,155 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return (Math.round((v || 0) * 10) / 10).toLocaleString('pt-BR') + '%';
   }
 
+  // ── Selo de status padronizado (E1) — número-chave da DRE = margem líquida ──
+  function renderSeal(dre, filled) {
+    if (!window.MarconiSeal) return;
+    var rlV = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var mLiquida = rlV > 0 ? (resV / rlV * 100) : 0;
+    var tone, verdict;
+    if (mLiquida < 0) { tone = 'risk'; verdict = 'PREJUÍZO'; }
+    else if (mLiquida < 3) { tone = 'watch'; verdict = 'MARGEM NO LIMITE'; }
+    else { tone = 'good'; verdict = 'MARGEM POSITIVA'; }
+    window.MarconiSeal.render('dreStatusSeal', {
+      label: 'STATUS DA DRE · REGIME DE COMPETÊNCIA',
+      verdict: verdict,
+      tone: tone,
+      metricValue: fmtPct(mLiquida),
+      metricLabel: 'margem líquida (Lucro Líq. ÷ Receita Líq.)',
+      desc: (resV >= 0 ? 'Lucro líquido acumulado de ' + money(resV) : 'Prejuízo acumulado de ' + money(resV)) +
+        '. Margem ' + (mLiquida < 3 ? 'no fio da navalha — atenção ao peso do CMV.' : 'saudável no acumulado assinado.')
+    });
+  }
+
+  // ── Faixa de margens (derivadas, base padronizada na Receita Líquida) ──
+  // Cumpre o header que promete "margens": Bruta gerencial, Operacional e Líquida.
+  function renderMargins(dre, filled) {
+    var host = document.getElementById('dreMargins');
+    if (!host) return;
+    var rlV = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var cmvV = accumOf(findLine(dre, 'cmv'), filled);
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var despFin = accumOf(findLine(dre, 'desp_fin'), filled);
+    var recFin = accumOf(findLine(dre, 'rec_fin'), filled);
+    // Margem bruta gerencial = (RL − |CMV|) ÷ RL.
+    var mBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
+    // Margem líquida = Resultado ÷ RL.
+    var mLiquida = rlV > 0 ? (resV / rlV * 100) : 0;
+    // Margem operacional = resultado ANTES do financeiro ÷ RL (resultado − rec.fin. + |desp.fin.|).
+    var resOper = resV - recFin + Math.abs(despFin);
+    var mOper = rlV > 0 ? (resOper / rlV * 100) : 0;
+
+    var items = [
+      { lbl: 'Margem Bruta', val: mBruta, sub: '(RL − CMV) ÷ RL · gerencial', tone: mBruta >= 0 ? 'pos' : 'neg' },
+      { lbl: 'Margem Operacional', val: mOper, sub: 'antes do resultado financeiro ÷ RL', tone: mOper >= 0 ? 'pos' : 'neg' },
+      { lbl: 'Margem Líquida', val: mLiquida, sub: 'Lucro Líquido ÷ RL', tone: mLiquida >= 0 ? 'pos' : 'neg' }
+    ];
+    var head = '<div class="dre-margins-head"><span class="dre-margins-title">MARGENS</span>' +
+      '<span class="dre-margins-base">base: Receita Líquida acumulada (' + esc(money(rlV)) + ')</span></div>';
+    var cards = '<div class="dre-margins-grid">' + items.map(function (it) {
+      return '<div class="dre-margin-card dre-margin--' + it.tone + '">' +
+        '<div class="dre-margin-lbl">' + esc(it.lbl) + '</div>' +
+        '<div class="dre-margin-val ' + (it.tone === 'pos' ? 'number-green' : 'number-red') + '">' + esc(fmtPct(it.val)) + '</div>' +
+        '<div class="dre-margin-sub">' + esc(it.sub) + '</div></div>';
+    }).join('') + '</div>';
+    host.innerHTML = head + cards;
+  }
+
+  // ── Legenda unificada / aviso de regime ──
+  function renderLegend(dre, filled) {
+    var host = document.getElementById('dreLegend');
+    if (!host) return;
+    var first = MONTH_FULL[filled[0]] || '';
+    var last = MONTH_FULL[filled[filled.length - 1]] || '';
+    var range = (first === last ? first : (first + '—' + last)).toUpperCase();
+    host.innerHTML =
+      '<span class="dre-legend-tag dre-legend-regime">REGIME DE COMPETÊNCIA · ' + esc(range) + ' ASSINADO</span>' +
+      '<span class="dre-legend-item"><i class="dre-legend-swatch sw-av"></i>AV% = % da Receita Líquida</span>' +
+      '<span class="dre-legend-item"><i class="dre-legend-swatch sw-diverg">Δ</i>soma dos meses ≠ acum. assinado</span>';
+  }
+
+  // ── Mini-gráfico de erosão de margem / peso do CMV (tendência mensal) ──
+  // Margem líquida mensal e CMV/RL por mês, ambos derivados de dre.lines.values.
+  function renderTrend(dre, filled) {
+    var host = document.getElementById('dreTrend');
+    if (!host) return;
+    var rl = findLine(dre, 'receita_liquida');
+    var cmv = findLine(dre, 'cmv');
+    var res = findLine(dre, 'resultado');
+    var abbr = dre.months || ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    // Só meses com Receita Líquida > 0 (evita divisão por zero / meses vazios).
+    var pts = filled.filter(function (m) { return valOf(rl, m) > 0; }).map(function (m) {
+      var rlv = valOf(rl, m);
+      return {
+        m: m,
+        margem: rlv > 0 ? (valOf(res, m) / rlv * 100) : 0,
+        cmvPeso: rlv > 0 ? (Math.abs(valOf(cmv, m)) / rlv * 100) : 0
+      };
+    });
+    if (pts.length < 2) { host.innerHTML = ''; return; }
+
+    var W = 720, H = 220, padL = 44, padR = 44, padT = 26, padB = 34;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = pts.length;
+    function x(i) { return padL + (n === 1 ? plotW / 2 : i * plotW / (n - 1)); }
+    // Eixo esquerdo: CMV/RL (0–100%). Eixo direito: margem líquida (auto, com folga).
+    var maxMarg = Math.max.apply(null, pts.map(function (p) { return p.margem; }).concat([3]));
+    var minMarg = Math.min.apply(null, pts.map(function (p) { return p.margem; }).concat([0]));
+    var margRange = (maxMarg - minMarg) || 1;
+    function yCmv(v) { return padT + plotH - (Math.min(100, v) / 100) * plotH; }
+    function yMarg(v) { return padT + plotH - ((v - minMarg) / margRange) * plotH; }
+
+    var grid = '';
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      var yy = yCmv(t);
+      grid += '<line class="dre-trend-grid" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+      grid += '<text class="dre-trend-axis" x="' + (padL - 8) + '" y="' + (yy + 3) + '" text-anchor="end">' + t + '%</text>';
+    });
+    var labels = pts.map(function (p, i) {
+      return '<text class="dre-trend-xlabel" x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle">' + esc(abbr[p.m - 1] || ('M' + p.m)) + '</text>';
+    }).join('');
+    var cmvLine = pts.map(function (p, i) { return x(i) + ',' + yCmv(p.cmvPeso); }).join(' ');
+    var margLine = pts.map(function (p, i) { return x(i) + ',' + yMarg(p.margem); }).join(' ');
+    var cmvDots = pts.map(function (p, i) {
+      return '<circle class="dre-trend-dot dot-cmv" cx="' + x(i) + '" cy="' + yCmv(p.cmvPeso) + '" r="3.5"><title>' + esc(abbr[p.m - 1]) + ' · CMV ' + esc(fmtPct(p.cmvPeso)) + ' da RL</title></circle>';
+    }).join('');
+    var margDots = pts.map(function (p, i) {
+      return '<circle class="dre-trend-dot dot-marg" cx="' + x(i) + '" cy="' + yMarg(p.margem) + '" r="3.5"><title>' + esc(abbr[p.m - 1]) + ' · margem líquida ' + esc(fmtPct(p.margem)) + '</title></circle>';
+    }).join('');
+    var svg = '<svg class="dre-trend-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tendência mensal: peso do CMV sobre a Receita Líquida e margem líquida">' +
+      grid +
+      '<polyline class="dre-trend-cmv" fill="none" points="' + cmvLine + '"/>' +
+      '<polyline class="dre-trend-marg" fill="none" points="' + margLine + '"/>' +
+      cmvDots + margDots + labels +
+      '</svg>';
+
+    // Texto automático: alerta de erosão a partir do último mês.
+    var lastP = pts[pts.length - 1];
+    var prevP = pts[pts.length - 2];
+    var cmvUp = lastP.cmvPeso > prevP.cmvPeso;
+    var margDown = lastP.margem < prevP.margem;
+    var lastLbl = MONTH_FULL[lastP.m] || ('mês ' + lastP.m);
+    var auto = 'O CMV consumiu <strong>' + fmtPct(lastP.cmvPeso) + '</strong> da receita líquida em <strong>' + esc(lastLbl) + '</strong>';
+    if (cmvUp && margDown) {
+      auto += ' — peso do custo subindo e <strong class="number-red">margem comprimindo</strong>.';
+    } else if (cmvUp) {
+      auto += ' — peso do custo em alta no mês.';
+    } else if (margDown) {
+      auto += ', com <strong class="number-red">margem líquida em queda</strong> no mês.';
+    } else {
+      auto += ', com margem líquida estável ou em recuperação.';
+    }
+
+    var legend = '<div class="dre-trend-legend">' +
+      '<span class="dre-trend-key"><i class="sw-cmv"></i>CMV ÷ Receita Líquida</span>' +
+      '<span class="dre-trend-key"><i class="sw-marg"></i>Margem líquida</span></div>';
+    host.innerHTML =
+      '<div class="dre-trend-head"><div class="dre-trend-title">EROSÃO DE MARGEM · CMV vs MARGEM LÍQUIDA</div>' + legend + '</div>' +
+      svg +
+      '<div class="dre-trend-note">' + auto + '</div>';
+  }
+
   function renderTable(dre, filled) {
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
@@ -3293,11 +3598,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     var rlAcum = accumOf(findLine(dre, 'receita_liquida'), filled);
     var cmvAcum = accumOf(findLine(dre, 'cmv'), filled);
     var margemBrutaGer = rlAcum > 0 ? ((rlAcum - Math.abs(cmvAcum)) / rlAcum * 100) : 0;
+    // Análise vertical (AV%): cada linha como % da Receita Líquida acumulada (base padronizada).
+    function avPct(v) { return rlAcum > 0 ? (v / rlAcum * 100) : 0; }
+    // Peso do CMV sobre a RL (acum) p/ a barra proporcional inline na linha do CMV.
+    var cmvWeight = rlAcum > 0 ? Math.min(100, Math.abs(cmvAcum) / rlAcum * 100) : 0;
 
     var head = '<thead><tr><th class="dre-th-label">Linha</th>';
     filled.forEach(function (m) { head += '<th class="num">' + esc(abbr[m - 1] || ('M' + m)) + '</th>'; });
-    head += '<th class="num dre-th-total">Acum.</th></tr></thead>';
+    head += '<th class="num dre-th-total">Acum.</th>';
+    head += '<th class="num dre-th-av" title="Análise vertical: cada linha como % da Receita Líquida acumulada" aria-label="Análise vertical (percentual da Receita Líquida)">AV% <small>da RL</small></th>';
+    head += '</tr></thead>';
 
+    var colCount = filled.length + 3;
     var body = '<tbody>';
     dre.lines.forEach(function (line) {
       var total = accumOf(line, filled);
@@ -3307,11 +3619,19 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       var somaMeses = sumLine(line, filled);
       var delta = somaMeses - total;
       var hasDiverg = (typeof line.acum === 'number') && Math.abs(delta) > 1;
-      body += '<tr class="' + rowCls + '">';
+      var isCmv = (line.key === 'cmv');
+      body += '<tr class="' + rowCls + (isCmv ? ' dre-row--cmv' : '') + '">';
       var labelHtml = esc(line.label);
       if (line.key === 'lucro_bruto') {
         var gerNote = 'Estrutura oficial: Lucro Bruto = Receita Líquida (o CMV é deduzido em “Despesas com Vendas”). Margem bruta gerencial (RL − CMV) ÷ RL ≈ ' + fmtPct(margemBrutaGer) + '.';
         labelHtml += ' <span class="dre-ger-note" title="' + esc(gerNote) + '" aria-label="' + esc(gerNote) + '">margem bruta gerencial ' + esc(fmtPct(margemBrutaGer)) + '</span>';
+      }
+      if (isCmv) {
+        // Barra proporcional inline: o CMV consome ~86% da RL → fica claro o quanto sobra.
+        var cmvNote = 'O CMV consome ' + fmtPct(cmvWeight) + ' da Receita Líquida acumulada.';
+        labelHtml += ' <span class="dre-cmv-bar" role="img" title="' + esc(cmvNote) + '" aria-label="' + esc(cmvNote) + '">' +
+          '<span class="dre-cmv-bar-fill" style="width:' + cmvWeight.toFixed(1) + '%"></span>' +
+          '<span class="dre-cmv-bar-pct">' + esc(fmtPct(cmvWeight)) + ' da RL</span></span>';
       }
       body += '<td class="dre-cell-label">' + labelHtml + '</td>';
       filled.forEach(function (m) {
@@ -3326,11 +3646,15 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         badge = '<span class="dre-diverg-badge" role="img" aria-label="' + esc(dlabel) + '" title="' + esc(dlabel) + '">Δ</span>';
       }
       body += '<td class="num dre-td-total' + (hasDiverg ? ' dre-td-diverg' : '') + ' ' + tc + '">' + (total ? cell(total) : '—') + badge + '</td>';
+      // AV% (análise vertical): % sobre a Receita Líquida acumulada.
+      var av = avPct(total);
+      var avTxt = (rlAcum > 0 && total) ? fmtPct(av) : '—';
+      body += '<td class="num dre-td-av">' + esc(avTxt) + '</td>';
       body += '</tr>';
     });
     body += '</tbody>';
 
-    wrap.innerHTML = '<table class="dre-table">' + head + body + '</table>';
+    wrap.innerHTML = '<table class="dre-table" data-col-count="' + colCount + '">' + head + body + '</table>';
   }
 
   function renderDrePage() {
@@ -3340,7 +3664,9 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (!dre || !dre.lines || !dre.lines.length) {
       var wrap = document.getElementById('dreTableWrap');
       if (wrap) wrap.innerHTML = '<div class="dre-empty">DRE contábil ainda não disponível para este período.</div>';
-      var kp = document.getElementById('dreKpis'); if (kp) kp.innerHTML = '';
+      ['dreKpis', 'dreMargins', 'dreTrend', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.innerHTML = '';
+      });
       return;
     }
     var filled = (dre.monthsFilled && dre.monthsFilled.length) ? dre.monthsFilled.slice() : [1, 2, 3, 4, 5];
@@ -3351,7 +3677,11 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       var last = MONTH_FULL[filled[filled.length - 1]] || '';
       ctx.textContent = 'REGIME DE COMPETÊNCIA · ' + (first === last ? first : (first + '—' + last)).toUpperCase();
     }
+    renderSeal(dre, filled);
     renderKpis(dre, filled);
+    renderMargins(dre, filled);
+    renderTrend(dre, filled);
+    renderLegend(dre, filled);
     renderTable(dre, filled);
     if (foot) {
       var src = dre.source || {};

@@ -257,6 +257,38 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     </div>`).join('');
   }
 
+  // Selo de status padronizado (E1) — número-chave de Custos Fixos = % vs orçado (base fechada).
+  function renderFixedSeal(closedDev, projectionOnly, totals) {
+    if (!window.MarconiSeal) return;
+    const dev = closedDev || {diff:0, est:0, months:[]};
+    const baseMonths = (dev.months || []).length;
+    if (projectionOnly || !baseMonths) {
+      window.MarconiSeal.render('fixedStatusSeal', {
+        label: 'ADERÊNCIA ORÇAMENTÁRIA',
+        verdict: 'SEM BASE FECHADA',
+        tone: 'neutral',
+        metricValue: fixedMoney(totals ? totals.est : 0),
+        metricLabel: 'orçado no recorte · sem mês fechado para desvio',
+        desc: 'Meses projetados não têm realização — leitura correta é orçamento previsto, não desvio.'
+      });
+      return;
+    }
+    const pct = dev.est ? dev.diff / Math.abs(dev.est) * 100 : (dev.diff ? 100 : 0);
+    let tone, verdict;
+    if (dev.diff <= 0) { tone = 'good'; verdict = 'DENTRO DO ORÇADO'; }
+    else if (pct <= 5) { tone = 'good'; verdict = 'NO ALVO'; }
+    else if (pct <= 15) { tone = 'watch'; verdict = 'ATENÇÃO'; }
+    else { tone = 'risk'; verdict = 'ACIMA DO ORÇADO'; }
+    window.MarconiSeal.render('fixedStatusSeal', {
+      label: 'ADERÊNCIA ORÇAMENTÁRIA',
+      verdict: verdict,
+      tone: tone,
+      metricValue: (pct >= 0 ? '+' : '') + fixedPct(pct),
+      metricLabel: `desvio vs orçado · base ${baseMonths} mês(es) fechado(s)`,
+      desc: `Realizado fechado contra orçado: ${dev.diff >= 0 ? '+' : ''}${fixedMoney(dev.diff)}${dev.hasPartial ? ' (mês parcial excluído).' : '.'}`
+    });
+  }
+
   window.renderFixedCosts = function renderFixedCosts() {
     const section = document.getElementById('fixed-costs');
     if (!section) return;
@@ -318,6 +350,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }
     animateFixedKpiCards(kpiEl, kpis);
     renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev);
+    renderFixedSeal(closedDev, projectionOnly, totals);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);
@@ -839,6 +872,18 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const pl=document.getElementById('directorPeriodLabel'); if(pl) pl.textContent=p.detail.toUpperCase();
     const v=document.getElementById('directorVerdict');
     if(v){ v.style.setProperty('--director-color',color); v.innerHTML=`<span>Status do período</span><strong>${verdict}</strong><small>${desc}</small>`; }
+    // Selo de status padronizado (E1) — mesmo componente das outras páginas; número-chave = resultado.
+    if(window.MarconiSeal){
+      const sealTone = agg.resultado < 0 ? 'risk' : (verdict==='ATENÇÃO' ? 'watch' : 'good');
+      window.MarconiSeal.render('directorStatusSeal', {
+        label:'STATUS DO PERÍODO · '+p.short,
+        verdict:verdict,
+        tone:sealTone,
+        metricValue:(agg.resultado>=0?'+':'')+fmtShort(agg.resultado),
+        metricLabel:`resultado do período · margem ${pct(margin)}`,
+        desc:desc
+      });
+    }
     const kpis=[
       {label:'Entradas', raw:agg.entradas, text:fmtShort(agg.entradas), sub:`${months.length} mês(es)`, cls:'positive', c:'var(--green)'},
       {label:'Saídas gerenciais', raw:agg.saidas, text:fmtShort(agg.saidas), sub:`Top: ${top.name}`, cls:'cyan', c:'var(--cyan)'},

@@ -112,9 +112,102 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
   cursor: help; white-space: nowrap;
 }
 
+/* ── Coluna AV% (análise vertical) ── */
+.dre-th-av { background: color-mix(in srgb, var(--cyan) 9%, transparent); }
+.dre-th-av small { font-size: 9px; font-weight: 500; letter-spacing: .5px; opacity: .8; }
+.dre-td-av {
+  background: color-mix(in srgb, var(--cyan) 5%, transparent);
+  color: var(--text-dim); font-size: 13px; font-variant-numeric: tabular-nums;
+  min-width: 78px;
+}
+.dre-row--subtotal .dre-td-av, .dre-row--resultado .dre-td-av { color: var(--text); font-weight: 600; }
+.dre-row--resultado .dre-td-av { color: var(--gold-l); }
+
+/* ── Barra proporcional inline do CMV (custo da operação ~86% da RL) ── */
+.dre-row--cmv .dre-cell-label { display: block; }
+.dre-cmv-bar {
+  display: inline-flex; align-items: center; gap: 8px;
+  position: relative; margin-top: 6px;
+  width: min(280px, 60%); height: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  overflow: hidden; vertical-align: middle;
+}
+.dre-cmv-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--red) 55%, transparent), var(--red));
+  border-radius: 999px;
+}
+.dre-cmv-bar-pct {
+  position: relative; z-index: 1;
+  margin-left: auto; padding-right: 9px;
+  font-size: 10px; font-weight: 700; letter-spacing: .3px;
+  color: var(--text); white-space: nowrap;
+}
+
+/* ── Faixa de margens ── */
+.dre-margins-band { margin-bottom: 22px; }
+.dre-margins-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.dre-margins-title { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; }
+.dre-margins-base { font-size: 11px; color: var(--text-dim); }
+.dre-margins-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.dre-margin-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px; min-width: 0;
+  border-left: 3px solid var(--gold);
+}
+.dre-margin--pos { border-left-color: var(--green); }
+.dre-margin--neg { border-left-color: var(--red); }
+.dre-margin-lbl { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-mute); margin-bottom: 6px; }
+.dre-margin-val { font-size: clamp(20px, 2vw, 28px); font-weight: 700; font-feature-settings: 'tnum'; line-height: 1.1; }
+.dre-margin-sub { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+/* ── Gráfico de erosão de margem ── */
+.dre-trend-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 20px; margin-bottom: 22px;
+}
+.dre-trend-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.dre-trend-title { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; }
+.dre-trend-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+.dre-trend-key { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.dre-trend-key i { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+.dre-trend-key .sw-cmv { background: var(--red); }
+.dre-trend-key .sw-marg { background: var(--green); }
+.dre-trend-svg { width: 100%; height: auto; display: block; }
+.dre-trend-grid { stroke: color-mix(in srgb, var(--border) 70%, transparent); stroke-width: 1; }
+.dre-trend-axis, .dre-trend-xlabel { fill: var(--text-mute); font-size: 10px; font-family: inherit; }
+.dre-trend-cmv { stroke: var(--red); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.dre-trend-marg { stroke: var(--green); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.dre-trend-dot.dot-cmv { fill: var(--red); }
+.dre-trend-dot.dot-marg { fill: var(--green); }
+.dre-trend-note { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-top: 12px; }
+
+/* ── Legenda unificada / regime ── */
+.dre-legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 12px 4px; }
+.dre-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.dre-legend-swatch {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 14px; height: 14px; border-radius: 4px; font-size: 9px; font-weight: 700;
+}
+.dre-legend-swatch.sw-av { background: color-mix(in srgb, var(--cyan) 28%, transparent); }
+.dre-legend-swatch.sw-diverg { color: var(--gold-l); background: color-mix(in srgb, var(--gold) 18%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 999px; }
+.dre-legend-regime {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+  color: var(--gold-l); background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
+}
+
 /* Mobile */
 @media (max-width: 760px) {
   .dre-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .dre-kpi { padding: 16px; }
   .dre-table th, .dre-table td { padding: 9px 12px; }
+  .dre-margins-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dre-cmv-bar { width: 100%; }
+  .dre-td-av { min-width: 56px; }
 }
