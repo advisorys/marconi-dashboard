@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617162656
+ * Build: 20260617165041
  * Mode: production
  */
 
@@ -355,6 +355,19 @@ const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFi
 // ─── HELPERS ───
 function isProjectionMonth(m) { return window.MarconiFormat ? window.MarconiFormat.isProjectionMonth(m) : (Number(m) >= 7); }
 function isPartialMonth(m) { return window.MarconiFormat && window.MarconiFormat.isPartialMonth ? window.MarconiFormat.isPartialMonth(m) : false; }
+// (D2) Há DADO de projeção? Hoje o Bling só traz realizado → meses 7–12 vêm todos zerados.
+// Quando não há nenhum valor de projeção, o aparato de "Projeção" (atalho, divisor REAL|PROJEÇÃO,
+// rótulo "2026 completo") é ESCONDIDO e o ano vira "Acumulado realizado" — para a UI não exibir
+// "Projeção" como R$0 sem explicação. Se um forecast for alimentado no JSON, o aparato volta sozinho.
+function hasProjectionData() {
+  try {
+    if (!DATA.monthly) return false;
+    return PROJ_MONTHS.some(m => {
+      const d = DATA.monthly[m];
+      return d && ((Number(d.entradas) || 0) !== 0 || (Number(d.saidas) || 0) !== 0);
+    });
+  } catch (e) { return false; }
+}
 // Realizado FECHADO = realizado e não-parcial (ex.: Jun é parcial → fora da base de comparação).
 function isClosedRealizedMonth(m) { return !isProjectionMonth(m) && !isPartialMonth(m); }
 function normalizeMonths(months) {
@@ -395,15 +408,25 @@ function toggleMonth(m) {
   setSelectedMonths(next, 'custom');
 }
 function selectPeriod(kind) {
-  if (kind === 'realized') setSelectedMonths(REAL_MONTHS, 'realized');
-  else if (kind === 'projection') setSelectedMonths(PROJ_MONTHS, 'projection');
-  else setSelectedMonths(ALL_MONTHS, 'year');
+  // (D2) Sem dado de projeção, o atalho "projeção" cai no realizado e "ano" só agrega o realizado.
+  if (kind === 'projection') {
+    if (hasProjectionData()) setSelectedMonths(PROJ_MONTHS, 'projection');
+    else setSelectedMonths(REAL_MONTHS, 'realized');
+  } else if (kind === 'realized') {
+    setSelectedMonths(REAL_MONTHS, 'realized');
+  } else {
+    // "ano": com projeção = jan–dez (real+proj); sem projeção = só meses realizados.
+    setSelectedMonths(hasProjectionData() ? ALL_MONTHS : REAL_MONTHS, 'year');
+  }
 }
 function getActivePeriod() {
   const months = normalizeMonths(selectedMonths);
+  const projData = hasProjectionData();
   let label, short;
   if (activePeriodMode === 'year') {
-    label = '2026 completo'; short = '2026';
+    // Sem projeção, o "ano" é só realizado → rotular honestamente como acumulado realizado.
+    label = projData ? '2026 completo' : 'Acumulado realizado';
+    short = projData ? '2026' : 'ACUM. REAL';
   } else if (activePeriodMode === 'realized') {
     label = 'Realizado'; short = 'REALIZADO';
   } else if (activePeriodMode === 'projection') {
@@ -438,7 +461,7 @@ function getRealPeriod() {
 
 function periodLabelFor(months, mode = activePeriodMode) {
   months = normalizeMonths(months);
-  if (mode === 'year') return '2026 · REAL + PROJEÇÃO';
+  if (mode === 'year') return hasProjectionData() ? '2026 · REAL + PROJEÇÃO' : `${realizedRangeShort()} / 2026 · ACUMULADO REALIZADO`;
   if (mode === 'realized') return `${realizedRangeShort()} / 2026 · REALIZADO`;
   if (mode === 'projection') return `${projectionRangeShort()} / 2026 · PROJEÇÃO`;
   if (months.length === 1) return `${MONTH_NAMES_SHORT[months[0]]} / 2026${isProjectionMonth(months[0]) ? ' · PROJEÇÃO' : ' · REALIZADO'}`;
@@ -803,10 +826,13 @@ function renderBarChart() {
     grid += `<line x1="${startX}" y1="${y}" x2="1180" y2="${y}" stroke="#1F2440" stroke-width="1"/>`;
     grid += `<text x="${startX - 12}" y="${y + 4}" text-anchor="end" fill="#5A6580" font-size="11" font-family="Helvetica, Arial">${val.toFixed(1)}M</text>`;
   }
-  const dividerX = startX + 20 + 5.5 * groupSpacing + 28 + barGap / 2;
-  grid += `<line x1="${dividerX}" y1="${chartTop}" x2="${dividerX}" y2="${baseY}" stroke="#FCD34D" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
-    <text x="${dividerX - 8}" y="${chartTop + 16}" text-anchor="end" fill="#FCD34D" font-size="9" font-weight="700" letter-spacing="2" opacity="0.7">REAL</text>
-    <text x="${dividerX + 8}" y="${chartTop + 16}" text-anchor="start" fill="#6366F1" font-size="9" font-weight="700" letter-spacing="2" opacity="0.7">PROJEÇÃO</text>`;
+  // (D2) Divisor REAL|PROJEÇÃO só faz sentido quando há dado de projeção; senão é omitido.
+  if (hasProjectionData()) {
+    const dividerX = startX + 20 + 5.5 * groupSpacing + 28 + barGap / 2;
+    grid += `<line x1="${dividerX}" y1="${chartTop}" x2="${dividerX}" y2="${baseY}" stroke="#FCD34D" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+      <text x="${dividerX - 8}" y="${chartTop + 16}" text-anchor="end" fill="#FCD34D" font-size="9" font-weight="700" letter-spacing="2" opacity="0.7">REAL</text>
+      <text x="${dividerX + 8}" y="${chartTop + 16}" text-anchor="start" fill="#6366F1" font-size="9" font-weight="700" letter-spacing="2" opacity="0.7">PROJEÇÃO</text>`;
+  }
   const defs = `<defs>
     <linearGradient id="barGradIn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#4F46E5" stop-opacity="0.7"/></linearGradient>
     <linearGradient id="barGradOut" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4"/><stop offset="100%" stop-color="#0891B2" stop-opacity="0.7"/></linearGradient>
@@ -1124,12 +1150,131 @@ function renderTable() {
   const closedAgg = aggregate(REAL_MONTHS.filter(isClosedRealizedMonth));
   html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
   html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num cash-acc ${closedAgg.resultado >= 0 ? 'number-green' : 'number-red'}" title="Caixa acumulado corrido dos meses realizados fechados">${closedAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(closedAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
+  // (D2) A linha "PROJEÇÃO ANUAL · REAL + PROJ." só aparece quando há dado de projeção.
+  // Sem ele, o ano = realizado (já coberto pela linha ACUMULADO) → omitida para não duplicar/enganar.
+  if (hasProjectionData()) {
+    html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num cash-acc-na">—</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
+  }
   tbody.innerHTML = html;
   tbody.querySelectorAll('.row-month').forEach(tr => tr.addEventListener('click', () => { selectedMonthDetail = selectedMonthDetail === Number(tr.dataset.rowMonth) ? null : Number(tr.dataset.rowMonth); renderTable(); }));
   tbody.querySelectorAll('[data-apply-month]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); setSelectedMonths([Number(btn.dataset.applyMonth)], 'custom'); applyFilter(); }));
   tbody.querySelectorAll('[data-close-month-detail]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); selectedMonthDetail = null; renderTable(); }));
 }
+
+// ─── VISÃO DIÁRIA DO MÊS (D1) ───
+// Renderiza fluxo_caixa.daily (109 dias com saidasBrutas e ajustesGerenciais), que hoje não é exibido:
+//  · os 3 maiores dias de DESEMBOLSO (saída) do mês/período selecionado;
+//  · curva de desembolso e saldo acumulado intra-mês.
+// Mostra o descasamento DENTRO do mês — um resultado mensal positivo pode esconder dias críticos.
+function dailyForMonths(months) {
+  const set = new Set(normalizeMonths(months));
+  const rows = (DATA.daily || []).filter(d => set.has(Number(d.month)));
+  // ordena por data (string ISO ordena cronologicamente)
+  rows.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  return rows;
+}
+function renderDailyPanel() {
+  const host = document.getElementById('dailyPanel');
+  if (!host) return;
+  const period = getActivePeriod();
+  // Foco em UM mês para a curva intra-mês: o mês selecionado (se 1) ou o 1º realizado do período.
+  const focusMonth = period.months.length === 1
+    ? period.months[0]
+    : (period.months.filter(m => !isProjectionMonth(m))[0] || period.months[0]);
+  const ctx = document.getElementById('dailyPeriodContext');
+  if (ctx) ctx.textContent = `DIA A DIA · ${MONTH_NAMES_LONG[focusMonth]} / 2026${isProjectionMonth(focusMonth) ? ' · PROJEÇÃO' : ''}`;
+
+  const days = dailyForMonths([focusMonth]);
+  if (!days.length) {
+    host.innerHTML = `<div class="daily-empty">Sem lançamentos diários para <strong>${MONTH_NAMES_LONG[focusMonth]}</strong>. ` +
+      `O detalhamento diário existe apenas para os meses realizados (extrato Bling).</div>`;
+    return;
+  }
+
+  // Top 3 dias de maior desembolso (saída líquida gerencial).
+  const top3 = [...days].sort((a, b) => (b.saidas || 0) - (a.saidas || 0)).slice(0, 3).filter(d => (d.saidas || 0) > 0);
+  const totalOut = days.reduce((s, d) => s + (d.saidas || 0), 0);
+  const dayNum = (iso) => { const p = String(iso).split('-'); return p.length === 3 ? Number(p[2]) : null; };
+  const topHtml = top3.map((d, i) => {
+    const share = totalOut > 0 ? (d.saidas / totalOut * 100) : 0;
+    const adj = Number(d.ajustesGerenciais || 0);
+    const brutoNote = adj > 0
+      ? `desembolso bruto ${fmtMoneyFull(d.saidasBrutas || d.saidas)} · ajustes gerenciais ${fmtMoneyFull(adj)}`
+      : 'sem ajustes gerenciais no dia';
+    return `<div class="daily-top-row">
+      <div class="daily-top-rank">${String(i + 1).padStart(2, '0')}</div>
+      <div class="daily-top-info">
+        <div class="daily-top-date">${String(dayNum(d.date)).padStart(2, '0')} / ${MONTH_NAMES_SHORT[focusMonth]}</div>
+        <div class="daily-top-note">${brutoNote}</div>
+      </div>
+      <div class="daily-top-val number-red">${fmtMoneyFull(d.saidas)}</div>
+      <div class="daily-top-share">${fmtPct(share)}</div>
+    </div>`;
+  }).join('') || '<div class="daily-empty">Sem desembolso classificado neste mês.</div>';
+
+  // Curva acumulada intra-mês: saída acumulada e saldo (entradas−saídas) acumulado, dia a dia.
+  const W = 720, H = 230, padL = 56, padR = 16, padT = 20, padB = 34;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  let accOut = 0, accNet = 0;
+  const pts = days.map((d, i) => {
+    accOut += (d.saidas || 0);
+    accNet += (d.entradas || 0) - (d.saidas || 0);
+    return { i, day: dayNum(d.date), accOut, accNet, saidas: d.saidas || 0, entradas: d.entradas || 0 };
+  });
+  const n = pts.length;
+  const x = (i) => padL + (n === 1 ? plotW / 2 : i * plotW / (n - 1));
+  const allVals = pts.map(p => p.accOut).concat(pts.map(p => p.accNet)).concat([0]);
+  const maxV = Math.max.apply(null, allVals);
+  const minV = Math.min.apply(null, allVals);
+  const range = (maxV - minV) || 1;
+  const y = (v) => padT + plotH - ((v - minV) / range) * plotH;
+  const zeroY = y(0);
+
+  let grid = '';
+  [maxV, (maxV + minV) / 2, minV].forEach(t => {
+    grid += `<line class="daily-grid" x1="${padL}" y1="${y(t)}" x2="${W - padR}" y2="${y(t)}"/>` +
+      `<text class="daily-axis" x="${padL - 8}" y="${(y(t) + 3).toFixed(1)}" text-anchor="end">${fmtMoney(t).replace('R$ ', '')}</text>`;
+  });
+  if (minV < 0 && maxV > 0) grid += `<line class="daily-zero" x1="${padL}" y1="${zeroY}" x2="${W - padR}" y2="${zeroY}"/>`;
+  const outLine = pts.map(p => `${x(p.i).toFixed(1)},${y(p.accOut).toFixed(1)}`).join(' ');
+  const netLine = pts.map(p => `${x(p.i).toFixed(1)},${y(p.accNet).toFixed(1)}`).join(' ');
+  // rótulos de dia (a cada ~5 dias para não poluir)
+  const step = Math.max(1, Math.ceil(n / 8));
+  const labels = pts.map((p, i) => (i % step === 0 || i === n - 1)
+    ? `<text class="daily-xlabel" x="${x(p.i).toFixed(1)}" y="${H - 12}" text-anchor="middle">${p.day}</text>` : '').join('');
+  const lastOut = pts[n - 1].accOut, lastNet = pts[n - 1].accNet;
+  const svg = `<svg class="daily-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Curva de desembolso e saldo acumulado intra-mês de ${MONTH_NAMES_LONG[focusMonth]}">
+    ${grid}
+    <polyline class="daily-line-out" fill="none" points="${outLine}"/>
+    <polyline class="daily-line-net" fill="none" points="${netLine}"/>
+    ${labels}
+  </svg>`;
+
+  const worst = top3[0];
+  const auto = worst
+    ? `O maior desembolso de <strong>${MONTH_NAMES_LONG[focusMonth]}</strong> ocorreu no dia <strong>${String(dayNum(worst.date)).padStart(2, '0')}</strong>, com <strong class="number-red">${fmtMoneyFull(worst.saidas)}</strong> (${fmtPct(totalOut > 0 ? worst.saidas / totalOut * 100 : 0)} das saídas do mês). O saldo de caixa acumulado fechou o mês em <strong class="${lastNet >= 0 ? 'number-green' : 'number-red'}">${lastNet >= 0 ? '+' : ''}${fmtMoneyFull(lastNet)}</strong> — a curva mostra os pontos em que o caixa apertou dentro do mês.`
+    : `Sem dia de desembolso relevante em ${MONTH_NAMES_LONG[focusMonth]}.`;
+
+  host.innerHTML = `
+    <div class="daily-grid-layout">
+      <div class="daily-card daily-top-card">
+        <div class="daily-card-head"><div class="daily-card-title">3 MAIORES DIAS DE DESEMBOLSO</div>
+          <div class="daily-card-sub">${MONTH_NAMES_LONG[focusMonth]} · saída gerencial diária</div></div>
+        <div class="daily-top-list">${topHtml}</div>
+      </div>
+      <div class="daily-card daily-chart-card">
+        <div class="daily-card-head"><div class="daily-card-title">CURVA ACUMULADA INTRA-MÊS</div>
+          <div class="daily-chart-legend">
+            <span class="daily-key"><i class="dk-out"></i>Desembolso acum. (${fmtMoney(lastOut)})</span>
+            <span class="daily-key"><i class="dk-net"></i>Saldo acum. (${(lastNet >= 0 ? '+' : '') + fmtMoney(lastNet)})</span>
+          </div>
+        </div>
+        ${svg}
+      </div>
+    </div>
+    <div class="daily-note">${auto}</div>`;
+}
+
 // ─── HERO ───
 function renderHero() {
   const period = getActivePeriod();
@@ -1153,9 +1298,36 @@ function updateControls() {
   document.querySelectorAll('.month-row[data-month]').forEach(p => {
     p.classList.toggle('active', customMode && selectedMonths.includes(Number(p.dataset.month)));
   });
-  document.querySelectorAll('[data-period="year"]').forEach(p => p.classList.toggle('active', activePeriodMode === 'year'));
+  // (D2) Aparato de projeção honesto: sem dado de projeção, esconde o atalho "Projeção",
+  // renomeia "2026 completo" → "Acumulado realizado" e atualiza o subtítulo.
+  const projData = hasProjectionData();
+  document.querySelectorAll('[data-period="year"]').forEach(p => {
+    p.classList.toggle('active', activePeriodMode === 'year');
+    const span = p.querySelector('span'); const small = p.querySelector('small');
+    if (span) span.textContent = projData ? '2026 completo' : 'Acumulado realizado';
+    if (small) small.textContent = projData ? 'jan — dez · real + projeção' : `${rangeLabelLong(REAL_MONTHS).toLowerCase()} · só realizado`;
+  });
   document.querySelectorAll('[data-period="realized"]').forEach(p => p.classList.toggle('active', activePeriodMode === 'realized'));
-  document.querySelectorAll('[data-period="projection"]').forEach(p => p.classList.toggle('active', activePeriodMode === 'projection'));
+  document.querySelectorAll('[data-period="projection"]').forEach(p => {
+    // Esconde o atalho de projeção quando não há nada projetado (evita KPIs em R$0 sem explicação).
+    // Usa classe (não inline) porque há regras !important de layout que vencem style.display.
+    p.classList.toggle('period-row--hidden', !projData);
+    p.setAttribute('aria-hidden', projData ? 'false' : 'true');
+    p.tabIndex = projData ? 0 : -1;
+    p.classList.toggle('active', activePeriodMode === 'projection');
+  });
+  // Os meses de projeção no seletor ficam desabilitados/sinalizados quando não há dado.
+  document.querySelectorAll('.month-row[data-month]').forEach(p => {
+    const m = Number(p.dataset.month);
+    if (isProjectionMonth(m) && !projData) {
+      p.classList.add('month-row-empty');
+      const small = p.querySelector('small');
+      if (small) small.textContent = 'Sem dado';
+      p.setAttribute('title', 'Mês futuro sem dado de projeção (Bling só traz realizado).');
+    } else if (isProjectionMonth(m)) {
+      p.classList.remove('month-row-empty');
+    }
+  });
   document.querySelectorAll('[data-flow]').forEach(el => {
     const f = el.dataset.flow;
     if (!f || f === 'both') return;
@@ -1178,7 +1350,7 @@ function forceVisibleDynamicBlocks() {
     const el = document.getElementById(id);
     if (el) el.classList.add('in-view');
   });
-  document.querySelectorAll('.mom-panel, .critical-alerts-grid, .methodology-card, .month-detail-row').forEach(el => {
+  document.querySelectorAll('.mom-panel, .critical-alerts-grid, .methodology-card, .month-detail-row, .daily-panel').forEach(el => {
     el.classList.add('in-view');
   });
 }
@@ -1188,7 +1360,7 @@ function applyFilter() {
   updateControls();
   const currentPage = document.body?.dataset?.page || 'cash';
   if (currentPage === 'cash') {
-    const renderSteps = [renderHero, renderCashSeal, renderKPIs, renderExecutiveSummary, renderBarChart, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
+    const renderSteps = [renderHero, renderCashSeal, renderKPIs, renderExecutiveSummary, renderBarChart, renderDailyPanel, renderCriticalAlerts, renderDonut, renderRanking, renderTable];
     renderSteps.forEach(fn => {
       try { fn(); }
       catch (err) { console.error('Erro ao renderizar bloco do dashboard:', fn.name, err); }
@@ -3590,6 +3762,168 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       '<div class="dre-trend-note">' + auto + '</div>';
   }
 
+  // ── Acesso ao fluxo de caixa (Bling) p/ a Ponte Caixa × Competência (B1) ──
+  function cashData() {
+    var d = window.DASHBOARD_DATA || {};
+    if (d.fluxo_caixa) return d.fluxo_caixa;
+    var legacy = window.__DATA__ || {};
+    if (legacy.monthly) return legacy; // alias já é o fluxo_caixa
+    return legacy.fluxo_caixa || null;
+  }
+
+  // ── Ponte Caixa × Competência (B1) — waterfall mês a mês ──
+  // Reconcilia, em cada mês onde existem AS DUAS fontes (Jan–Abr), o RESULTADO DE CAIXA do mês
+  // (Bling) até o LUCRO LÍQUIDO contábil do mês (DRE, competência), com blocos honestos:
+  //   (a) Mov. Financeiras (antecip./empréstimos) — saída de caixa que NÃO é resultado;
+  //   (b) Ajustes gerenciais (saídas brutas → líquidas) — já calculados em fluxo_caixa.daily;
+  //   (c) Diferenças de competência / defasagem (residual) — o que sobra (compra×pagamento,
+  //       venda×recebimento, diferenças de competência). Fecha exatamente no lucro contábil.
+  // A decomposição fina do residual depende de saldos de balanço (estoque/recebíveis) — dado futuro.
+  function computeBridge(dre) {
+    var fc = cashData();
+    var out = { months: [] };
+    if (!fc || !fc.monthly) return out;
+    // Mov. Financeiras por mês (saída embutida no resultado de caixa).
+    var movByMonth = {};
+    (fc.categoryMonthly || []).forEach(function (c) {
+      if (c && /Mov\.\s*Financeiras/i.test(c.name || '')) {
+        var mm = c.months || {};
+        for (var m = 1; m <= 12; m++) { movByMonth[m] = Number(mm[m] != null ? mm[m] : mm[String(m)]) || 0; }
+      }
+    });
+    // Ajustes gerenciais (saídas brutas − líquidas) por mês, somados do diário.
+    var adjByMonth = {};
+    (fc.daily || []).forEach(function (x) {
+      var m = Number(x.month);
+      adjByMonth[m] = (adjByMonth[m] || 0) + (Number(x.ajustesGerenciais) || 0);
+    });
+    var resLine = findLine(dre, 'resultado');
+    // Só meses com AS DUAS fontes: DRE preenchida (monthsFilled) E fluxo realizado (não projeção).
+    var bothMonths = (dre.monthsFilled || []).filter(function (m) {
+      var rec = fc.monthly[m] || fc.monthly[String(m)];
+      return rec && !(window.MarconiFormat && window.MarconiFormat.isProjectionMonth && window.MarconiFormat.isProjectionMonth(m));
+    });
+    bothMonths.forEach(function (m) {
+      var rec = fc.monthly[m] || fc.monthly[String(m)];
+      var caixa = Number(rec.resultado) || 0;
+      var movFin = movByMonth[m] || 0;
+      var ajustes = adjByMonth[m] || 0;
+      var lucro = valOf(resLine, m);
+      // residual = lucro − (caixa + movFin + ajustes). Fecha a ponte exatamente.
+      var residual = lucro - (caixa + movFin + ajustes);
+      out.months.push({ m: m, caixa: caixa, movFin: movFin, ajustes: ajustes, residual: residual, lucro: lucro });
+    });
+    return out;
+  }
+
+  function renderBridge(dre) {
+    var host = document.getElementById('dreBridge');
+    if (!host) return;
+    var bridge = computeBridge(dre);
+    if (!bridge.months.length) { host.innerHTML = ''; return; }
+
+    // Seletor de mês: usa o último mês disponível por padrão.
+    var months = bridge.months.map(function (b) { return b.m; });
+    var sel = (host.dataset.bridgeMonth && months.indexOf(Number(host.dataset.bridgeMonth)) >= 0)
+      ? Number(host.dataset.bridgeMonth) : months[months.length - 1];
+    var b = bridge.months.filter(function (x) { return x.m === sel; })[0] || bridge.months[bridge.months.length - 1];
+
+    var tabs = bridge.months.map(function (x) {
+      return '<button type="button" class="dre-bridge-tab' + (x.m === b.m ? ' active' : '') +
+        '" data-bridge-month="' + x.m + '">' + esc((dre.months && dre.months[x.m - 1]) || ('M' + x.m)) + '</button>';
+    }).join('');
+
+    // Blocos do waterfall, na ordem da ponte.
+    var steps = [
+      { key: 'start', label: 'Resultado de Caixa (Bling)', value: b.caixa, kind: 'anchor', note: 'entradas − saídas gerenciais do mês' },
+      { key: 'mov', label: '+ Mov. Financeiras (antecip./empréstimos)', value: b.movFin, kind: 'delta', note: 'movimentação financeira que não é resultado da operação' },
+      { key: 'adj', label: '+ Ajustes gerenciais (saídas brutas → líquidas)', value: b.ajustes, kind: 'delta', note: 'diferença bruto×líquido já calculada no diário (fluxo_caixa.daily)' },
+      { key: 'res', label: '− Diferenças de competência / defasagem (residual)', value: b.residual, kind: 'delta', note: 'defasagem compra×pagamento, venda×recebimento e diferenças de competência' },
+      { key: 'end', label: 'Lucro Líquido (DRE · competência)', value: b.lucro, kind: 'anchor', note: 'resultado contábil assinado do mês' }
+    ];
+
+    // Escala do waterfall: cobre do menor ao maior nível cumulativo.
+    var cumul = [], running = 0;
+    steps.forEach(function (s) {
+      if (s.kind === 'anchor' && s.key === 'start') { running = s.value; cumul.push({ from: 0, to: running, mid: running }); }
+      else if (s.kind === 'anchor') { cumul.push({ from: 0, to: s.value, mid: s.value }); }
+      else { var from = running; running += s.value; cumul.push({ from: from, to: running, mid: running }); }
+    });
+    var allLevels = [0];
+    cumul.forEach(function (c) { allLevels.push(c.from, c.to); });
+    var maxL = Math.max.apply(null, allLevels);
+    var minL = Math.min.apply(null, allLevels);
+    var range = (maxL - minL) || 1;
+
+    var W = 720, H = 280, padL = 12, padR = 12, padT = 18, padB = 64;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = steps.length;
+    var slot = plotW / n, bw = slot * 0.56;
+    function bx(i) { return padL + i * slot + (slot - bw) / 2; }
+    function yOf(v) { return padT + plotH - ((v - minL) / range) * plotH; }
+    var zeroY = yOf(0);
+
+    var bars = steps.map(function (s, i) {
+      var c = cumul[i];
+      var top, h, cls;
+      if (s.kind === 'anchor') {
+        top = yOf(Math.max(0, c.to)); h = Math.abs(zeroY - yOf(c.to));
+        cls = s.key === 'end' ? 'dre-wf-end' : 'dre-wf-start';
+      } else {
+        var hi = Math.max(c.from, c.to), lo = Math.min(c.from, c.to);
+        top = yOf(hi); h = Math.abs(yOf(hi) - yOf(lo));
+        cls = s.value >= 0 ? 'dre-wf-pos' : 'dre-wf-neg';
+      }
+      var title = s.label + ': ' + (s.value >= 0 && s.kind === 'delta' ? '+' : '') + money(s.value);
+      return '<g><rect class="dre-wf-bar ' + cls + '" x="' + bx(i).toFixed(1) + '" y="' + top.toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(2, h).toFixed(1) + '" rx="3"><title>' + esc(title) + '</title></rect>' +
+        '<text class="dre-wf-val" x="' + (bx(i) + bw / 2).toFixed(1) + '" y="' + (Math.min(top, zeroY) - 6).toFixed(1) +
+        '" text-anchor="middle">' + esc((s.value >= 0 && s.kind === 'delta' ? '+' : '') + (window.MarconiFormat && window.MarconiFormat.moneyShort ? window.MarconiFormat.moneyShort(s.value) : money(s.value))) + '</text></g>';
+    }).join('');
+    // Conectores entre topos cumulativos.
+    var conns = '';
+    for (var i = 0; i < n - 1; i++) {
+      var yc = yOf(cumul[i].to);
+      conns += '<line class="dre-wf-conn" x1="' + (bx(i) + bw).toFixed(1) + '" y1="' + yc.toFixed(1) +
+        '" x2="' + bx(i + 1).toFixed(1) + '" y2="' + yc.toFixed(1) + '"/>';
+    }
+    var labels = steps.map(function (s, i) {
+      var short = s.key === 'start' ? 'Caixa' : s.key === 'mov' ? 'Mov.Fin.' : s.key === 'adj' ? 'Ajustes' : s.key === 'res' ? 'Compet.' : 'Lucro';
+      return '<text class="dre-wf-xlabel" x="' + (bx(i) + bw / 2).toFixed(1) + '" y="' + (H - 40) + '" text-anchor="middle">' + esc(short) + '</text>';
+    }).join('');
+    var baseLine = '<line class="dre-wf-base" x1="' + padL + '" y1="' + zeroY + '" x2="' + (W - padR) + '" y2="' + zeroY + '"/>';
+    var svg = '<svg class="dre-wf-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ponte do resultado de caixa ao lucro líquido contábil do mês">' +
+      baseLine + conns + bars + labels + '</svg>';
+
+    // Lista textual auditável dos blocos.
+    var rows = steps.map(function (s) {
+      var vcls = s.kind === 'anchor' ? (s.value >= 0 ? 'number-gold' : 'number-red') : (s.value >= 0 ? 'number-green' : 'number-red');
+      var sign = (s.value >= 0 && s.kind === 'delta') ? '+' : '';
+      return '<tr class="dre-bridge-row dre-bridge-row--' + s.kind + '">' +
+        '<td class="dre-bridge-lbl">' + esc(s.label) + '<span class="dre-bridge-note">' + esc(s.note) + '</span></td>' +
+        '<td class="num dre-bridge-val ' + vcls + '">' + esc(sign + money(s.value)) + '</td></tr>';
+    }).join('');
+
+    var monthName = MONTH_FULL[b.m] || ('Mês ' + b.m);
+    host.innerHTML =
+      '<div class="dre-bridge-head"><div class="dre-bridge-title">PONTE CAIXA × COMPETÊNCIA · ' + esc(monthName.toUpperCase()) + '</div>' +
+      '<div class="dre-bridge-tabs" role="tablist" aria-label="Mês da ponte">' + tabs + '</div></div>' +
+      '<div class="dre-bridge-sub">“Se a DRE deu lucro, cadê o caixa?” — do <strong>resultado de caixa (Bling)</strong> ao <strong>lucro líquido contábil (competência)</strong> do mês.</div>' +
+      svg +
+      '<div class="dre-bridge-table-wrap"><table class="dre-bridge-table"><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="dre-bridge-foot"><strong>Ponte gerencial.</strong> Reconcilia exatamente o caixa do mês (regime de caixa, Bling) com o lucro contábil do mês (regime de competência, DRE assinada). ' +
+      'A linha <em>“Diferenças de competência / defasagem (residual)”</em> agrega a defasagem temporal (compra×pagamento, venda×recebimento) e diferenças de competência; ' +
+      'sua <strong>decomposição fina depende de saldos de balanço (estoque/recebíveis)</strong> — dado futuro da contabilidade.</div>';
+
+    // Liga os tabs de mês.
+    host.querySelectorAll('[data-bridge-month]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        host.dataset.bridgeMonth = btn.getAttribute('data-bridge-month');
+        renderBridge(dre);
+      });
+    });
+  }
+
   function renderTable(dre, filled) {
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
@@ -3664,7 +3998,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     if (!dre || !dre.lines || !dre.lines.length) {
       var wrap = document.getElementById('dreTableWrap');
       if (wrap) wrap.innerHTML = '<div class="dre-empty">DRE contábil ainda não disponível para este período.</div>';
-      ['dreKpis', 'dreMargins', 'dreTrend', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
+      ['dreKpis', 'dreMargins', 'dreTrend', 'dreBridge', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.innerHTML = '';
       });
       return;
@@ -3681,6 +4015,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     renderKpis(dre, filled);
     renderMargins(dre, filled);
     renderTrend(dre, filled);
+    renderBridge(dre);
     renderLegend(dre, filled);
     renderTable(dre, filled);
     if (foot) {

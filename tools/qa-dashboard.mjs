@@ -418,7 +418,27 @@ async function run() {
           dreMargins: document.querySelectorAll('#dreMargins .dre-margin-card').length,
           dreCmvBar: !!document.querySelector('#dreTableWrap .dre-row--cmv .dre-cmv-bar-fill'),
           dreTrend: !!document.querySelector('#dreTrend .dre-trend-svg') && !!document.querySelector('#dreTrend .dre-trend-note'),
+          dreBridge: !!document.querySelector('#dreBridge .dre-wf-svg') && document.querySelectorAll('#dreBridge .dre-bridge-row').length >= 5 && !!document.querySelector('#dreBridge .dre-bridge-tab'),
           cashAccColumn: document.querySelectorAll('#tableBody .cash-acc').length,
+          dailyPanel: !!document.querySelector('#dailyPanel .daily-svg') && document.querySelectorAll('#dailyPanel .daily-top-row').length >= 1,
+          projectionApparatusHonest: (() => {
+            // (D2) Sem dado de projeção, o aparato precisa estar honesto:
+            //  · atalho "Projeção" escondido; · sem divisor REAL|PROJEÇÃO no gráfico;
+            //  · sem linha "PROJEÇÃO ANUAL" na tabela; · rótulo do ano = "Acumulado realizado".
+            const monthly = (window.DASHBOARD_DATA && window.DASHBOARD_DATA.fluxo_caixa && window.DASHBOARD_DATA.fluxo_caixa.monthly) || (window.__DATA__ && window.__DATA__.monthly) || {};
+            let hasProj = false;
+            for (let m = 7; m <= 12; m++) { const d = monthly[m] || monthly[String(m)]; if (d && ((Number(d.entradas) || 0) !== 0 || (Number(d.saidas) || 0) !== 0)) hasProj = true; }
+            const projBtn = document.querySelector('[data-period="projection"]');
+            const projHidden = !projBtn || getComputedStyle(projBtn).display === 'none';
+            const yearBtnTxt = (document.querySelector('[data-period="year"] span')?.textContent || '').trim();
+            // Linha-total "PROJEÇÃO ANUAL" (não as pílulas de status "Projeção" dos meses 7–12, que são legítimas).
+            const tableHasProjAnnual = /PROJE[ÇC][AÃ]O ANUAL/i.test(document.getElementById('tableBody')?.textContent || '');
+            // Divisor REAL|PROJEÇÃO desenhado no gráfico de barras (texto dentro do SVG).
+            const barTxt = document.getElementById('barChart')?.textContent || '';
+            const barHasDivider = /PROJE[ÇC][AÃ]O/i.test(barTxt) && /\bREAL\b/.test(barTxt);
+            if (hasProj) return true; // com dado, o aparato pode aparecer (não testamos esse caminho aqui)
+            return projHidden && /Acumulado realizado/i.test(yearBtnTxt) && !tableHasProjAnnual && !barHasDivider;
+          })(),
           rjKpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
           rjBanner: !!document.querySelector('#rjBanner .rj-banner-flag'),
           rjCostRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length,
@@ -451,6 +471,10 @@ async function run() {
       pushResult(`status_seal_present_${target}`, state.statusSeal === true, `statusSeal=${state.statusSeal}`);
       if (target === 'cash') {
         pushResult('cash_running_total_column', state.cashAccColumn >= 12, `cashAccColumn=${state.cashAccColumn}`);
+        // (D1) Painel de visão diária do mês renderizado (curva + top dias de desembolso).
+        pushResult('daily_panel_present', state.dailyPanel === true, `dailyPanel=${state.dailyPanel}`);
+        // (D2) Aparato de projeção honesto quando não há dado de projeção.
+        pushResult('projection_apparatus_honest', state.projectionApparatusHonest === true, `projectionApparatusHonest=${state.projectionApparatusHonest}`);
       }
       if (target === 'dre') {
         pushResult('dre_render_on_active', state.dreKpis >= 4 && state.dreTable === true, JSON.stringify({ kpis: state.dreKpis, table: state.dreTable, resultRows: state.dreResultRows }));
@@ -459,6 +483,8 @@ async function run() {
         pushResult('dre_margins_band', state.dreMargins >= 3, `dreMargins=${state.dreMargins}`);
         pushResult('dre_cmv_highlight', state.dreCmvBar === true, `dreCmvBar=${state.dreCmvBar}`);
         pushResult('dre_margin_erosion_trend', state.dreTrend === true, `dreTrend=${state.dreTrend}`);
+        // (B1) Ponte Caixa × Competência (waterfall) presente com os 5 blocos e seletor de mês.
+        pushResult('bridge_present', state.dreBridge === true, `dreBridge=${state.dreBridge}`);
         await screenshot('dre-desktop');
       }
       if (target === 'rj') {

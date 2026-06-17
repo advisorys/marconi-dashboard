@@ -1750,3 +1750,16 @@ body[data-page="director"] .director-kpi .val,
     font-size: 21px;
   }
 }
+
+/* (D2) Atalho "Projeção" escondido quando não há dado de projeção (Jul–Dez = 0).
+   !important vence as regras de layout grid/flex das linhas do dropdown de período. */
+.period-row.period-row--hidden {
+  display: none !important;
+}
+/* Mês de projeção sem dado: sinalizado discretamente (não engana com R$0). */
+.month-row.month-row-empty {
+  opacity: 0.55;
+}
+.month-row.month-row-empty small {
+  color: var(--text-mute) !important;
+}

@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260617162656"/>
-<script defer src="assets/bootstrap.js?v=20260617162656"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260617165041"/>
+<script defer src="assets/bootstrap.js?v=20260617165041"></script>
 
 </head>
 <body>
@@ -33,6 +33,7 @@
 <a data-target="executive" href="#executive">Resumo</a>
 <a data-target="kpis" href="#kpis">KPIs</a>
 <a data-target="monthly" href="#monthly">Fluxo</a>
+<a data-target="daily" href="#daily">Diário</a>
 <a data-target="categories" href="#categories">Categorias</a>
 <a data-target="table" href="#table">Tabela</a>
 <a data-target="methodology" href="#methodology">Metodologia</a>
@@ -198,6 +199,20 @@
 </div>
 <div class="chart-click-hint">Clique na legenda para filtrar entrada/saída · clique em barras ou linhas da tabela para criar uma seleção personalizada</div>
 </div>
+</div>
+</section>
+<!-- ━━━━━━━━━━━━━━━━━━━━ VISÃO DIÁRIA DO MÊS (D1) ━━━━━━━━━━━━━━━━━━━━ -->
+<section id="daily">
+<div class="container">
+<div class="section-header reveal">
+<div class="left">
+<div class="eyebrow cyan">DESCASAMENTO INTRA-MÊS</div>
+<h2>Visão diária do mês.</h2>
+<div class="section-context" id="dailyPeriodContext">DIAS DE MAIOR DESEMBOLSO · CURVA ACUMULADA</div>
+</div>
+<div class="right">Um mês positivo pode esconder dias críticos</div>
+</div>
+<div class="daily-panel reveal" id="dailyPanel"></div>
 </div>
 </section>
 <!-- ━━━━━━━━━━━━━━━━━━━━ CRITICAL ALERTS ━━━━━━━━━━━━━━━━━━━━ -->
@@ -486,6 +501,7 @@
 <div class="dre-kpi-grid reveal" id="dreKpis"></div>
 <div class="dre-margins-band reveal" id="dreMargins"></div>
 <div class="dre-trend-card reveal" id="dreTrend"></div>
+<div class="dre-bridge-card reveal" id="dreBridge"></div>
 <div class="dre-table-card reveal">
 <div class="dre-legend" id="dreLegend"></div>
 <div class="dre-table-wrap" id="dreTableWrap"></div>

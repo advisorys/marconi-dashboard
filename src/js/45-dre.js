@@ -219,6 +219,168 @@
       '<div class="dre-trend-note">' + auto + '</div>';
   }
 
+  // ── Acesso ao fluxo de caixa (Bling) p/ a Ponte Caixa × Competência (B1) ──
+  function cashData() {
+    var d = window.DASHBOARD_DATA || {};
+    if (d.fluxo_caixa) return d.fluxo_caixa;
+    var legacy = window.__DATA__ || {};
+    if (legacy.monthly) return legacy; // alias já é o fluxo_caixa
+    return legacy.fluxo_caixa || null;
+  }
+
+  // ── Ponte Caixa × Competência (B1) — waterfall mês a mês ──
+  // Reconcilia, em cada mês onde existem AS DUAS fontes (Jan–Abr), o RESULTADO DE CAIXA do mês
+  // (Bling) até o LUCRO LÍQUIDO contábil do mês (DRE, competência), com blocos honestos:
+  //   (a) Mov. Financeiras (antecip./empréstimos) — saída de caixa que NÃO é resultado;
+  //   (b) Ajustes gerenciais (saídas brutas → líquidas) — já calculados em fluxo_caixa.daily;
+  //   (c) Diferenças de competência / defasagem (residual) — o que sobra (compra×pagamento,
+  //       venda×recebimento, diferenças de competência). Fecha exatamente no lucro contábil.
+  // A decomposição fina do residual depende de saldos de balanço (estoque/recebíveis) — dado futuro.
+  function computeBridge(dre) {
+    var fc = cashData();
+    var out = { months: [] };
+    if (!fc || !fc.monthly) return out;
+    // Mov. Financeiras por mês (saída embutida no resultado de caixa).
+    var movByMonth = {};
+    (fc.categoryMonthly || []).forEach(function (c) {
+      if (c && /Mov\.\s*Financeiras/i.test(c.name || '')) {
+        var mm = c.months || {};
+        for (var m = 1; m <= 12; m++) { movByMonth[m] = Number(mm[m] != null ? mm[m] : mm[String(m)]) || 0; }
+      }
+    });
+    // Ajustes gerenciais (saídas brutas − líquidas) por mês, somados do diário.
+    var adjByMonth = {};
+    (fc.daily || []).forEach(function (x) {
+      var m = Number(x.month);
+      adjByMonth[m] = (adjByMonth[m] || 0) + (Number(x.ajustesGerenciais) || 0);
+    });
+    var resLine = findLine(dre, 'resultado');
+    // Só meses com AS DUAS fontes: DRE preenchida (monthsFilled) E fluxo realizado (não projeção).
+    var bothMonths = (dre.monthsFilled || []).filter(function (m) {
+      var rec = fc.monthly[m] || fc.monthly[String(m)];
+      return rec && !(window.MarconiFormat && window.MarconiFormat.isProjectionMonth && window.MarconiFormat.isProjectionMonth(m));
+    });
+    bothMonths.forEach(function (m) {
+      var rec = fc.monthly[m] || fc.monthly[String(m)];
+      var caixa = Number(rec.resultado) || 0;
+      var movFin = movByMonth[m] || 0;
+      var ajustes = adjByMonth[m] || 0;
+      var lucro = valOf(resLine, m);
+      // residual = lucro − (caixa + movFin + ajustes). Fecha a ponte exatamente.
+      var residual = lucro - (caixa + movFin + ajustes);
+      out.months.push({ m: m, caixa: caixa, movFin: movFin, ajustes: ajustes, residual: residual, lucro: lucro });
+    });
+    return out;
+  }
+
+  function renderBridge(dre) {
+    var host = document.getElementById('dreBridge');
+    if (!host) return;
+    var bridge = computeBridge(dre);
+    if (!bridge.months.length) { host.innerHTML = ''; return; }
+
+    // Seletor de mês: usa o último mês disponível por padrão.
+    var months = bridge.months.map(function (b) { return b.m; });
+    var sel = (host.dataset.bridgeMonth && months.indexOf(Number(host.dataset.bridgeMonth)) >= 0)
+      ? Number(host.dataset.bridgeMonth) : months[months.length - 1];
+    var b = bridge.months.filter(function (x) { return x.m === sel; })[0] || bridge.months[bridge.months.length - 1];
+
+    var tabs = bridge.months.map(function (x) {
+      return '<button type="button" class="dre-bridge-tab' + (x.m === b.m ? ' active' : '') +
+        '" data-bridge-month="' + x.m + '">' + esc((dre.months && dre.months[x.m - 1]) || ('M' + x.m)) + '</button>';
+    }).join('');
+
+    // Blocos do waterfall, na ordem da ponte.
+    var steps = [
+      { key: 'start', label: 'Resultado de Caixa (Bling)', value: b.caixa, kind: 'anchor', note: 'entradas − saídas gerenciais do mês' },
+      { key: 'mov', label: '+ Mov. Financeiras (antecip./empréstimos)', value: b.movFin, kind: 'delta', note: 'movimentação financeira que não é resultado da operação' },
+      { key: 'adj', label: '+ Ajustes gerenciais (saídas brutas → líquidas)', value: b.ajustes, kind: 'delta', note: 'diferença bruto×líquido já calculada no diário (fluxo_caixa.daily)' },
+      { key: 'res', label: '− Diferenças de competência / defasagem (residual)', value: b.residual, kind: 'delta', note: 'defasagem compra×pagamento, venda×recebimento e diferenças de competência' },
+      { key: 'end', label: 'Lucro Líquido (DRE · competência)', value: b.lucro, kind: 'anchor', note: 'resultado contábil assinado do mês' }
+    ];
+
+    // Escala do waterfall: cobre do menor ao maior nível cumulativo.
+    var cumul = [], running = 0;
+    steps.forEach(function (s) {
+      if (s.kind === 'anchor' && s.key === 'start') { running = s.value; cumul.push({ from: 0, to: running, mid: running }); }
+      else if (s.kind === 'anchor') { cumul.push({ from: 0, to: s.value, mid: s.value }); }
+      else { var from = running; running += s.value; cumul.push({ from: from, to: running, mid: running }); }
+    });
+    var allLevels = [0];
+    cumul.forEach(function (c) { allLevels.push(c.from, c.to); });
+    var maxL = Math.max.apply(null, allLevels);
+    var minL = Math.min.apply(null, allLevels);
+    var range = (maxL - minL) || 1;
+
+    var W = 720, H = 280, padL = 12, padR = 12, padT = 18, padB = 64;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = steps.length;
+    var slot = plotW / n, bw = slot * 0.56;
+    function bx(i) { return padL + i * slot + (slot - bw) / 2; }
+    function yOf(v) { return padT + plotH - ((v - minL) / range) * plotH; }
+    var zeroY = yOf(0);
+
+    var bars = steps.map(function (s, i) {
+      var c = cumul[i];
+      var top, h, cls;
+      if (s.kind === 'anchor') {
+        top = yOf(Math.max(0, c.to)); h = Math.abs(zeroY - yOf(c.to));
+        cls = s.key === 'end' ? 'dre-wf-end' : 'dre-wf-start';
+      } else {
+        var hi = Math.max(c.from, c.to), lo = Math.min(c.from, c.to);
+        top = yOf(hi); h = Math.abs(yOf(hi) - yOf(lo));
+        cls = s.value >= 0 ? 'dre-wf-pos' : 'dre-wf-neg';
+      }
+      var title = s.label + ': ' + (s.value >= 0 && s.kind === 'delta' ? '+' : '') + money(s.value);
+      return '<g><rect class="dre-wf-bar ' + cls + '" x="' + bx(i).toFixed(1) + '" y="' + top.toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(2, h).toFixed(1) + '" rx="3"><title>' + esc(title) + '</title></rect>' +
+        '<text class="dre-wf-val" x="' + (bx(i) + bw / 2).toFixed(1) + '" y="' + (Math.min(top, zeroY) - 6).toFixed(1) +
+        '" text-anchor="middle">' + esc((s.value >= 0 && s.kind === 'delta' ? '+' : '') + (window.MarconiFormat && window.MarconiFormat.moneyShort ? window.MarconiFormat.moneyShort(s.value) : money(s.value))) + '</text></g>';
+    }).join('');
+    // Conectores entre topos cumulativos.
+    var conns = '';
+    for (var i = 0; i < n - 1; i++) {
+      var yc = yOf(cumul[i].to);
+      conns += '<line class="dre-wf-conn" x1="' + (bx(i) + bw).toFixed(1) + '" y1="' + yc.toFixed(1) +
+        '" x2="' + bx(i + 1).toFixed(1) + '" y2="' + yc.toFixed(1) + '"/>';
+    }
+    var labels = steps.map(function (s, i) {
+      var short = s.key === 'start' ? 'Caixa' : s.key === 'mov' ? 'Mov.Fin.' : s.key === 'adj' ? 'Ajustes' : s.key === 'res' ? 'Compet.' : 'Lucro';
+      return '<text class="dre-wf-xlabel" x="' + (bx(i) + bw / 2).toFixed(1) + '" y="' + (H - 40) + '" text-anchor="middle">' + esc(short) + '</text>';
+    }).join('');
+    var baseLine = '<line class="dre-wf-base" x1="' + padL + '" y1="' + zeroY + '" x2="' + (W - padR) + '" y2="' + zeroY + '"/>';
+    var svg = '<svg class="dre-wf-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ponte do resultado de caixa ao lucro líquido contábil do mês">' +
+      baseLine + conns + bars + labels + '</svg>';
+
+    // Lista textual auditável dos blocos.
+    var rows = steps.map(function (s) {
+      var vcls = s.kind === 'anchor' ? (s.value >= 0 ? 'number-gold' : 'number-red') : (s.value >= 0 ? 'number-green' : 'number-red');
+      var sign = (s.value >= 0 && s.kind === 'delta') ? '+' : '';
+      return '<tr class="dre-bridge-row dre-bridge-row--' + s.kind + '">' +
+        '<td class="dre-bridge-lbl">' + esc(s.label) + '<span class="dre-bridge-note">' + esc(s.note) + '</span></td>' +
+        '<td class="num dre-bridge-val ' + vcls + '">' + esc(sign + money(s.value)) + '</td></tr>';
+    }).join('');
+
+    var monthName = MONTH_FULL[b.m] || ('Mês ' + b.m);
+    host.innerHTML =
+      '<div class="dre-bridge-head"><div class="dre-bridge-title">PONTE CAIXA × COMPETÊNCIA · ' + esc(monthName.toUpperCase()) + '</div>' +
+      '<div class="dre-bridge-tabs" role="tablist" aria-label="Mês da ponte">' + tabs + '</div></div>' +
+      '<div class="dre-bridge-sub">“Se a DRE deu lucro, cadê o caixa?” — do <strong>resultado de caixa (Bling)</strong> ao <strong>lucro líquido contábil (competência)</strong> do mês.</div>' +
+      svg +
+      '<div class="dre-bridge-table-wrap"><table class="dre-bridge-table"><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="dre-bridge-foot"><strong>Ponte gerencial.</strong> Reconcilia exatamente o caixa do mês (regime de caixa, Bling) com o lucro contábil do mês (regime de competência, DRE assinada). ' +
+      'A linha <em>“Diferenças de competência / defasagem (residual)”</em> agrega a defasagem temporal (compra×pagamento, venda×recebimento) e diferenças de competência; ' +
+      'sua <strong>decomposição fina depende de saldos de balanço (estoque/recebíveis)</strong> — dado futuro da contabilidade.</div>';
+
+    // Liga os tabs de mês.
+    host.querySelectorAll('[data-bridge-month]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        host.dataset.bridgeMonth = btn.getAttribute('data-bridge-month');
+        renderBridge(dre);
+      });
+    });
+  }
+
   function renderTable(dre, filled) {
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
@@ -293,7 +455,7 @@
     if (!dre || !dre.lines || !dre.lines.length) {
       var wrap = document.getElementById('dreTableWrap');
       if (wrap) wrap.innerHTML = '<div class="dre-empty">DRE contábil ainda não disponível para este período.</div>';
-      ['dreKpis', 'dreMargins', 'dreTrend', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
+      ['dreKpis', 'dreMargins', 'dreTrend', 'dreBridge', 'dreLegend', 'dreStatusSeal'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.innerHTML = '';
       });
       return;
@@ -310,6 +472,7 @@
     renderKpis(dre, filled);
     renderMargins(dre, filled);
     renderTrend(dre, filled);
+    renderBridge(dre);
     renderLegend(dre, filled);
     renderTable(dre, filled);
     if (foot) {

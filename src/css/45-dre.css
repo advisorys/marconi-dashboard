@@ -202,6 +202,51 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
   border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
 }
 
+/* ── Ponte Caixa × Competência (B1, waterfall) ── */
+.dre-bridge-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 20px; margin-bottom: 22px;
+}
+.dre-bridge-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 4px;
+}
+.dre-bridge-title { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; }
+.dre-bridge-tabs { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.dre-bridge-tab {
+  font: inherit; cursor: pointer;
+  font-size: 11px; font-weight: 700; letter-spacing: .6px;
+  padding: 5px 11px; border-radius: 999px;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+.dre-bridge-tab:hover { color: var(--text); }
+.dre-bridge-tab.active {
+  color: var(--gold-l);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+}
+.dre-bridge-sub { font-size: 12px; color: var(--text-dim); margin: 8px 0 6px; line-height: 1.5; }
+.dre-wf-svg { width: 100%; height: auto; display: block; }
+.dre-wf-base { stroke: color-mix(in srgb, var(--text-mute) 60%, transparent); stroke-width: 1; }
+.dre-wf-conn { stroke: color-mix(in srgb, var(--text-mute) 55%, transparent); stroke-width: 1; stroke-dasharray: 3 2; }
+.dre-wf-bar.dre-wf-start { fill: color-mix(in srgb, var(--cyan) 70%, transparent); }
+.dre-wf-bar.dre-wf-end { fill: var(--gold); }
+.dre-wf-bar.dre-wf-pos { fill: color-mix(in srgb, var(--green) 72%, transparent); }
+.dre-wf-bar.dre-wf-neg { fill: color-mix(in srgb, var(--red) 72%, transparent); }
+.dre-wf-val { fill: var(--text-dim); font-size: 10px; font-family: inherit; font-feature-settings: 'tnum'; }
+.dre-wf-xlabel { fill: var(--text-mute); font-size: 10px; font-family: inherit; }
+.dre-bridge-table-wrap { margin-top: 12px; }
+.dre-bridge-table { width: 100%; border-collapse: collapse; font-feature-settings: 'tnum'; }
+.dre-bridge-table td { padding: 9px 12px; border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+.dre-bridge-lbl { font-size: 13px; color: var(--text); }
+.dre-bridge-note { display: block; font-size: 10.5px; color: var(--text-mute); margin-top: 2px; line-height: 1.4; }
+.dre-bridge-val { text-align: right; font-weight: 700; white-space: nowrap; }
+.dre-bridge-row--anchor .dre-bridge-lbl { font-weight: 700; }
+.dre-bridge-row--anchor { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.dre-bridge-foot { font-size: 11.5px; color: var(--text-mute); line-height: 1.55; margin-top: 12px; }
+
 /* Mobile */
 @media (max-width: 760px) {
   .dre-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -210,4 +255,6 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
   .dre-margins-grid { grid-template-columns: 1fr; gap: 12px; }
   .dre-cmv-bar { width: 100%; }
   .dre-td-av { min-width: 56px; }
+  .dre-bridge-card { padding: 14px; }
+  .dre-bridge-note { font-size: 10px; }
 }
