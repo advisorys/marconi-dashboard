@@ -36,6 +36,9 @@ const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFi
 
 // ─── HELPERS ───
 function isProjectionMonth(m) { return window.MarconiFormat ? window.MarconiFormat.isProjectionMonth(m) : (Number(m) >= 7); }
+function isPartialMonth(m) { return window.MarconiFormat && window.MarconiFormat.isPartialMonth ? window.MarconiFormat.isPartialMonth(m) : false; }
+// Realizado FECHADO = realizado e não-parcial (ex.: Jun é parcial → fora da base de comparação).
+function isClosedRealizedMonth(m) { return !isProjectionMonth(m) && !isPartialMonth(m); }
 function normalizeMonths(months) {
   const uniq = [...new Set(months.map(Number).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
   return uniq.length ? uniq : [...ALL_MONTHS];
@@ -95,13 +98,31 @@ function getActivePeriod() {
   }
   return { months, label, short, mode: activePeriodMode, includesProjection: months.some(isProjectionMonth) };
 }
-function getRealPeriod() { return { months: [...REAL_MONTHS], label: 'Jan — Jun', short: 'JAN — JUN' }; }
+// Rótulo dinâmico do intervalo de meses (deriva do último mês realizado via selo, não hardcode).
+function rangeLabelShort(months) {
+  const ms = normalizeMonths(months);
+  if (!ms.length) return '—';
+  const a = ms[0], b = ms[ms.length - 1];
+  return a === b ? MONTH_NAMES_SHORT[a] : `${MONTH_NAMES_SHORT[a]} — ${MONTH_NAMES_SHORT[b]}`;
+}
+function rangeLabelLong(months) {
+  const ms = normalizeMonths(months);
+  if (!ms.length) return '—';
+  const a = ms[0], b = ms[ms.length - 1];
+  return a === b ? MONTH_NAMES_LONG[a] : `${MONTH_NAMES_LONG[a]} — ${MONTH_NAMES_LONG[b]}`;
+}
+function realizedRangeShort() { return rangeLabelShort(REAL_MONTHS); }
+function projectionRangeShort() { return rangeLabelShort(PROJ_MONTHS); }
+function getRealPeriod() {
+  const lng = rangeLabelLong(REAL_MONTHS);
+  return { months: [...REAL_MONTHS], label: lng, short: realizedRangeShort() };
+}
 
 function periodLabelFor(months, mode = activePeriodMode) {
   months = normalizeMonths(months);
   if (mode === 'year') return '2026 · REAL + PROJEÇÃO';
-  if (mode === 'realized') return 'JAN — JUN / 2026 · REALIZADO';
-  if (mode === 'projection') return 'JUL — DEZ / 2026 · PROJEÇÃO';
+  if (mode === 'realized') return `${realizedRangeShort()} / 2026 · REALIZADO`;
+  if (mode === 'projection') return `${projectionRangeShort()} / 2026 · PROJEÇÃO`;
   if (months.length === 1) return `${MONTH_NAMES_SHORT[months[0]]} / 2026${isProjectionMonth(months[0]) ? ' · PROJEÇÃO' : ' · REALIZADO'}`;
   const hasReal = months.some(m => !isProjectionMonth(m));
   const hasProj = months.some(isProjectionMonth);
@@ -279,8 +300,10 @@ function renderKPIs() {
     return `${(i * 100 / (sparkMonths.length - 1))},${32 - v * 28}`;
   }).join(' ');
 
-  const bestBasis = period.months.filter(m => !isProjectionMonth(m));
-  const bestMonths = bestBasis.length ? bestBasis : REAL_MONTHS;
+  // "Melhor Mês Realizado" só considera meses realizados FECHADOS (exclui parcial, ex.: Jun em andamento).
+  const bestBasis = period.months.filter(isClosedRealizedMonth);
+  const bestFallback = REAL_MONTHS.filter(isClosedRealizedMonth);
+  const bestMonths = bestBasis.length ? bestBasis : (bestFallback.length ? bestFallback : REAL_MONTHS);
   const bestM = bestMonths.reduce((acc, m) => DATA.monthly[m].resultado > DATA.monthly[acc].resultado ? m : acc, bestMonths[0]);
   const bestVal = DATA.monthly[bestM].resultado;
   const ctxLabel = period.months.length === 1
@@ -333,6 +356,9 @@ function renderKPIs() {
 // ─── EXECUTIVE SUMMARY + RESULT CHART + ALERTS / v9 ───
 function getPeriodAssessmentMonths(period) {
   const months = normalizeMonths(period.months);
+  // Base de avaliação = realizados FECHADOS (exclui parcial); cai pra realizados e, em último caso, todos.
+  const closed = months.filter(isClosedRealizedMonth);
+  if (closed.length) return closed;
   const realized = months.filter(m => !isProjectionMonth(m));
   return realized.length ? realized : months;
 }
@@ -341,8 +367,10 @@ function getCriticalAlertObjects(period = getActivePeriod()) {
   const agg = aggregate(months);
   const cats = getCategoryBreakdown(months);
   const alerts = [];
-  const avgOut = months.length ? months.reduce((s,m) => s + DATA.monthly[m].saidas, 0) / months.length : 0;
-  const maxOutM = months.reduce((acc,m) => DATA.monthly[m].saidas > DATA.monthly[acc].saidas ? m : acc, months[0]);
+  // Média/máximo de saídas ignoram meses PARCIAIS (ex.: Jun ~9 dias) p/ não distorcer a base de comparação.
+  const outMonths = (() => { const full = months.filter(m => !isPartialMonth(m)); return full.length ? full : months; })();
+  const avgOut = outMonths.length ? outMonths.reduce((s,m) => s + DATA.monthly[m].saidas, 0) / outMonths.length : 0;
+  const maxOutM = outMonths.reduce((acc,m) => DATA.monthly[m].saidas > DATA.monthly[acc].saidas ? m : acc, outMonths[0]);
   const negatives = months.filter(m => DATA.monthly[m].resultado < 0).sort((a,b) => DATA.monthly[a].resultado - DATA.monthly[b].resultado);
   if (negatives.length) {
     const m = negatives[0], d = DATA.monthly[m];
@@ -457,7 +485,9 @@ function renderBarChart() {
     const isHighlighted = activePeriodMode === 'custom' && isSelected;
     const isDimmed = activePeriodMode !== 'year' && !isSelected;
     const isProj = isProjectionMonth(m);
-    const cls = isHighlighted ? 'bar-group selected' : (isDimmed ? 'bar-group dim' : 'bar-group');
+    const isPartial = !isProj && isPartialMonth(m);
+    const cls = isHighlighted ? 'bar-group selected' : (isDimmed ? 'bar-group dim' : 'bar-group')
+      + (isPartial ? ' partial' : '');
     const inGrad = isProj ? 'url(#barGradInProj)' : 'url(#barGradIn)';
     const outGrad = isProj ? 'url(#barGradOutProj)' : 'url(#barGradOut)';
     const strokeAttr = isHighlighted ? 'stroke="#FCD34D" stroke-width="2"' : (isProj ? 'stroke="#6366F1" stroke-width="1" stroke-dasharray="3 2"' : '');
@@ -472,9 +502,12 @@ function renderBarChart() {
       rects += `<rect data-flow="saidas" x="${x + idx * (barWidth + barGap)}" y="${baseY - h}" width="${barWidth}" height="${h}" rx="4" fill="${outGrad}" ${strokeAttr}/>`;
     }
     const labelX = x + groupWidth / 2;
+    const monthLbl = MONTH_NAMES_SHORT[m] + (isPartial ? ' ◐' : '');
+    const partialMark = isPartial ? `<text x="${labelX}" y="${baseY + 50}" text-anchor="middle" fill="#FCD34D" font-size="8" font-weight="700" letter-spacing="1.5" opacity="0.85">PARCIAL</text>` : '';
     bars += `<g class="${cls}" data-month="${m}">${rects}
-      <text x="${labelX}" y="${baseY + 22}" text-anchor="middle" fill="${isHighlighted ? '#FCD34D' : (isProj ? '#94A0B8' : '#FFFFFF')}" font-size="11" font-weight="${isHighlighted ? '700' : '500'}" letter-spacing="1.5">${MONTH_NAMES_SHORT[m]}</text>
+      <text x="${labelX}" y="${baseY + 22}" text-anchor="middle" fill="${isHighlighted ? '#FCD34D' : (isProj ? '#94A0B8' : '#FFFFFF')}" font-size="11" font-weight="${isHighlighted ? '700' : '500'}" letter-spacing="1.5">${monthLbl}</text>
       <text x="${labelX}" y="${baseY + 38}" text-anchor="middle" fill="${d.resultado >= 0 ? '#10B981' : '#EF4444'}" font-size="9" font-weight="600">${formatSmallResult(d.resultado)}</text>
+      ${partialMark}
     </g>`;
   });
   svg.innerHTML = defs + grid + bars;
@@ -687,19 +720,22 @@ function renderTable() {
     const isSelected = activePeriodMode === 'custom' && selectedMonths.includes(m);
     const isOpen = selectedMonthDetail === m;
     const isProj = isProjectionMonth(m);
+    const isPartial = !isProj && isPartialMonth(m);
     let rowCls = 'row-month';
     if (isSelected) rowCls += ' selected';
     if (isOpen) rowCls += ' open';
     if (isProj) rowCls += ' projection-row';
+    if (isPartial) rowCls += ' partial-row';
     const margem = d.entradas > 0 ? d.resultado / d.entradas * 100 : 0;
-    const status = isProj ? 'forecast' : (d.resultado >= 0 ? 'surplus' : 'deficit');
-    const statusText = isProj ? '◌ Projeção' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit');
-    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
+    const status = isProj ? 'forecast' : (isPartial ? 'partial' : (d.resultado >= 0 ? 'surplus' : 'deficit'));
+    const statusText = isProj ? '◌ Projeção' : (isPartial ? '◐ Parcial' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'));
+    const partialTag = isPartial ? ' <span class="month-partial-tag" title="Mês em andamento — dados parciais (Bling até a data de importação). Excluído de Melhor Mês e da média de saídas.">PARCIAL</span>' : '';
+    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
     if (isOpen) html += renderMonthDetailRow(m);
   });
   const realAgg = aggregate(REAL_MONTHS), fullAgg = aggregate(ALL_MONTHS), activeAgg = aggregate(selectedMonths);
   html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · JAN—JUN <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
   html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
   tbody.innerHTML = html;
   tbody.querySelectorAll('.row-month').forEach(tr => tr.addEventListener('click', () => { selectedMonthDetail = selectedMonthDetail === Number(tr.dataset.rowMonth) ? null : Number(tr.dataset.rowMonth); renderTable(); }));
@@ -712,6 +748,9 @@ function renderHero() {
   const agg = aggregate(period.months);
   const periodEl = document.getElementById('heroPeriod');
   if (periodEl) periodEl.textContent = period.label;
+  // Rótulo do rodapé derivado do intervalo realizado (selo), não cravado em "Janeiro — Junho".
+  const footerEl = document.getElementById('footerPeriodLabel');
+  if (footerEl) footerEl.textContent = `${rangeLabelLong(REAL_MONTHS).toUpperCase()} / 2026`;
   const moviment = agg.entradas + agg.saidas;
   const stats = document.querySelectorAll('.hero-stat .value');
   if (stats[1]) setAnimatedValue(stats[1], moviment, 'R$ ', 1000000, 'M', 2);

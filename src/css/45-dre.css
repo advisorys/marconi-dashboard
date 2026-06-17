@@ -88,6 +88,30 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
 .dre-foot { padding: 14px 16px 16px; font-size: 12px; color: var(--text-mute); line-height: 1.5; }
 .dre-empty { padding: 48px 16px; text-align: center; color: var(--text-dim); }
 
+/* Selo discreto de divergência soma(meses) × acum assinado, na célula Acum. */
+.dre-diverg-badge {
+  display: inline-block; margin-left: 6px;
+  min-width: 16px; height: 16px; line-height: 16px;
+  padding: 0 4px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; vertical-align: middle;
+  color: var(--gold-l);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  cursor: help;
+}
+.dre-td-diverg { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--gold) 40%, transparent); }
+
+/* Micro-nota gerencial na linha de Lucro Bruto (margem bruta derivada). */
+.dre-ger-note {
+  display: inline-block; margin-left: 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; vertical-align: middle;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  cursor: help; white-space: nowrap;
+}
+
 /* Mobile */
 @media (max-width: 760px) {
   .dre-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260617032951"/>
-<script defer src="assets/bootstrap.js?v=20260617032951"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260617061025"/>
+<script defer src="assets/bootstrap.js?v=20260617061025"></script>
 
 </head>
 <body>
@@ -367,7 +367,7 @@
 </div>
 <div>
 <h3>Saídas gerenciais</h3>
-<p>As saídas gerenciais partem das saídas brutas e excluem movimentações não gerenciais, especialmente Transferência entre Contas e Importação, para conciliar com o resumo mensal.</p>
+<p>A fonte é o extrato do Bling. As saídas excluem apenas as transferências entre contas (Classe AJUSTE), que não representam desembolso real. A <strong>Importação conta como saída real</strong> e está incluída nos totais. Há 15 lançamentos ainda <strong>sem classificação</strong> no Bling (~R$558 mil), pendentes de categorização — entram no total de saídas, mas ainda não aparecem atribuídos a uma rubrica no ranking.</p>
 </div>
 <div>
 <h3>Resultado</h3>
@@ -375,7 +375,7 @@
 </div>
 <div>
 <h3>Realizado e projeção</h3>
-<p>Janeiro a junho são tratados como realizados. Julho a dezembro são tratados como projeção e aparecem visualmente separados para evitar leitura indevida como fato realizado.</p>
+<p>O corte entre realizado e projeção é definido por um <strong>selo mensal no próprio dado</strong> (carimbado por calendário a cada atualização), e não por uma divisão fixa de semestre. O mês corrente entra como <strong>parcial</strong> (em andamento, dados do Bling até a data da importação) e é sinalizado à parte; meses futuros entram como projeção. Assim a fronteira avança sozinha a cada nova carga, sem editar o painel.</p>
 </div>
 <div>
 <h3>Ranking de categorias</h3>
@@ -447,7 +447,7 @@
 </div>
 <div class="footer-meta">
       DASHBOARD INTERATIVO<br/>
-      JANEIRO — JUNHO / 2026
+      <span id="footerPeriodLabel">JANEIRO — JUNHO / 2026</span>
     </div>
 </div>
 </footer>

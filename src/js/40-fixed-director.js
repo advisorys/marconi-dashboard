@@ -111,6 +111,19 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     try { return MONTH_NAMES_SHORT[m] || FIXED_COST_DATA.months[m-1]; } catch(e) { return FIXED_COST_DATA.months[m-1]; }
   }
   function isRealizedMonthSafe(m) { try { return !isProjectionMonth(m); } catch(e) { return m <= 6; } }
+  function isPartialMonthSafe(m) { try { return !!(window.MarconiFormat && window.MarconiFormat.isPartialMonth && window.MarconiFormat.isPartialMonth(m)); } catch(e) { return false; } }
+  // Realizado FECHADO = realizado e não-parcial; é a base honesta para o desvio (exclui Jun em andamento).
+  function isClosedRealizedMonthSafe(m) { return isRealizedMonthSafe(m) && !isPartialMonthSafe(m); }
+  // Desvio realizado FECHADO (real − est) somando só meses realizados não-parciais — calculado ao vivo,
+  // pois o cache de periodTotals embute o mês parcial. Retorna {diff, months, hasPartial}.
+  function closedRealizedDeviation(months) {
+    const rows = (FIXED_COST_DATA.totals && FIXED_COST_DATA.totals.length) ? FIXED_COST_DATA.totals : (FIXED_COST_DATA.items || []);
+    const closed = months.filter(isClosedRealizedMonthSafe);
+    const partials = months.filter(m => isRealizedMonthSafe(m) && isPartialMonthSafe(m));
+    let real = 0, est = 0;
+    closed.forEach(m => rows.forEach(it => { const r = it.months[m-1] || [0,0,0]; real += r[1]||0; est += r[0]||0; }));
+    return { diff: real - est, real, est, months: closed, hasPartial: partials.length > 0, partialMonths: partials };
+  }
   function periodModeLabel(period) {
     if (period.mode === 'year') return '2026 completo';
     if (period.mode === 'realized') return 'Realizado';
@@ -205,12 +218,14 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return el;
   }
 
-  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly) {
+  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev) {
     const el = ensureFixedExecutiveSummary();
     if (!el) return;
     const months = (period.months || []).slice().sort((a,b)=>a-b);
     const group = rowsByGroup(months, projectionOnly ? 'est' : 'basis')[0];
-    const diff = projectionOnly ? 0 : totals.diff;
+    // Desvio realizado FECHADO (exclui mês parcial); fallback p/ totals.diff se não veio o cálculo ao vivo.
+    const dev = closedDev || closedRealizedDeviation(months);
+    const diff = projectionOnly ? 0 : dev.diff;
     const budgetTone = projectionOnly ? 'neutral' : diff > 0 ? 'risk' : diff < 0 ? 'good' : 'neutral';
     const budgetTitle = projectionOnly ? 'Base projetada' : diff > 0 ? 'Acima do orcado' : diff < 0 ? 'Economia contra orcado' : 'Dentro do orcado';
     const pressureTone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'good';
@@ -262,15 +277,25 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const ctx = document.getElementById('fixedCostsContext');
     if (ctx) ctx.textContent = `${periodModeLabel(period).toUpperCase()} · CUSTOS FIXOS ${projectionOnly ? 'PROJETADOS' : 'REAL/ORÇADO'}`;
 
+    // Desvio realizado considera só meses realizados FECHADOS (exclui parcial, ex.: Jun em andamento).
+    const closedDev = closedRealizedDeviation(months);
+    const devValue = closedDev.diff;
+    const devBaseMonths = closedDev.months.length;
+    const devSub = projectionOnly
+      ? 'Sem fechamento real para projeção'
+      : (devBaseMonths
+          ? `${devValue >= 0 ? 'Acima' : 'Abaixo'} do orçado · base ${devBaseMonths} mês(es) fechado(s)${closedDev.hasPartial ? ' (parcial excluído)' : ''}`
+          : 'Sem mês realizado fechado no recorte');
+
     const kpis = [
       {label: projectionOnly ? 'Custo fixo projetado' : 'Custo fixo do período', value: fixedBase, sub: projectionOnly ? 'Base estimada para os meses projetados' : 'Realizado onde disponível + estimado futuro', color:'#F59E0B'},
       {label:'Orçado no período', value: totals.est, sub:`${months.length} mês(es) selecionado(s)`, color:'#94A0B8'},
-      {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : totals.diff, sub: projectionOnly ? 'Sem fechamento real para projeção' : `${totals.diff >= 0 ? 'Acima' : 'Abaixo'} do orçamento realizado`, color: projectionOnly ? '#94A0B8' : (totals.diff >= 0 ? '#EF4444' : '#10B981'), signed: !projectionOnly},
+      {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : devValue, sub: devSub, color: projectionOnly ? '#94A0B8' : (devBaseMonths ? (devValue >= 0 ? '#EF4444' : '#10B981') : '#94A0B8'), signed: !projectionOnly && devBaseMonths > 0},
       {label:'Peso nas saídas', value:pctSaidas, sub:`${fixedPct(pctEntradas)} das entradas do período`, color:'#06B6D4', pct:true}
     ];
     kpis[0].tone = 'base';
     kpis[1].tone = 'neutral';
-    kpis[2].tone = projectionOnly ? 'neutral' : (totals.diff > 0 ? 'risk' : totals.diff < 0 ? 'good' : 'neutral');
+    kpis[2].tone = projectionOnly ? 'neutral' : (!devBaseMonths ? 'neutral' : (devValue > 0 ? 'risk' : devValue < 0 ? 'good' : 'neutral'));
     kpis[3].tone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'info';
     window.__lastFixedKpis = kpis;
 
@@ -292,7 +317,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       });
     }
     animateFixedKpiCards(kpiEl, kpis);
-    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly);
+    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);

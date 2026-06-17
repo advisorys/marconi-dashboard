@@ -1243,7 +1243,21 @@
   }
   .status-pill.surplus { background: rgba(16,185,129,0.12); color: var(--green); }
   .status-pill.deficit { background: rgba(239,68,68,0.12); color: var(--red); }
+  .status-pill.partial { background: rgba(245,158,11,0.14); color: var(--gold-l); }
   .status-pill.empty   { background: rgba(90,101,128,0.12); color: var(--text-mute); }
+
+  /* Mês parcial (em andamento) — selo discreto na tabela do Fluxo. */
+  .data-table tr.partial-row .month-cell .partial-dot {
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+  }
+  .month-partial-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    padding: 1px 6px; border-radius: 100px; cursor: help;
+    color: var(--gold-l);
+    background: rgba(245,158,11,0.14);
+    border: 1px solid rgba(245,158,11,0.4);
+  }
 
   /* ━━━ Insights ━━━ */
   .insights-grid {

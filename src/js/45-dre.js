@@ -47,12 +47,15 @@
     var cmvV = accumOf(findLine(dre, 'cmv'), filled);
     var resV = accumOf(findLine(dre, 'resultado'), filled);
     var margem = rbV > 0 ? (resV / rbV * 100) : 0;
+    // Margem bruta GERENCIAL (derivada, não está na DRE assinada): (RL − |CMV|) / RL.
+    // Evita a leitura enganosa de "margem bruta = 100%" (a DRE oficial aninha o CMV em Desp. Vendas).
+    var margemBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
 
     var cards = [
       { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado assinado' },
       { lbl: 'CMV / Custo', val: money(cmvV), cls: 'number-red', sub: rlV > 0 ? fmtPct(Math.abs(cmvV) / rlV * 100) + ' da receita líquida' : '' },
-      { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' },
-      { lbl: 'Receita Bruta', val: money(rbV), cls: '', sub: 'antes de deduções' }
+      { lbl: 'Margem Bruta (gerencial)', val: fmtPct(margemBruta), cls: margemBruta >= 0 ? 'number-green' : 'number-red', sub: '(Receita Líq. − CMV) ÷ Receita Líq.' },
+      { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' }
     ];
     host.innerHTML = cards.map(function (c) {
       return '<div class="dre-kpi"><div class="lbl">' + esc(c.lbl) + '</div>' +
@@ -71,6 +74,10 @@
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
     var abbr = dre.months || ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    // Margem bruta gerencial p/ a micro-nota da linha de Lucro Bruto (a DRE oficial aninha o CMV em Desp. Vendas).
+    var rlAcum = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var cmvAcum = accumOf(findLine(dre, 'cmv'), filled);
+    var margemBrutaGer = rlAcum > 0 ? ((rlAcum - Math.abs(cmvAcum)) / rlAcum * 100) : 0;
 
     var head = '<thead><tr><th class="dre-th-label">Linha</th>';
     filled.forEach(function (m) { head += '<th class="num">' + esc(abbr[m - 1] || ('M' + m)) + '</th>'; });
@@ -81,15 +88,29 @@
       var total = accumOf(line, filled);
       var isResult = (line.kind === 'resultado' || line.kind === 'subtotal');
       var rowCls = 'dre-row dre-row--' + line.kind + ' dre-row--l' + (line.level || 0);
+      // Divergência soma(meses preenchidos) × acum assinado — sinalizar por linha quando |Δ| > R$1.
+      var somaMeses = sumLine(line, filled);
+      var delta = somaMeses - total;
+      var hasDiverg = (typeof line.acum === 'number') && Math.abs(delta) > 1;
       body += '<tr class="' + rowCls + '">';
-      body += '<td class="dre-cell-label">' + esc(line.label) + '</td>';
+      var labelHtml = esc(line.label);
+      if (line.key === 'lucro_bruto') {
+        var gerNote = 'Estrutura oficial: Lucro Bruto = Receita Líquida (o CMV é deduzido em “Despesas com Vendas”). Margem bruta gerencial (RL − CMV) ÷ RL ≈ ' + fmtPct(margemBrutaGer) + '.';
+        labelHtml += ' <span class="dre-ger-note" title="' + esc(gerNote) + '" aria-label="' + esc(gerNote) + '">margem bruta gerencial ' + esc(fmtPct(margemBrutaGer)) + '</span>';
+      }
+      body += '<td class="dre-cell-label">' + labelHtml + '</td>';
       filled.forEach(function (m) {
         var v = valOf(line, m);
         var vc = (isResult && v < 0) ? 'number-red' : (isResult && v > 0 ? 'number-green' : '');
         body += '<td class="num ' + vc + '">' + (v ? cell(v) : '<span class="dre-zero">—</span>') + '</td>';
       });
       var tc = (isResult && total < 0) ? 'number-red' : (isResult && total > 0 ? 'number-green' : '');
-      body += '<td class="num dre-td-total ' + tc + '">' + (total ? cell(total) : '—') + '</td>';
+      var badge = '';
+      if (hasDiverg) {
+        var dlabel = '≠ soma dos meses: Δ ' + (delta >= 0 ? '+' : '') + money(delta) + ' — reclassificações contábeis';
+        badge = '<span class="dre-diverg-badge" role="img" aria-label="' + esc(dlabel) + '" title="' + esc(dlabel) + '">Δ</span>';
+      }
+      body += '<td class="num dre-td-total' + (hasDiverg ? ' dre-td-diverg' : '') + ' ' + tc + '">' + (total ? cell(total) : '—') + badge + '</td>';
       body += '</tr>';
     });
     body += '</tbody>';

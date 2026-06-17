@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617032951
+ * Build: 20260617061025
  * Mode: production
  */
 
@@ -313,6 +313,9 @@ const fmtPct = window.MarconiFormat?.pct || ((v) => (Number.isFinite(v) ? v.toFi
 
 // ─── HELPERS ───
 function isProjectionMonth(m) { return window.MarconiFormat ? window.MarconiFormat.isProjectionMonth(m) : (Number(m) >= 7); }
+function isPartialMonth(m) { return window.MarconiFormat && window.MarconiFormat.isPartialMonth ? window.MarconiFormat.isPartialMonth(m) : false; }
+// Realizado FECHADO = realizado e não-parcial (ex.: Jun é parcial → fora da base de comparação).
+function isClosedRealizedMonth(m) { return !isProjectionMonth(m) && !isPartialMonth(m); }
 function normalizeMonths(months) {
   const uniq = [...new Set(months.map(Number).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
   return uniq.length ? uniq : [...ALL_MONTHS];
@@ -372,13 +375,31 @@ function getActivePeriod() {
   }
   return { months, label, short, mode: activePeriodMode, includesProjection: months.some(isProjectionMonth) };
 }
-function getRealPeriod() { return { months: [...REAL_MONTHS], label: 'Jan — Jun', short: 'JAN — JUN' }; }
+// Rótulo dinâmico do intervalo de meses (deriva do último mês realizado via selo, não hardcode).
+function rangeLabelShort(months) {
+  const ms = normalizeMonths(months);
+  if (!ms.length) return '—';
+  const a = ms[0], b = ms[ms.length - 1];
+  return a === b ? MONTH_NAMES_SHORT[a] : `${MONTH_NAMES_SHORT[a]} — ${MONTH_NAMES_SHORT[b]}`;
+}
+function rangeLabelLong(months) {
+  const ms = normalizeMonths(months);
+  if (!ms.length) return '—';
+  const a = ms[0], b = ms[ms.length - 1];
+  return a === b ? MONTH_NAMES_LONG[a] : `${MONTH_NAMES_LONG[a]} — ${MONTH_NAMES_LONG[b]}`;
+}
+function realizedRangeShort() { return rangeLabelShort(REAL_MONTHS); }
+function projectionRangeShort() { return rangeLabelShort(PROJ_MONTHS); }
+function getRealPeriod() {
+  const lng = rangeLabelLong(REAL_MONTHS);
+  return { months: [...REAL_MONTHS], label: lng, short: realizedRangeShort() };
+}
 
 function periodLabelFor(months, mode = activePeriodMode) {
   months = normalizeMonths(months);
   if (mode === 'year') return '2026 · REAL + PROJEÇÃO';
-  if (mode === 'realized') return 'JAN — JUN / 2026 · REALIZADO';
-  if (mode === 'projection') return 'JUL — DEZ / 2026 · PROJEÇÃO';
+  if (mode === 'realized') return `${realizedRangeShort()} / 2026 · REALIZADO`;
+  if (mode === 'projection') return `${projectionRangeShort()} / 2026 · PROJEÇÃO`;
   if (months.length === 1) return `${MONTH_NAMES_SHORT[months[0]]} / 2026${isProjectionMonth(months[0]) ? ' · PROJEÇÃO' : ' · REALIZADO'}`;
   const hasReal = months.some(m => !isProjectionMonth(m));
   const hasProj = months.some(isProjectionMonth);
@@ -556,8 +577,10 @@ function renderKPIs() {
     return `${(i * 100 / (sparkMonths.length - 1))},${32 - v * 28}`;
   }).join(' ');
 
-  const bestBasis = period.months.filter(m => !isProjectionMonth(m));
-  const bestMonths = bestBasis.length ? bestBasis : REAL_MONTHS;
+  // "Melhor Mês Realizado" só considera meses realizados FECHADOS (exclui parcial, ex.: Jun em andamento).
+  const bestBasis = period.months.filter(isClosedRealizedMonth);
+  const bestFallback = REAL_MONTHS.filter(isClosedRealizedMonth);
+  const bestMonths = bestBasis.length ? bestBasis : (bestFallback.length ? bestFallback : REAL_MONTHS);
   const bestM = bestMonths.reduce((acc, m) => DATA.monthly[m].resultado > DATA.monthly[acc].resultado ? m : acc, bestMonths[0]);
   const bestVal = DATA.monthly[bestM].resultado;
   const ctxLabel = period.months.length === 1
@@ -610,6 +633,9 @@ function renderKPIs() {
 // ─── EXECUTIVE SUMMARY + RESULT CHART + ALERTS / v9 ───
 function getPeriodAssessmentMonths(period) {
   const months = normalizeMonths(period.months);
+  // Base de avaliação = realizados FECHADOS (exclui parcial); cai pra realizados e, em último caso, todos.
+  const closed = months.filter(isClosedRealizedMonth);
+  if (closed.length) return closed;
   const realized = months.filter(m => !isProjectionMonth(m));
   return realized.length ? realized : months;
 }
@@ -618,8 +644,10 @@ function getCriticalAlertObjects(period = getActivePeriod()) {
   const agg = aggregate(months);
   const cats = getCategoryBreakdown(months);
   const alerts = [];
-  const avgOut = months.length ? months.reduce((s,m) => s + DATA.monthly[m].saidas, 0) / months.length : 0;
-  const maxOutM = months.reduce((acc,m) => DATA.monthly[m].saidas > DATA.monthly[acc].saidas ? m : acc, months[0]);
+  // Média/máximo de saídas ignoram meses PARCIAIS (ex.: Jun ~9 dias) p/ não distorcer a base de comparação.
+  const outMonths = (() => { const full = months.filter(m => !isPartialMonth(m)); return full.length ? full : months; })();
+  const avgOut = outMonths.length ? outMonths.reduce((s,m) => s + DATA.monthly[m].saidas, 0) / outMonths.length : 0;
+  const maxOutM = outMonths.reduce((acc,m) => DATA.monthly[m].saidas > DATA.monthly[acc].saidas ? m : acc, outMonths[0]);
   const negatives = months.filter(m => DATA.monthly[m].resultado < 0).sort((a,b) => DATA.monthly[a].resultado - DATA.monthly[b].resultado);
   if (negatives.length) {
     const m = negatives[0], d = DATA.monthly[m];
@@ -734,7 +762,9 @@ function renderBarChart() {
     const isHighlighted = activePeriodMode === 'custom' && isSelected;
     const isDimmed = activePeriodMode !== 'year' && !isSelected;
     const isProj = isProjectionMonth(m);
-    const cls = isHighlighted ? 'bar-group selected' : (isDimmed ? 'bar-group dim' : 'bar-group');
+    const isPartial = !isProj && isPartialMonth(m);
+    const cls = isHighlighted ? 'bar-group selected' : (isDimmed ? 'bar-group dim' : 'bar-group')
+      + (isPartial ? ' partial' : '');
     const inGrad = isProj ? 'url(#barGradInProj)' : 'url(#barGradIn)';
     const outGrad = isProj ? 'url(#barGradOutProj)' : 'url(#barGradOut)';
     const strokeAttr = isHighlighted ? 'stroke="#FCD34D" stroke-width="2"' : (isProj ? 'stroke="#6366F1" stroke-width="1" stroke-dasharray="3 2"' : '');
@@ -749,9 +779,12 @@ function renderBarChart() {
       rects += `<rect data-flow="saidas" x="${x + idx * (barWidth + barGap)}" y="${baseY - h}" width="${barWidth}" height="${h}" rx="4" fill="${outGrad}" ${strokeAttr}/>`;
     }
     const labelX = x + groupWidth / 2;
+    const monthLbl = MONTH_NAMES_SHORT[m] + (isPartial ? ' ◐' : '');
+    const partialMark = isPartial ? `<text x="${labelX}" y="${baseY + 50}" text-anchor="middle" fill="#FCD34D" font-size="8" font-weight="700" letter-spacing="1.5" opacity="0.85">PARCIAL</text>` : '';
     bars += `<g class="${cls}" data-month="${m}">${rects}
-      <text x="${labelX}" y="${baseY + 22}" text-anchor="middle" fill="${isHighlighted ? '#FCD34D' : (isProj ? '#94A0B8' : '#FFFFFF')}" font-size="11" font-weight="${isHighlighted ? '700' : '500'}" letter-spacing="1.5">${MONTH_NAMES_SHORT[m]}</text>
+      <text x="${labelX}" y="${baseY + 22}" text-anchor="middle" fill="${isHighlighted ? '#FCD34D' : (isProj ? '#94A0B8' : '#FFFFFF')}" font-size="11" font-weight="${isHighlighted ? '700' : '500'}" letter-spacing="1.5">${monthLbl}</text>
       <text x="${labelX}" y="${baseY + 38}" text-anchor="middle" fill="${d.resultado >= 0 ? '#10B981' : '#EF4444'}" font-size="9" font-weight="600">${formatSmallResult(d.resultado)}</text>
+      ${partialMark}
     </g>`;
   });
   svg.innerHTML = defs + grid + bars;
@@ -964,19 +997,22 @@ function renderTable() {
     const isSelected = activePeriodMode === 'custom' && selectedMonths.includes(m);
     const isOpen = selectedMonthDetail === m;
     const isProj = isProjectionMonth(m);
+    const isPartial = !isProj && isPartialMonth(m);
     let rowCls = 'row-month';
     if (isSelected) rowCls += ' selected';
     if (isOpen) rowCls += ' open';
     if (isProj) rowCls += ' projection-row';
+    if (isPartial) rowCls += ' partial-row';
     const margem = d.entradas > 0 ? d.resultado / d.entradas * 100 : 0;
-    const status = isProj ? 'forecast' : (d.resultado >= 0 ? 'surplus' : 'deficit');
-    const statusText = isProj ? '◌ Projeção' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit');
-    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
+    const status = isProj ? 'forecast' : (isPartial ? 'partial' : (d.resultado >= 0 ? 'surplus' : 'deficit'));
+    const statusText = isProj ? '◌ Projeção' : (isPartial ? '◐ Parcial' : (d.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'));
+    const partialTag = isPartial ? ' <span class="month-partial-tag" title="Mês em andamento — dados parciais (Bling até a data de importação). Excluído de Melhor Mês e da média de saídas.">PARCIAL</span>' : '';
+    html += `<tr class="${rowCls}" data-row-month="${m}"><td><span class="month-cell"><span class="dot ${isProj ? 'proj-dot' : ''}${isPartial ? ' partial-dot' : ''}"></span>${MONTH_NAMES_LONG[m].toUpperCase()}${partialTag}</span></td><td class="num">${fmtMoneyFull(d.entradas)}</td><td class="num">${fmtMoneyFull(d.saidas)}</td><td class="num ${d.resultado >= 0 ? 'number-green' : 'number-red'}">${d.resultado >= 0 ? '+' : ''}${fmtMoneyFull(d.resultado)}</td><td class="num ${d.resultado >= 0 ? '' : 'number-red'}">${fmtPct(margem)}</td><td><span class="status-pill ${status}">${statusText}</span></td></tr>`;
     if (isOpen) html += renderMonthDetailRow(m);
   });
   const realAgg = aggregate(REAL_MONTHS), fullAgg = aggregate(ALL_MONTHS), activeAgg = aggregate(selectedMonths);
   html += `<tr class="total-row"><td>SELECIONADO · ${periodLabelFor(selectedMonths, activePeriodMode)}</td><td class="num">${fmtMoneyFull(activeAgg.entradas)}</td><td class="num">${fmtMoneyFull(activeAgg.saidas)}</td><td class="num ${activeAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${activeAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(activeAgg.resultado)}</td><td class="num number-gold">${fmtPct(activeAgg.margem)}</td><td><span class="status-pill ${activeAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${activeAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
-  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · JAN—JUN <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
+  html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>ACUMULADO · ${realizedRangeShort().replace(/ — /g, '—')} <span style="font-size:9px;color:#FCD34D;letter-spacing:2px;margin-left:8px;">REAL</span></td><td class="num">${fmtMoneyFull(realAgg.entradas)}</td><td class="num">${fmtMoneyFull(realAgg.saidas)}</td><td class="num ${realAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${realAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(realAgg.resultado)}</td><td class="num number-gold">${fmtPct(realAgg.margem)}</td><td><span class="status-pill ${realAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${realAgg.resultado >= 0 ? '▲ Superávit' : '▼ Déficit'}</span></td></tr>`;
   html += `<tr class="total-row" style="border-top:1px solid #2D3454;"><td>PROJEÇÃO ANUAL · 2026 <span style="font-size:9px;color:#6366F1;letter-spacing:2px;margin-left:8px;">REAL + PROJ.</span></td><td class="num">${fmtMoneyFull(fullAgg.entradas)}</td><td class="num">${fmtMoneyFull(fullAgg.saidas)}</td><td class="num ${fullAgg.resultado >= 0 ? 'number-green' : 'number-red'}">${fullAgg.resultado >= 0 ? '+' : ''}${fmtMoneyFull(fullAgg.resultado)}</td><td class="num">${fmtPct(fullAgg.margem)}</td><td><span class="status-pill ${fullAgg.resultado >= 0 ? 'surplus' : 'deficit'}">${fullAgg.resultado >= 0 ? '▲ Anual+' : '▼ Anual−'}</span></td></tr>`;
   tbody.innerHTML = html;
   tbody.querySelectorAll('.row-month').forEach(tr => tr.addEventListener('click', () => { selectedMonthDetail = selectedMonthDetail === Number(tr.dataset.rowMonth) ? null : Number(tr.dataset.rowMonth); renderTable(); }));
@@ -989,6 +1025,9 @@ function renderHero() {
   const agg = aggregate(period.months);
   const periodEl = document.getElementById('heroPeriod');
   if (periodEl) periodEl.textContent = period.label;
+  // Rótulo do rodapé derivado do intervalo realizado (selo), não cravado em "Janeiro — Junho".
+  const footerEl = document.getElementById('footerPeriodLabel');
+  if (footerEl) footerEl.textContent = `${rangeLabelLong(REAL_MONTHS).toUpperCase()} / 2026`;
   const moviment = agg.entradas + agg.saidas;
   const stats = document.querySelectorAll('.hero-stat .value');
   if (stats[1]) setAnimatedValue(stats[1], moviment, 'R$ ', 1000000, 'M', 2);
@@ -1725,6 +1764,19 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     try { return MONTH_NAMES_SHORT[m] || FIXED_COST_DATA.months[m-1]; } catch(e) { return FIXED_COST_DATA.months[m-1]; }
   }
   function isRealizedMonthSafe(m) { try { return !isProjectionMonth(m); } catch(e) { return m <= 6; } }
+  function isPartialMonthSafe(m) { try { return !!(window.MarconiFormat && window.MarconiFormat.isPartialMonth && window.MarconiFormat.isPartialMonth(m)); } catch(e) { return false; } }
+  // Realizado FECHADO = realizado e não-parcial; é a base honesta para o desvio (exclui Jun em andamento).
+  function isClosedRealizedMonthSafe(m) { return isRealizedMonthSafe(m) && !isPartialMonthSafe(m); }
+  // Desvio realizado FECHADO (real − est) somando só meses realizados não-parciais — calculado ao vivo,
+  // pois o cache de periodTotals embute o mês parcial. Retorna {diff, months, hasPartial}.
+  function closedRealizedDeviation(months) {
+    const rows = (FIXED_COST_DATA.totals && FIXED_COST_DATA.totals.length) ? FIXED_COST_DATA.totals : (FIXED_COST_DATA.items || []);
+    const closed = months.filter(isClosedRealizedMonthSafe);
+    const partials = months.filter(m => isRealizedMonthSafe(m) && isPartialMonthSafe(m));
+    let real = 0, est = 0;
+    closed.forEach(m => rows.forEach(it => { const r = it.months[m-1] || [0,0,0]; real += r[1]||0; est += r[0]||0; }));
+    return { diff: real - est, real, est, months: closed, hasPartial: partials.length > 0, partialMonths: partials };
+  }
   function periodModeLabel(period) {
     if (period.mode === 'year') return '2026 completo';
     if (period.mode === 'realized') return 'Realizado';
@@ -1819,12 +1871,14 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return el;
   }
 
-  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly) {
+  function renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev) {
     const el = ensureFixedExecutiveSummary();
     if (!el) return;
     const months = (period.months || []).slice().sort((a,b)=>a-b);
     const group = rowsByGroup(months, projectionOnly ? 'est' : 'basis')[0];
-    const diff = projectionOnly ? 0 : totals.diff;
+    // Desvio realizado FECHADO (exclui mês parcial); fallback p/ totals.diff se não veio o cálculo ao vivo.
+    const dev = closedDev || closedRealizedDeviation(months);
+    const diff = projectionOnly ? 0 : dev.diff;
     const budgetTone = projectionOnly ? 'neutral' : diff > 0 ? 'risk' : diff < 0 ? 'good' : 'neutral';
     const budgetTitle = projectionOnly ? 'Base projetada' : diff > 0 ? 'Acima do orcado' : diff < 0 ? 'Economia contra orcado' : 'Dentro do orcado';
     const pressureTone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'good';
@@ -1876,15 +1930,25 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     const ctx = document.getElementById('fixedCostsContext');
     if (ctx) ctx.textContent = `${periodModeLabel(period).toUpperCase()} · CUSTOS FIXOS ${projectionOnly ? 'PROJETADOS' : 'REAL/ORÇADO'}`;
 
+    // Desvio realizado considera só meses realizados FECHADOS (exclui parcial, ex.: Jun em andamento).
+    const closedDev = closedRealizedDeviation(months);
+    const devValue = closedDev.diff;
+    const devBaseMonths = closedDev.months.length;
+    const devSub = projectionOnly
+      ? 'Sem fechamento real para projeção'
+      : (devBaseMonths
+          ? `${devValue >= 0 ? 'Acima' : 'Abaixo'} do orçado · base ${devBaseMonths} mês(es) fechado(s)${closedDev.hasPartial ? ' (parcial excluído)' : ''}`
+          : 'Sem mês realizado fechado no recorte');
+
     const kpis = [
       {label: projectionOnly ? 'Custo fixo projetado' : 'Custo fixo do período', value: fixedBase, sub: projectionOnly ? 'Base estimada para os meses projetados' : 'Realizado onde disponível + estimado futuro', color:'#F59E0B'},
       {label:'Orçado no período', value: totals.est, sub:`${months.length} mês(es) selecionado(s)`, color:'#94A0B8'},
-      {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : totals.diff, sub: projectionOnly ? 'Sem fechamento real para projeção' : `${totals.diff >= 0 ? 'Acima' : 'Abaixo'} do orçamento realizado`, color: projectionOnly ? '#94A0B8' : (totals.diff >= 0 ? '#EF4444' : '#10B981'), signed: !projectionOnly},
+      {label: projectionOnly ? 'Realizado disponível' : 'Desvio realizado', value: projectionOnly ? totals.real : devValue, sub: devSub, color: projectionOnly ? '#94A0B8' : (devBaseMonths ? (devValue >= 0 ? '#EF4444' : '#10B981') : '#94A0B8'), signed: !projectionOnly && devBaseMonths > 0},
       {label:'Peso nas saídas', value:pctSaidas, sub:`${fixedPct(pctEntradas)} das entradas do período`, color:'#06B6D4', pct:true}
     ];
     kpis[0].tone = 'base';
     kpis[1].tone = 'neutral';
-    kpis[2].tone = projectionOnly ? 'neutral' : (totals.diff > 0 ? 'risk' : totals.diff < 0 ? 'good' : 'neutral');
+    kpis[2].tone = projectionOnly ? 'neutral' : (!devBaseMonths ? 'neutral' : (devValue > 0 ? 'risk' : devValue < 0 ? 'good' : 'neutral'));
     kpis[3].tone = pctSaidas > 14 ? 'risk' : pctSaidas > 9 ? 'watch' : 'info';
     window.__lastFixedKpis = kpis;
 
@@ -1906,7 +1970,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       });
     }
     animateFixedKpiCards(kpiEl, kpis);
-    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly);
+    renderFixedExecutiveSummary(period, totals, flowAgg, fixedBase, pctSaidas, projectionOnly, closedDev);
 
     renderFixedMonthlyChart(months, projectionOnly);
     renderFixedComposition(months, projectionOnly);
@@ -3198,12 +3262,15 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     var cmvV = accumOf(findLine(dre, 'cmv'), filled);
     var resV = accumOf(findLine(dre, 'resultado'), filled);
     var margem = rbV > 0 ? (resV / rbV * 100) : 0;
+    // Margem bruta GERENCIAL (derivada, não está na DRE assinada): (RL − |CMV|) / RL.
+    // Evita a leitura enganosa de "margem bruta = 100%" (a DRE oficial aninha o CMV em Desp. Vendas).
+    var margemBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
 
     var cards = [
       { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado assinado' },
       { lbl: 'CMV / Custo', val: money(cmvV), cls: 'number-red', sub: rlV > 0 ? fmtPct(Math.abs(cmvV) / rlV * 100) + ' da receita líquida' : '' },
-      { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' },
-      { lbl: 'Receita Bruta', val: money(rbV), cls: '', sub: 'antes de deduções' }
+      { lbl: 'Margem Bruta (gerencial)', val: fmtPct(margemBruta), cls: margemBruta >= 0 ? 'number-green' : 'number-red', sub: '(Receita Líq. − CMV) ÷ Receita Líq.' },
+      { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' }
     ];
     host.innerHTML = cards.map(function (c) {
       return '<div class="dre-kpi"><div class="lbl">' + esc(c.lbl) + '</div>' +
@@ -3222,6 +3289,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     var wrap = document.getElementById('dreTableWrap');
     if (!wrap) return;
     var abbr = dre.months || ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    // Margem bruta gerencial p/ a micro-nota da linha de Lucro Bruto (a DRE oficial aninha o CMV em Desp. Vendas).
+    var rlAcum = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var cmvAcum = accumOf(findLine(dre, 'cmv'), filled);
+    var margemBrutaGer = rlAcum > 0 ? ((rlAcum - Math.abs(cmvAcum)) / rlAcum * 100) : 0;
 
     var head = '<thead><tr><th class="dre-th-label">Linha</th>';
     filled.forEach(function (m) { head += '<th class="num">' + esc(abbr[m - 1] || ('M' + m)) + '</th>'; });
@@ -3232,15 +3303,29 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       var total = accumOf(line, filled);
       var isResult = (line.kind === 'resultado' || line.kind === 'subtotal');
       var rowCls = 'dre-row dre-row--' + line.kind + ' dre-row--l' + (line.level || 0);
+      // Divergência soma(meses preenchidos) × acum assinado — sinalizar por linha quando |Δ| > R$1.
+      var somaMeses = sumLine(line, filled);
+      var delta = somaMeses - total;
+      var hasDiverg = (typeof line.acum === 'number') && Math.abs(delta) > 1;
       body += '<tr class="' + rowCls + '">';
-      body += '<td class="dre-cell-label">' + esc(line.label) + '</td>';
+      var labelHtml = esc(line.label);
+      if (line.key === 'lucro_bruto') {
+        var gerNote = 'Estrutura oficial: Lucro Bruto = Receita Líquida (o CMV é deduzido em “Despesas com Vendas”). Margem bruta gerencial (RL − CMV) ÷ RL ≈ ' + fmtPct(margemBrutaGer) + '.';
+        labelHtml += ' <span class="dre-ger-note" title="' + esc(gerNote) + '" aria-label="' + esc(gerNote) + '">margem bruta gerencial ' + esc(fmtPct(margemBrutaGer)) + '</span>';
+      }
+      body += '<td class="dre-cell-label">' + labelHtml + '</td>';
       filled.forEach(function (m) {
         var v = valOf(line, m);
         var vc = (isResult && v < 0) ? 'number-red' : (isResult && v > 0 ? 'number-green' : '');
         body += '<td class="num ' + vc + '">' + (v ? cell(v) : '<span class="dre-zero">—</span>') + '</td>';
       });
       var tc = (isResult && total < 0) ? 'number-red' : (isResult && total > 0 ? 'number-green' : '');
-      body += '<td class="num dre-td-total ' + tc + '">' + (total ? cell(total) : '—') + '</td>';
+      var badge = '';
+      if (hasDiverg) {
+        var dlabel = '≠ soma dos meses: Δ ' + (delta >= 0 ? '+' : '') + money(delta) + ' — reclassificações contábeis';
+        badge = '<span class="dre-diverg-badge" role="img" aria-label="' + esc(dlabel) + '" title="' + esc(dlabel) + '">Δ</span>';
+      }
+      body += '<td class="num dre-td-total' + (hasDiverg ? ' dre-td-diverg' : '') + ' ' + tc + '">' + (total ? cell(total) : '—') + badge + '</td>';
       body += '</tr>';
     });
     body += '</tbody>';
