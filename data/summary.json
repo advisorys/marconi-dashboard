@@ -2,13 +2,13 @@
   "spreadsheets": [
     "Fonte de Dados Dashboard - Marconi.xlsx",
     "Custos Fixos.xlsx",
-    "DRE MARCONI 2026.xlsb"
+    "dre-contabil-priori.json"
   ],
   "data_changed": true,
   "old_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-16T23:34:40-03:00",
+    "ultima_atualizacao": "2026-06-16T23:36:00-03:00",
     "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
@@ -16,8 +16,8 @@
   "new_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-16T23:36:00-03:00",
-    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
+    "ultima_atualizacao": "2026-06-17T00:29:23-03:00",
+    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; dre-contabil-priori.json",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
   },
@@ -186,7 +186,7 @@
     "categories": 8,
     "fixed_items": 37,
     "fixed_totals": 2,
-    "dre_lines": 26
+    "dre_lines": 12
   },
   "diagnostics": {
     "linhas_dc": 1404,

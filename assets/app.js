@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617030149
+ * Build: 20260617032951
  * Mode: production
  */
 
@@ -3183,25 +3183,27 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return null;
   }
 
+  // Valor acumulado autoritativo: usa o `acum` assinado (DRE cumulativa) quando há;
+  // senão cai pra soma dos meses preenchidos.
+  function accumOf(line, filled) {
+    if (line && typeof line.acum === 'number') return line.acum;
+    return line ? sumLine(line, filled) : 0;
+  }
+
   function renderKpis(dre, filled) {
     var host = document.getElementById('dreKpis');
     if (!host) return;
-    var rl = findLine(dre, 'r16');      // Receita Operacional Líquida
-    var brm = findLine(dre, 'r13');     // Receita Operacional Bruta
-    var ebitda = findLine(dre, 'r36');  // EBITDA
-    var ll = findLine(dre, 'r47');      // Lucro Líquido
-    var rlV = rl ? sumLine(rl, filled) : 0;
-    var brV = brm ? sumLine(brm, filled) : 0;
-    var ebV = ebitda ? sumLine(ebitda, filled) : 0;
-    var llV = ll ? sumLine(ll, filled) : 0;
-    var margemLL = brV > 0 ? (llV / brV * 100) : 0;
-    var margemEb = brV > 0 ? (ebV / brV * 100) : 0;
+    var rlV = accumOf(findLine(dre, 'receita_liquida'), filled);
+    var rbV = accumOf(findLine(dre, 'receita_bruta'), filled);
+    var cmvV = accumOf(findLine(dre, 'cmv'), filled);
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var margem = rbV > 0 ? (resV / rbV * 100) : 0;
 
     var cards = [
-      { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado do período' },
-      { lbl: 'EBITDA', val: (ebV >= 0 ? '+' : '') + money(ebV), cls: ebV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margemEb) + ' da receita bruta' },
-      { lbl: 'Lucro Líquido', val: (llV >= 0 ? '+' : '') + money(llV), cls: llV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margemLL) + ' da receita bruta' },
-      { lbl: 'Receita Bruta', val: money(brV), cls: '', sub: 'antes de deduções' }
+      { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado assinado' },
+      { lbl: 'CMV / Custo', val: money(cmvV), cls: 'number-red', sub: rlV > 0 ? fmtPct(Math.abs(cmvV) / rlV * 100) + ' da receita líquida' : '' },
+      { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' },
+      { lbl: 'Receita Bruta', val: money(rbV), cls: '', sub: 'antes de deduções' }
     ];
     host.innerHTML = cards.map(function (c) {
       return '<div class="dre-kpi"><div class="lbl">' + esc(c.lbl) + '</div>' +
@@ -3227,7 +3229,7 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
 
     var body = '<tbody>';
     dre.lines.forEach(function (line) {
-      var total = sumLine(line, filled);
+      var total = accumOf(line, filled);
       var isResult = (line.kind === 'resultado' || line.kind === 'subtotal');
       var rowCls = 'dre-row dre-row--' + line.kind + ' dre-row--l' + (line.level || 0);
       body += '<tr class="' + rowCls + '">';
@@ -3267,9 +3269,10 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     renderKpis(dre, filled);
     renderTable(dre, filled);
     if (foot) {
-      var src = (dre.source && dre.source.workbook) ? dre.source.workbook : 'contabilidade';
-      foot.innerHTML = 'Fonte: ' + esc(src) + ' · aba ' + esc((dre.source && dre.source.sheet) || 'DRE') +
-        '. Valores em regime de competência (não confundir com o caixa do Fluxo).';
+      var src = dre.source || {};
+      var origem = src.origem || 'DRE contábil';
+      foot.innerHTML = esc(origem) + (src.empresa ? ' · ' + esc(src.empresa) : '') +
+        '. Regime de competência (não confundir com o caixa do Fluxo). Coluna “Acum.” = DRE cumulativa assinada; meses = DREs mensais assinadas (a soma pode diferir do acumulado por reclassificações contábeis).';
     }
   }
   window.renderDrePage = renderDrePage;

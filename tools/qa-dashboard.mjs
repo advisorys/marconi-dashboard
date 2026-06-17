@@ -411,7 +411,7 @@ async function run() {
           directorKpis: document.querySelectorAll('.director-kpi').length,
           dreKpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
           dreTable: !!document.querySelector('#dreTableWrap .dre-table'),
-          dreResultRows: document.querySelectorAll('.dre-row--resultado').length,
+          dreResultRows: document.querySelectorAll('.dre-row--resultado, .dre-row--subtotal').length,
           a11y: {
             tabs: [...document.querySelectorAll('[data-page-link]')].every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && el.hasAttribute('aria-controls')),
             cards: [...document.querySelectorAll('.fixed-kpi, .director-kpi')].every(el => el.hasAttribute('tabindex') && el.hasAttribute('aria-label')),
