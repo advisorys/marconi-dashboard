@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>
-<link rel="stylesheet" href="assets/styles.css?v=20260616154121"/>
-<script defer src="assets/bootstrap.js?v=20260616154121"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20260617030149"/>
+<script defer src="assets/bootstrap.js?v=20260617030149"></script>
 
 </head>
 <body>
@@ -27,7 +27,7 @@
 <div class="top-site-title">
 <span>MARCONI FOODS</span>
 <small>Fluxo de Caixa 2026</small>
-</div><div aria-label="Páginas do dashboard" class="page-switcher"><button class="page-tab" data-page-link="director" type="button">Diretoria</button><button class="page-tab active" data-page-link="cash" type="button">Fluxo de Caixa</button><button class="page-tab" data-page-link="fixed" type="button">Custos Fixos</button></div>
+</div><div aria-label="Páginas do dashboard" class="page-switcher"><button class="page-tab" data-page-link="director" type="button">Diretoria</button><button class="page-tab active" data-page-link="cash" type="button">Fluxo de Caixa</button><button class="page-tab" data-page-link="fixed" type="button">Custos Fixos</button><button class="page-tab" data-page-link="dre" type="button">DRE</button></div>
 <nav aria-label="Seções do relatório" class="top-site-links">
 <a class="active" data-target="home" href="#home">Início</a>
 <a data-target="executive" href="#executive">Resumo</a>
@@ -464,7 +464,24 @@
 
 <!-- ━━━━━━━━━━━━━━━━━━━━ V27 · PDF EXPORT PAGINADO ━━━━━━━━━━━━━━━━━━━━ -->
 
-
+<!-- ━━━━━━━━━━━━━━━━━━━━ DRE CONTÁBIL ━━━━━━━━━━━━━━━━━━━━ -->
+<section class="dre-section" id="dre-page">
+<div class="container">
+<div class="section-header reveal">
+<div class="left">
+<div class="eyebrow gold">DRE CONTÁBIL · 2026</div>
+<h2>Demonstração de Resultado do Exercício.</h2>
+<div class="section-context" id="dreContext">REGIME DE COMPETÊNCIA · ACUMULADO DO PERÍODO</div>
+</div>
+<div class="right">Receita → margens → EBITDA → lucro líquido</div>
+</div>
+<div class="dre-kpi-grid reveal" id="dreKpis"></div>
+<div class="dre-table-card reveal">
+<div class="dre-table-wrap" id="dreTableWrap"></div>
+<div class="dre-foot" id="dreFoot"></div>
+</div>
+</div>
+</section>
 
 </main>
 

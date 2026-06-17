@@ -966,7 +966,8 @@
   const PAGE_TITLE_LABELS = {
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
-    fixed: 'Custos Fixos'
+    fixed: 'Custos Fixos',
+    dre: 'DRE'
   };
 
   function syncActivePageState() {

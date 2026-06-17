@@ -1,119 +1,120 @@
 {
   "spreadsheets": [
+    "Fonte de Dados Dashboard - Marconi.xlsx",
     "Custos Fixos.xlsx",
-    "Fluxo de Caixa.xlsx"
+    "DRE MARCONI 2026.xlsb"
   ],
   "data_changed": true,
   "old_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-09T12:38:09-03:00",
-    "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
+    "ultima_atualizacao": "2026-06-16T23:34:40-03:00",
+    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
   },
   "new_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-16T12:41:05-03:00",
-    "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
+    "ultima_atualizacao": "2026-06-16T23:36:00-03:00",
+    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
   },
   "monthly": {
     "1": {
       "name": "Janeiro",
-      "entradas": 4459257.29,
-      "saidas": 2873789.58,
-      "resultado": 1585467.71,
+      "entradas": 4853931.98,
+      "saidas": 4758421.91,
+      "resultado": 95510.07,
       "projection": false,
       "partial": false
     },
     "2": {
       "name": "Fevereiro",
-      "entradas": 3907607.26,
-      "saidas": 3588898.97,
-      "resultado": 318708.29,
+      "entradas": 3909298.76,
+      "saidas": 3885077.99,
+      "resultado": 24220.77,
       "projection": false,
       "partial": false
     },
     "3": {
       "name": "Março",
-      "entradas": 7593708.91,
-      "saidas": 7449097.62,
-      "resultado": 144611.29,
+      "entradas": 12240304.99,
+      "saidas": 12095975.2,
+      "resultado": 144329.79,
       "projection": false,
       "partial": false
     },
     "4": {
       "name": "Abril",
-      "entradas": 9666003.72,
-      "saidas": 9800919.88,
-      "resultado": -134916.16,
+      "entradas": 14044291.36,
+      "saidas": 14179111.19,
+      "resultado": -134819.83,
       "projection": false,
       "partial": false
     },
     "5": {
       "name": "Maio",
-      "entradas": 4419228.71,
-      "saidas": 4346841.48,
-      "resultado": 72387.23,
+      "entradas": 9313635.8,
+      "saidas": 9241943.07,
+      "resultado": 71692.73,
       "projection": false,
       "partial": false
     },
     "6": {
       "name": "Junho",
-      "entradas": 2263674.77,
-      "saidas": 2158846.57,
-      "resultado": 104828.2,
+      "entradas": 4067134.03,
+      "saidas": 3850076.25,
+      "resultado": 217057.78,
       "projection": false,
       "partial": true
     },
     "7": {
       "name": "Julho",
-      "entradas": 241758.1,
-      "saidas": 171389.84,
-      "resultado": 70368.26,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     },
     "8": {
       "name": "Agosto",
-      "entradas": 4000.0,
-      "saidas": 168889.84,
-      "resultado": -164889.84,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     },
     "9": {
       "name": "Setembro",
-      "entradas": 4000.0,
-      "saidas": 168889.84,
-      "resultado": -164889.84,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     },
     "10": {
       "name": "Outubro",
-      "entradas": 5000.0,
-      "saidas": 171389.84,
-      "resultado": -166389.84,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     },
     "11": {
       "name": "Novembro",
-      "entradas": 4000.0,
-      "saidas": 169251.73,
-      "resultado": -165251.73,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     },
     "12": {
       "name": "Dezembro",
-      "entradas": 5000.0,
-      "saidas": 171751.73,
-      "resultado": -166751.73,
+      "entradas": 0.0,
+      "saidas": 0.0,
+      "resultado": 0.0,
       "projection": true,
       "partial": false
     }
@@ -181,9 +182,22 @@
     }
   ],
   "counts": {
-    "daily": 365,
-    "categories": 10,
+    "daily": 109,
+    "categories": 8,
     "fixed_items": 37,
-    "fixed_totals": 2
+    "fixed_totals": 2,
+    "dre_lines": 26
+  },
+  "diagnostics": {
+    "linhas_dc": 1404,
+    "linhas_saldo": 2,
+    "ids_dup": 0,
+    "sem_categoria": 15,
+    "categorias_sem_depara": [
+      "(vazio)"
+    ],
+    "al3_sem_classe": [],
+    "ajuste_movimentado": 41110830.32,
+    "fora_do_ano": 0
   }
 }
