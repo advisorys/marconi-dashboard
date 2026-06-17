@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260617171808
+ * Build: 20260617175242
  * Mode: production
  */
 
@@ -3632,6 +3632,25 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return line ? sumLine(line, filled) : 0;
   }
 
+  // ── EBITDA PLENO (gerencial, DERIVADO — fora da cascata oficial assinada) ──
+  // EBITDA = Resultado Operacional (linha "resultado" da DRE) + Depreciação &
+  //   Amortização (linha "depreciacao", add-back). O D&A é despesa (valor negativo
+  //   na DRE) → o add-back soma |D&A|. Acum Jan–Abr = 295.437 + 23.906 = 319.343.
+  //   Métrica derivada/gerencial — NUNCA altera a cascata oficial assinada.
+  function computeEbitda(dre, filled) {
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var daLine = findLine(dre, 'depreciacao');
+    var daV = daLine ? accumOf(daLine, filled) : 0; // negativo na DRE
+    var da = Math.abs(daV);
+    return { ebitda: resV + da, resOper: resV, da: da, hasDa: !!daLine };
+  }
+  // EBITDA por mês (p/ a linha derivada na tabela, fora da cascata).
+  function ebitdaOfMonth(dre, m) {
+    var res = valOf(findLine(dre, 'resultado'), m);
+    var da = Math.abs(valOf(findLine(dre, 'depreciacao'), m));
+    return res + da;
+  }
+
   function renderKpis(dre, filled) {
     var host = document.getElementById('dreKpis');
     if (!host) return;
@@ -3643,11 +3662,14 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     // Margem bruta GERENCIAL (derivada, não está na DRE assinada): (RL − |CMV|) / RL.
     // Evita a leitura enganosa de "margem bruta = 100%" (a DRE oficial aninha o CMV em Desp. Vendas).
     var margemBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
+    // EBITDA pleno (gerencial, derivado): Resultado Operacional + D&A.
+    var eb = computeEbitda(dre, filled);
+    var margemEbitda = rlV > 0 ? (eb.ebitda / rlV * 100) : 0;
 
     var cards = [
       { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado assinado' },
-      { lbl: 'CMV / Custo', val: money(cmvV), cls: 'number-red', sub: rlV > 0 ? fmtPct(Math.abs(cmvV) / rlV * 100) + ' da receita líquida' : '' },
       { lbl: 'Margem Bruta (gerencial)', val: fmtPct(margemBruta), cls: margemBruta >= 0 ? 'number-green' : 'number-red', sub: '(Receita Líq. − CMV) ÷ Receita Líq.' },
+      { lbl: 'EBITDA (gerencial)', val: (eb.ebitda >= 0 ? '+' : '') + money(eb.ebitda), cls: eb.ebitda >= 0 ? 'number-green' : 'number-red', sub: 'Result. Operacional + D&A · margem ' + fmtPct(margemEbitda) },
       { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' }
     ];
     host.innerHTML = cards.map(function (c) {
@@ -4036,6 +4058,26 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
       body += '<td class="num dre-td-av">' + esc(avTxt) + '</td>';
       body += '</tr>';
     });
+
+    // ── Linha DERIVADA: EBITDA (gerencial) — FORA da cascata oficial assinada ──
+    // Separada visualmente; rotulada como gerencial; não altera os valores assinados.
+    var eb = computeEbitda(dre, filled);
+    if (eb.hasDa) {
+      var ebTitle = 'EBITDA gerencial = Resultado Operacional + Depreciação & Amortização (add-back). ' +
+        'Métrica DERIVADA, fora da cascata oficial assinada (Priori).';
+      body += '<tr class="dre-row dre-row--ebitda dre-row--l0">' +
+        '<td class="dre-cell-label">(=) EBITDA <span class="dre-ger-note" title="' + esc(ebTitle) + '" aria-label="' + esc(ebTitle) + '">gerencial · Result. Operacional + D&amp;A · fora da cascata</span></td>';
+      filled.forEach(function (m) {
+        var v = ebitdaOfMonth(dre, m);
+        var vc = v < 0 ? 'number-red' : (v > 0 ? 'number-green' : '');
+        body += '<td class="num ' + vc + '">' + (v ? cell(v) : '<span class="dre-zero">—</span>') + '</td>';
+      });
+      var ebTc = eb.ebitda < 0 ? 'number-red' : (eb.ebitda > 0 ? 'number-green' : '');
+      body += '<td class="num dre-td-total ' + ebTc + '">' + (eb.ebitda ? cell(eb.ebitda) : '—') + '</td>';
+      var ebAv = avPct(eb.ebitda);
+      body += '<td class="num dre-td-av">' + esc((rlAcum > 0 && eb.ebitda) ? fmtPct(ebAv) : '—') + '</td>';
+      body += '</tr>';
+    }
     body += '</tbody>';
 
     wrap.innerHTML = '<table class="dre-table" data-col-count="' + colCount + '">' + head + body + '</table>';
@@ -4228,6 +4270,66 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     return out;
   }
 
+  // ── Posição de caixa + runway (estimativa gerencial) ──
+  // Lê o saldo de caixa que o importador agora expõe:
+  //   fluxo_caixa.saldoInicial (abertura 01/01) e monthly[m].saldoFinal/grossLiquido.
+  // Saldo atual = saldoFinal do ÚLTIMO mês realizado/parcial disponível.
+  // Burn = consumo médio mensal de caixa (grossLiquido) nos meses fechados.
+  //   Convenção defensável: média do grossLiquido dos meses FECHADOS (exclui o parcial,
+  //   ainda em andamento). Se essa média for ≥ 0, o caixa está estável/crescendo →
+  //   runway não-limitante (não inventamos "infinito").
+  function computeCashPosition() {
+    var fc = cashData();
+    var out = {
+      ok: false, saldoInicial: 0, saldoAtual: 0, lastMonth: 0, lastPartial: false,
+      series: [], burnAvg: 0, burnMonths: 0, avgGen: 0, closedMonths: 0,
+      runwayMonths: null, stable: false
+    };
+    if (!fc || !fc.monthly) return out;
+    var si = Number(fc.saldoInicial);
+    out.saldoInicial = Number.isFinite(si) ? si : 0;
+
+    var closedGross = [];
+    for (var m = 1; m <= 12; m++) {
+      var rec = fc.monthly[m] || fc.monthly[String(m)];
+      if (!rec) continue;
+      var saldo = rec.saldoFinal;
+      var hasSaldo = (saldo != null && Number.isFinite(Number(saldo)));
+      var gross = Number(rec.grossLiquido) || 0;
+      var partial = isPartial(m);
+      var realized = !isProjection(m); // realizado ou parcial
+      if (!realized || !hasSaldo) continue;
+      out.series.push({ m: m, saldoFinal: Number(saldo), gross: gross, partial: partial });
+      out.saldoAtual = Number(saldo);
+      out.lastMonth = m;
+      out.lastPartial = partial;
+      if (!partial) { closedGross.push(gross); out.closedMonths++; }
+    }
+    if (!out.series.length) return out;
+    out.ok = true;
+
+    // Geração média mensal (todos os meses fechados — base honesta p/ "estável vs queima").
+    if (closedGross.length) {
+      var sum = closedGross.reduce(function (a, b) { return a + b; }, 0);
+      out.avgGen = sum / closedGross.length;
+    }
+    // Burn = média dos meses fechados de QUEIMA (grossLiquido < 0), em módulo.
+    var burns = closedGross.filter(function (g) { return g < 0; }).map(function (g) { return -g; });
+    out.burnMonths = burns.length;
+    out.burnAvg = burns.length ? burns.reduce(function (a, b) { return a + b; }, 0) / burns.length : 0;
+
+    // Runway: só faz sentido se a geração média é negativa (caixa caindo no agregado).
+    if (out.avgGen < 0) {
+      var monthlyBurn = -out.avgGen; // consumo médio agregado
+      out.runwayMonths = monthlyBurn > 0 ? (out.saldoAtual / monthlyBurn) : null;
+      out.stable = false;
+    } else {
+      out.stable = true; // caixa estável/crescendo no período → runway não-limitante
+      out.runwayMonths = null;
+    }
+    return out;
+  }
+
   // ── Reconciliação (governança) ──
   function computeRecon() {
     var fc = cashData();
@@ -4289,10 +4391,44 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   // ─────────────────────────────────────────────────────────────────────────
   // Render: KPIs (geração acumulada, custo da RJ, estrutura pura, runway)
   // ─────────────────────────────────────────────────────────────────────────
-  function renderKpis(op, rj) {
+  function renderKpis(op, rj, cash) {
     var host = document.getElementById('rjKpis');
     if (!host) return;
     var accCls = op.accum >= 0 ? 'number-green' : 'number-red';
+
+    // KPI Runway — agora LIVE (saldo de caixa real do importador).
+    var runwayCard;
+    if (cash && cash.ok) {
+      var saldoCls = cash.saldoAtual >= 0 ? 'number-gold' : 'number-red';
+      var lastLbl = (MONTH_ABBR[cash.lastMonth - 1] || ('M' + cash.lastMonth)) + (cash.lastPartial ? ' (parcial)' : '');
+      var runwayVal, runwaySub;
+      if (cash.stable) {
+        runwayVal = 'Caixa estável';
+        runwaySub = 'geração média ≥ 0 no período — sem queima (runway não-limitante)';
+      } else if (cash.runwayMonths != null && Number.isFinite(cash.runwayMonths)) {
+        var meses = cash.runwayMonths;
+        runwayVal = (Math.round(meses * 10) / 10).toLocaleString('pt-BR') + ' meses';
+        runwaySub = 'saldo ' + moneyShort(cash.saldoAtual) + ' ÷ queima média ' + moneyShort(-cash.avgGen) + '/mês';
+      } else {
+        runwayVal = 'estável';
+        runwaySub = 'sem queima média no período';
+      }
+      runwayCard = {
+        lbl: 'Saldo de Caixa · Runway',
+        val: money(cash.saldoAtual),
+        cls: saldoCls,
+        sub: 'saldo em ' + lastLbl + ' · ' + runwayVal,
+        runwaySub: runwaySub
+      };
+    } else {
+      runwayCard = {
+        lbl: 'Saldo de Caixa · Runway',
+        val: 'indisponível',
+        cls: 'rj-kpi-blocked',
+        sub: 'saldo de caixa ausente no dado'
+      };
+    }
+
     var cards = [
       {
         lbl: 'Caixa Operacional Gerado',
@@ -4312,18 +4448,16 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
         cls: 'number-gold',
         sub: fmtPct(100 - rj.pct) + ' do custo fixo · operação enxuta'
       },
-      {
-        lbl: 'Runway',
-        val: 'indisponível',
-        cls: 'rj-kpi-blocked',
-        sub: 'requer saldo de caixa (a expor pelo importador)'
-      }
+      runwayCard
     ];
     host.innerHTML = cards.map(function (c) {
-      return '<div class="rj-kpi' + (c.cls === 'rj-kpi-blocked' ? ' rj-kpi--blocked' : '') + '">' +
+      var blocked = c.cls === 'rj-kpi-blocked';
+      return '<div class="rj-kpi' + (blocked ? ' rj-kpi--blocked' : '') + '">' +
         '<div class="lbl">' + esc(c.lbl) + '</div>' +
         '<div class="val ' + esc(c.cls) + '">' + esc(c.val) + '</div>' +
-        '<div class="sub">' + esc(c.sub) + '</div></div>';
+        '<div class="sub">' + esc(c.sub) +
+        (c.runwaySub ? '<span class="rj-kpi-sub2">' + esc(c.runwaySub) + '</span>' : '') +
+        '</div></div>';
     }).join('');
   }
 
@@ -4432,27 +4566,78 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Render: card Runway (BLOQUEADO por dado novo) — placeholder honesto
+  // Render: card Runway (LIVE) — saldo atual, evolução do saldo, runway/status
   // ─────────────────────────────────────────────────────────────────────────
-  function renderRunway(op) {
+  function renderRunway(cash) {
     var host = document.getElementById('rjRunway');
     if (!host) return;
-    // Cálculo PRONTO pra ligar quando o saldo chegar: runway = saldoFinal / burn médio.
-    // burn médio (gerencial) = média dos meses com geração operacional negativa.
-    var burns = op.series.filter(function (s) { return s.opGen < 0; }).map(function (s) { return -s.opGen; });
-    var burnAvg = burns.length ? burns.reduce(function (a, b) { return a + b; }, 0) / burns.length : 0;
-    var burnTxt = burnAvg > 0 ? money(burnAvg) + '/mês (média dos meses negativos)' : 'sem meses de queima no período realizado';
+    if (!cash || !cash.ok || !cash.series.length) {
+      host.innerHTML =
+        '<div class="rj-card-head"><div class="rj-card-title">RUNWAY</div>' +
+        '<div class="rj-card-sub rj-blocked-tag">SALDO INDISPONÍVEL</div></div>' +
+        '<div class="rj-runway-body"><div class="rj-runway-msg">Saldo de caixa ausente no dado deste período.</div></div>';
+      return;
+    }
+
+    // Mini-série de saldoFinal a partir da abertura (226.315,50).
+    var pts = [{ m: 0, saldo: cash.saldoInicial, partial: false }].concat(
+      cash.series.map(function (s) { return { m: s.m, saldo: s.saldoFinal, partial: s.partial }; })
+    );
+    var W = 320, H = 96, padL = 8, padR = 8, padT = 14, padB = 18;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = pts.length;
+    var vals = pts.map(function (p) { return p.saldo; });
+    var maxV = Math.max.apply(null, vals);
+    var minV = Math.min.apply(null, vals.concat([0]));
+    var range = (maxV - minV) || 1;
+    function x(i) { return padL + (n === 1 ? plotW / 2 : i * plotW / (n - 1)); }
+    function y(v) { return padT + plotH - ((v - minV) / range) * plotH; }
+    var line = pts.map(function (p, i) { return x(i).toFixed(1) + ',' + y(p.saldo).toFixed(1); }).join(' ');
+    var area = 'M' + x(0).toFixed(1) + ',' + y(minV).toFixed(1) + ' L' +
+      pts.map(function (p, i) { return x(i).toFixed(1) + ',' + y(p.saldo).toFixed(1); }).join(' L') +
+      ' L' + x(n - 1).toFixed(1) + ',' + y(minV).toFixed(1) + ' Z';
+    var dots = pts.map(function (p, i) {
+      if (i === 0) return ''; // abertura sem rótulo de mês
+      var lbl = (MONTH_ABBR[p.m - 1] || ('M' + p.m)) + (p.partial ? ' (parcial)' : '');
+      return '<circle class="rj-spark-dot' + (p.partial ? ' rj-spark-partial' : '') + '" cx="' + x(i).toFixed(1) + '" cy="' + y(p.saldo).toFixed(1) +
+        '" r="3"><title>' + esc(lbl + ' · saldo ' + money(p.saldo)) + '</title></circle>';
+    }).join('');
+    var spark = '<svg class="rj-spark-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Evolução do saldo de caixa desde a abertura">' +
+      '<path class="rj-spark-area" d="' + area + '"/>' +
+      '<polyline class="rj-spark-line" fill="none" points="' + line + '"/>' + dots + '</svg>';
+
+    // Status / runway.
+    var lastLbl = (MONTH_FULL[cash.lastMonth] || ('Mês ' + cash.lastMonth)) + (cash.lastPartial ? ' (parcial)' : '');
+    var statusBlock;
+    if (cash.stable) {
+      statusBlock =
+        '<div class="rj-runway-status rj-runway-stable">' +
+        '<span class="rj-runway-status-val">Caixa estável</span>' +
+        '<span class="rj-runway-status-lbl">geração média ' + (cash.avgGen >= 0 ? '+' : '') + money(cash.avgGen) + '/mês nos meses fechados — sem queima média (runway não-limitante)</span></div>';
+    } else if (cash.runwayMonths != null && Number.isFinite(cash.runwayMonths)) {
+      var meses = Math.round(cash.runwayMonths * 10) / 10;
+      var rwCls = meses < 6 ? 'rj-runway-tight' : 'rj-runway-ok';
+      statusBlock =
+        '<div class="rj-runway-status ' + rwCls + '">' +
+        '<span class="rj-runway-status-val">' + esc(meses.toLocaleString('pt-BR')) + ' meses</span>' +
+        '<span class="rj-runway-status-lbl">saldo ' + esc(money(cash.saldoAtual)) + ' ÷ queima média ' + esc(money(-cash.avgGen)) + '/mês</span></div>';
+    } else {
+      statusBlock =
+        '<div class="rj-runway-status rj-runway-stable"><span class="rj-runway-status-val">Caixa estável</span>' +
+        '<span class="rj-runway-status-lbl">sem queima média no período fechado</span></div>';
+    }
 
     host.innerHTML =
       '<div class="rj-card-head"><div class="rj-card-title">RUNWAY</div>' +
-      '<div class="rj-card-sub rj-blocked-tag">BLOQUEADO · requer dado novo</div></div>' +
+      '<div class="rj-card-sub rj-runway-est-tag">ESTIMATIVA GERENCIAL</div></div>' +
       '<div class="rj-runway-body">' +
-      '<div class="rj-runway-msg">Runway = <strong>saldo de caixa ÷ burn médio</strong>. O saldo de caixa ' +
-      '(abertura/fechamento) <strong>não está no JSON</strong> — o importador ainda não o expõe. ' +
-      'Não estimamos saldo para não inventar número.</div>' +
-      '<div class="rj-runway-todo">A expor pelo importador: <code>fluxo_caixa.saldoInicial</code> / <code>fluxo_caixa.saldoFinal</code> por mês ' +
-      '(existe na fonte Bling, <code>diagnostics.linhas_saldo=2</code>).</div>' +
-      '<div class="rj-runway-ready">Cálculo pronto pra ligar — burn de referência: <strong>' + esc(burnTxt) + '</strong>.</div>' +
+      '<div class="rj-runway-saldo"><span class="rj-runway-saldo-val ' + (cash.saldoAtual >= 0 ? 'number-gold' : 'number-red') + '">' + esc(money(cash.saldoAtual)) + '</span>' +
+      '<span class="rj-runway-saldo-lbl">saldo de caixa em ' + esc(lastLbl) + '</span></div>' +
+      spark +
+      '<div class="rj-runway-spark-cap">evolução desde a abertura (' + esc(money(cash.saldoInicial)) + ' em jan/2026)</div>' +
+      statusBlock +
+      '<div class="rj-runway-honest">Caixa apertado para o porte: <strong>' + esc(moneyShort(cash.saldoAtual)) + '</strong> de saldo numa empresa de ~R$ 20M de receita. ' +
+      'Estimativa gerencial — não é plano de recuperação homologado.</div>' +
       '</div>';
   }
 
@@ -4487,14 +4672,15 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
     }
     var rj = computeRjCost();
     var op = computeOpCash();
+    var cash = computeCashPosition();
     var recon = computeRecon();
 
     renderBanner(op);
     renderSeal(op, rj);
-    renderKpis(op, rj);
+    renderKpis(op, rj, cash);
     renderRjCost(rj);
     renderOpChart(op);
-    renderRunway(op);
+    renderRunway(cash);
     renderRecon(recon);
 
     if (foot) {

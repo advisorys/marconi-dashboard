@@ -8,15 +8,15 @@
   "old_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-16T23:36:00-03:00",
-    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
+    "ultima_atualizacao": "2026-06-17T00:29:23-03:00",
+    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; dre-contabil-priori.json",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
   },
   "new_meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-17T00:29:23-03:00",
+    "ultima_atualizacao": "2026-06-17T14:38:27-03:00",
     "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; dre-contabil-priori.json",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
@@ -28,7 +28,9 @@
       "saidas": 4758421.91,
       "resultado": 95510.07,
       "projection": false,
-      "partial": false
+      "partial": false,
+      "grossLiquido": -216324.72,
+      "saldoFinal": 9990.78
     },
     "2": {
       "name": "Fevereiro",
@@ -36,7 +38,9 @@
       "saidas": 3885077.99,
       "resultado": 24220.77,
       "projection": false,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 24220.77,
+      "saldoFinal": 34211.55
     },
     "3": {
       "name": "Março",
@@ -44,7 +48,9 @@
       "saidas": 12095975.2,
       "resultado": 144329.79,
       "projection": false,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 144324.5,
+      "saldoFinal": 178536.05
     },
     "4": {
       "name": "Abril",
@@ -52,7 +58,9 @@
       "saidas": 14179111.19,
       "resultado": -134819.83,
       "projection": false,
-      "partial": false
+      "partial": false,
+      "grossLiquido": -134819.83,
+      "saldoFinal": 43716.22
     },
     "5": {
       "name": "Maio",
@@ -60,7 +68,9 @@
       "saidas": 9241943.07,
       "resultado": 71692.73,
       "projection": false,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 71692.73,
+      "saldoFinal": 115408.95
     },
     "6": {
       "name": "Junho",
@@ -68,7 +78,9 @@
       "saidas": 3850076.25,
       "resultado": 217057.78,
       "projection": false,
-      "partial": true
+      "partial": true,
+      "grossLiquido": 217057.78,
+      "saldoFinal": 332466.73
     },
     "7": {
       "name": "Julho",
@@ -76,7 +88,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     },
     "8": {
       "name": "Agosto",
@@ -84,7 +98,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     },
     "9": {
       "name": "Setembro",
@@ -92,7 +108,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     },
     "10": {
       "name": "Outubro",
@@ -100,7 +118,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     },
     "11": {
       "name": "Novembro",
@@ -108,7 +128,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     },
     "12": {
       "name": "Dezembro",
@@ -116,7 +138,9 @@
       "saidas": 0.0,
       "resultado": 0.0,
       "projection": true,
-      "partial": false
+      "partial": false,
+      "grossLiquido": 0.0,
+      "saldoFinal": null
     }
   },
   "reconciliation": [
@@ -186,7 +210,7 @@
     "categories": 8,
     "fixed_items": 37,
     "fixed_totals": 2,
-    "dre_lines": 12
+    "dre_lines": 13
   },
   "diagnostics": {
     "linhas_dc": 1404,

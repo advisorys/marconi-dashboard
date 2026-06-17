@@ -82,6 +82,12 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
 .dre-row--resultado .dre-cell-label { font-weight: 800; color: var(--gold-l); letter-spacing: .2px; }
 .dre-row--resultado td.num { font-weight: 700; }
 .dre-row--receita .dre-cell-label { font-weight: 600; }
+/* Linha DERIVADA EBITDA (gerencial) — fora da cascata oficial assinada.
+   Borda tracejada superior separa visualmente o que NÃO é assinado. */
+.dre-row--ebitda { border-top: 2px dashed color-mix(in srgb, var(--indigo) 55%, transparent); background: color-mix(in srgb, var(--indigo) 7%, transparent); }
+.dre-row--ebitda .dre-cell-label { font-weight: 800; color: var(--indigo); letter-spacing: .2px; }
+.dre-row--ebitda td.num { font-weight: 700; }
+.dre-row--ebitda .dre-ger-note { color: var(--text-dim); }
 .dre-row:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
 .dre-zero { color: var(--text-mute); }
 

@@ -428,6 +428,15 @@ async function run() {
           dreKpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
           dreTable: !!document.querySelector('#dreTableWrap .dre-table'),
           dreResultRows: document.querySelectorAll('.dre-row--resultado, .dre-row--subtotal').length,
+          // EBITDA pleno (gerencial, derivado): KPI presente E linha derivada fora da cascata.
+          dreEbitda: (() => {
+            const kpiOk = [...document.querySelectorAll('#dreKpis .dre-kpi .lbl')]
+              .some(el => /EBITDA/i.test(el.textContent || ''));
+            const rowEl = document.querySelector('#dreTableWrap .dre-row--ebitda');
+            const rowTxt = rowEl ? (rowEl.textContent || '') : '';
+            const rowOk = !!rowEl && /EBITDA/i.test(rowTxt) && /gerencial/i.test(rowTxt);
+            return kpiOk && rowOk;
+          })(),
           dreAvColumn: !!document.querySelector('#dreTableWrap .dre-th-av') && document.querySelectorAll('#dreTableWrap .dre-td-av').length >= 3,
           dreMargins: document.querySelectorAll('#dreMargins .dre-margin-card').length,
           dreCmvBar: !!document.querySelector('#dreTableWrap .dre-row--cmv .dre-cmv-bar-fill'),
@@ -459,7 +468,11 @@ async function run() {
           rjCostTotal: !!document.querySelector('#rjCostBlock .rj-cost-total'),
           rjSplitBar: !!document.querySelector('#rjCostBlock .rj-split-rj') && !!document.querySelector('#rjCostBlock .rj-split-op'),
           rjOpChart: !!document.querySelector('#rjOpChart .rj-chart-svg'),
-          rjRunwayBlocked: !!document.querySelector('#rjRunway .rj-blocked-tag'),
+          // Runway agora é LIVE: saldo real + sparkline de evolução + bloco de status/runway.
+          rjRunwayLive: !!document.querySelector('#rjRunway .rj-runway-saldo-val') &&
+            !!document.querySelector('#rjRunway .rj-spark-svg') &&
+            !!document.querySelector('#rjRunway .rj-runway-status') &&
+            !document.querySelector('#rjRunway .rj-blocked-tag'),
           rjReconSeal: !!document.querySelector('#rjRecon .rj-recon-seal'),
           rjAuditNote: !!document.querySelector('#rjCostBlock .rj-audit-note'),
           statusSeal: (() => {
@@ -504,6 +517,8 @@ async function run() {
         pushResult('dre_margin_erosion_trend', state.dreTrend === true, `dreTrend=${state.dreTrend}`);
         // (B1) Ponte Caixa × Competência (waterfall) presente com os 5 blocos e seletor de mês.
         pushResult('bridge_present', state.dreBridge === true, `dreBridge=${state.dreBridge}`);
+        // EBITDA pleno (gerencial, derivado) — KPI + linha derivada fora da cascata assinada.
+        pushResult('dre_ebitda_present', state.dreEbitda === true, `dreEbitda=${state.dreEbitda}`);
         // (E4 · Onda 5) Régua de KPIs consistente: o raio das grades DRE e Fluxo
         // converge para o mesmo register (--r-lg) no desktop, e os tokens resolvem.
         const ruler = await evaluate(`(() => {
@@ -525,14 +540,16 @@ async function run() {
         pushResult(
           'rj_render_on_active',
           state.rjKpis >= 4 && state.rjBanner === true && state.rjCostRows >= 4 && state.rjCostTotal === true &&
-          state.rjSplitBar === true && state.rjOpChart === true && state.rjRunwayBlocked === true &&
+          state.rjSplitBar === true && state.rjOpChart === true && state.rjRunwayLive === true &&
           state.rjReconSeal === true && state.rjAuditNote === true,
           JSON.stringify({
             kpis: state.rjKpis, banner: state.rjBanner, costRows: state.rjCostRows, costTotal: state.rjCostTotal,
-            splitBar: state.rjSplitBar, opChart: state.rjOpChart, runwayBlocked: state.rjRunwayBlocked,
+            splitBar: state.rjSplitBar, opChart: state.rjOpChart, runwayLive: state.rjRunwayLive,
             reconSeal: state.rjReconSeal, auditNote: state.rjAuditNote
           })
         );
+        // Runway agora ligado (saldo de caixa real do importador), não mais placeholder.
+        pushResult('rj_runway_live', state.rjRunwayLive === true, `rjRunwayLive=${state.rjRunwayLive}`);
         await screenshot('rj-desktop');
       }
       if (target === 'fixed') {

@@ -39,6 +39,25 @@
     return line ? sumLine(line, filled) : 0;
   }
 
+  // ── EBITDA PLENO (gerencial, DERIVADO — fora da cascata oficial assinada) ──
+  // EBITDA = Resultado Operacional (linha "resultado" da DRE) + Depreciação &
+  //   Amortização (linha "depreciacao", add-back). O D&A é despesa (valor negativo
+  //   na DRE) → o add-back soma |D&A|. Acum Jan–Abr = 295.437 + 23.906 = 319.343.
+  //   Métrica derivada/gerencial — NUNCA altera a cascata oficial assinada.
+  function computeEbitda(dre, filled) {
+    var resV = accumOf(findLine(dre, 'resultado'), filled);
+    var daLine = findLine(dre, 'depreciacao');
+    var daV = daLine ? accumOf(daLine, filled) : 0; // negativo na DRE
+    var da = Math.abs(daV);
+    return { ebitda: resV + da, resOper: resV, da: da, hasDa: !!daLine };
+  }
+  // EBITDA por mês (p/ a linha derivada na tabela, fora da cascata).
+  function ebitdaOfMonth(dre, m) {
+    var res = valOf(findLine(dre, 'resultado'), m);
+    var da = Math.abs(valOf(findLine(dre, 'depreciacao'), m));
+    return res + da;
+  }
+
   function renderKpis(dre, filled) {
     var host = document.getElementById('dreKpis');
     if (!host) return;
@@ -50,11 +69,14 @@
     // Margem bruta GERENCIAL (derivada, não está na DRE assinada): (RL − |CMV|) / RL.
     // Evita a leitura enganosa de "margem bruta = 100%" (a DRE oficial aninha o CMV em Desp. Vendas).
     var margemBruta = rlV > 0 ? ((rlV - Math.abs(cmvV)) / rlV * 100) : 0;
+    // EBITDA pleno (gerencial, derivado): Resultado Operacional + D&A.
+    var eb = computeEbitda(dre, filled);
+    var margemEbitda = rlV > 0 ? (eb.ebitda / rlV * 100) : 0;
 
     var cards = [
       { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado assinado' },
-      { lbl: 'CMV / Custo', val: money(cmvV), cls: 'number-red', sub: rlV > 0 ? fmtPct(Math.abs(cmvV) / rlV * 100) + ' da receita líquida' : '' },
       { lbl: 'Margem Bruta (gerencial)', val: fmtPct(margemBruta), cls: margemBruta >= 0 ? 'number-green' : 'number-red', sub: '(Receita Líq. − CMV) ÷ Receita Líq.' },
+      { lbl: 'EBITDA (gerencial)', val: (eb.ebitda >= 0 ? '+' : '') + money(eb.ebitda), cls: eb.ebitda >= 0 ? 'number-green' : 'number-red', sub: 'Result. Operacional + D&A · margem ' + fmtPct(margemEbitda) },
       { lbl: 'Lucro Líquido', val: (resV >= 0 ? '+' : '') + money(resV), cls: resV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margem) + ' da receita bruta' }
     ];
     host.innerHTML = cards.map(function (c) {
@@ -443,6 +465,26 @@
       body += '<td class="num dre-td-av">' + esc(avTxt) + '</td>';
       body += '</tr>';
     });
+
+    // ── Linha DERIVADA: EBITDA (gerencial) — FORA da cascata oficial assinada ──
+    // Separada visualmente; rotulada como gerencial; não altera os valores assinados.
+    var eb = computeEbitda(dre, filled);
+    if (eb.hasDa) {
+      var ebTitle = 'EBITDA gerencial = Resultado Operacional + Depreciação & Amortização (add-back). ' +
+        'Métrica DERIVADA, fora da cascata oficial assinada (Priori).';
+      body += '<tr class="dre-row dre-row--ebitda dre-row--l0">' +
+        '<td class="dre-cell-label">(=) EBITDA <span class="dre-ger-note" title="' + esc(ebTitle) + '" aria-label="' + esc(ebTitle) + '">gerencial · Result. Operacional + D&amp;A · fora da cascata</span></td>';
+      filled.forEach(function (m) {
+        var v = ebitdaOfMonth(dre, m);
+        var vc = v < 0 ? 'number-red' : (v > 0 ? 'number-green' : '');
+        body += '<td class="num ' + vc + '">' + (v ? cell(v) : '<span class="dre-zero">—</span>') + '</td>';
+      });
+      var ebTc = eb.ebitda < 0 ? 'number-red' : (eb.ebitda > 0 ? 'number-green' : '');
+      body += '<td class="num dre-td-total ' + ebTc + '">' + (eb.ebitda ? cell(eb.ebitda) : '—') + '</td>';
+      var ebAv = avPct(eb.ebitda);
+      body += '<td class="num dre-td-av">' + esc((rlAcum > 0 && eb.ebitda) ? fmtPct(ebAv) : '—') + '</td>';
+      body += '</tr>';
+    }
     body += '</tbody>';
 
     wrap.innerHTML = '<table class="dre-table" data-col-count="' + colCount + '">' + head + body + '</table>';
