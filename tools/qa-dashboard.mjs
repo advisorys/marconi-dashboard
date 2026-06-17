@@ -334,7 +334,7 @@ async function run() {
     await screenshot('phase5-desktop-cash');
 
     const topbarRects = [];
-    for (const target of ['director', 'cash', 'fixed', 'cash']) {
+    for (const target of ['director', 'cash', 'fixed', 'dre', 'cash']) {
       let fixedAnimationProbe = null;
       await evaluate(`document.querySelector('[data-page-link="${target}"]')?.click()`);
       if (target === 'fixed') {
@@ -389,10 +389,12 @@ async function run() {
       const state = await evaluate(`(() => {
         const topbar = document.querySelector('header.top-site-nav')?.getBoundingClientRect();
         const active = document.querySelector('.page-tab.active')?.dataset.pageLink || null;
+        const dreEl = document.getElementById('dre-page');
         const visible = {
           cash: [...document.querySelectorAll('#kpis,#monthly,#table')].some(el => getComputedStyle(el).display !== 'none'),
           fixed: getComputedStyle(document.getElementById('fixed-costs')).display !== 'none',
-          director: getComputedStyle(document.getElementById('directoria')).display !== 'none'
+          director: getComputedStyle(document.getElementById('directoria')).display !== 'none',
+          dre: dreEl ? getComputedStyle(dreEl).display !== 'none' : false
         };
         return {
           page: document.body.dataset.page,
@@ -407,6 +409,9 @@ async function run() {
             final: el.dataset.v41Final || el.dataset.v67Final || ''
           })),
           directorKpis: document.querySelectorAll('.director-kpi').length,
+          dreKpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
+          dreTable: !!document.querySelector('#dreTableWrap .dre-table'),
+          dreResultRows: document.querySelectorAll('.dre-row--resultado').length,
           a11y: {
             tabs: [...document.querySelectorAll('[data-page-link]')].every(el => el.getAttribute('role') === 'tab' && el.hasAttribute('aria-selected') && el.hasAttribute('aria-controls')),
             cards: [...document.querySelectorAll('.fixed-kpi, .director-kpi')].every(el => el.hasAttribute('tabindex') && el.hasAttribute('aria-label')),
@@ -419,8 +424,13 @@ async function run() {
       pushResult(`nav_${target}`, state.page === target && state.active === target, JSON.stringify(state));
       pushResult(`visible_${target}`, state.visible[target] === true, JSON.stringify(state.visible));
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
-      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos' };
+      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE' };
       pushResult(`title_${target}`, state.title === `Marconi Foods · ${titleLabels[target]} · 2026`, state.title);
+      if (target === 'dre') {
+        pushResult('dre_render_on_active', state.dreKpis >= 4 && state.dreTable === true, JSON.stringify({ kpis: state.dreKpis, table: state.dreTable, resultRows: state.dreResultRows }));
+        pushResult('dre_result_rows_present', state.dreResultRows >= 3, `resultRows=${state.dreResultRows}`);
+        await screenshot('dre-desktop');
+      }
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
         pushResult('fixed_accessibility_labels', state.a11y.tabs && state.a11y.cards && state.a11y.regions, JSON.stringify(state.a11y));
@@ -598,6 +608,21 @@ async function run() {
     pushResult('mobile_fixed_no_overflow', mobileFixed.overflow <= 2, `overflow=${mobileFixed.overflow}`);
     pushResult('mobile_fixed_kpis_fit', mobileFixed.fixedKpis >= 4 && mobileFixed.firstKpiWidth <= 390 && mobileFixed.execSummary, JSON.stringify(mobileFixed));
     pushResult('mobile_fixed_hit_targets', mobileFixed.minFixedTabHeight >= 40, `minFixedTabHeight=${mobileFixed.minFixedTabHeight}`);
+
+    await evaluate(`document.querySelector('[data-page-link="dre"]')?.click()`);
+    await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });
+    const mobileDre = await evaluate(`(() => ({
+      page: document.body.dataset.page,
+      active: document.querySelector('.page-tab.active')?.dataset.pageLink || null,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      visible: getComputedStyle(document.getElementById('dre-page')).display !== 'none',
+      kpis: document.querySelectorAll('#dreKpis .dre-kpi').length,
+      table: !!document.querySelector('#dreTableWrap .dre-table')
+    }))()`);
+    pushResult('mobile_dre_nav', mobileDre.page === 'dre' && mobileDre.active === 'dre' && mobileDre.visible, JSON.stringify(mobileDre));
+    pushResult('mobile_dre_no_overflow', mobileDre.overflow <= 2, `overflow=${mobileDre.overflow}`);
+    pushResult('mobile_dre_render', mobileDre.kpis >= 4 && mobileDre.table === true, JSON.stringify(mobileDre));
+    await screenshot('dre-mobile');
     await screenshot('phase5-mobile-fixed');
 
     // ===== Modo Cinema (deck executivo) =====

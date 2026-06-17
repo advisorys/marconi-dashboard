@@ -1,5 +1,5 @@
 /* Marconi Dashboard application bundle. Source: src/js. Run: node tools/build.mjs
- * Build: 20260616154121
+ * Build: 20260617024708
  * Mode: production
  */
 
@@ -278,7 +278,6 @@
 /* ===== script-4 ===== */
 const DATA = window.__DATA__ || {};
 const PRECOMPUTED = DATA.precomputed || {};
-let JUSTIFICATIVAS = null;  // carregado assincronamente
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -910,36 +909,11 @@ function renderCategoryDetail() {
 }
 
 // ─── TABLE ───
-function getMonthVariationExplanation(m) {
-  if (!JUSTIFICATIVAS || !JUSTIFICATIVAS.periodos || m < 1 || m > 12) return null;
-  const de = m === 1 ? 12 : m - 1;  // Dez/25 → Jan/26 cruza o ano
-  const period = JUSTIFICATIVAS.periodos.find(p => p.ano === 2026 && p.de === de && p.para === m);
-  if (!period) return null;
-  // dedup: remove duplicate justificativas, manter a de maior magnitude
-  const map = {};
-  (period.itens || []).forEach(it => {
-    const k = (it.justificativa || '').trim().toLowerCase();
-    if (!k || k.length < 6) return;
-    const mag = Math.abs(Number(it.delta) || 0);
-    if (!map[k] || mag > (map[k]._mag || 0)) {
-      const c = {};
-      for (let p in it) { if (Object.prototype.hasOwnProperty.call(it, p)) c[p] = it[p]; }
-      c._mag = mag;
-      map[k] = c;
-    }
-  });
-  const deduped = Object.keys(map).map(k => map[k])
-    .sort((a, b) => Math.abs(Number(b.delta) || 0) - Math.abs(Number(a.delta) || 0));
-  return deduped.length ? deduped : null;
-}
-
 function renderMonthDetailRow(m) {
   const d = DATA.monthly[m];
-  const prev = m > 1 ? DATA.monthly[m - 1] : null;
   const margem = d.entradas > 0 ? d.resultado / d.entradas * 100 : 0;
   const cats = monthCategoryBreakdown(m);
   const topCats = cats.slice(0, 5);
-  const prevResultDelta = prev ? d.resultado - prev.resultado : null;
   const topHtml = topCats.length ? topCats.map((c, i) => `
     <div class="month-cat-row">
       <div class="month-cat-rank">${String(i + 1).padStart(2, '0')}</div>
@@ -976,39 +950,6 @@ function renderMonthDetailRow(m) {
         <div class="month-detail-box">
           <h3>Leitura gerencial</h3>
           <div class="month-detail-reading">${getMonthCriticalReading(m)}</div>
-          <div class="month-detail-reading" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
-            <strong>Variação vs. mês anterior:</strong><br>
-            ${(() => {
-              const escJ = (s) => (window.MarconiFormat && window.MarconiFormat.escapeHtml) ? window.MarconiFormat.escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s);
-              const explntn = getMonthVariationExplanation(m);
-              let html = '';
-              if (prev) {
-                const dDelta = d.resultado - prev.resultado;
-                const deltaDir = dDelta >= 0 ? '▲ ganho' : '▼ queda';
-                const deltaMag = fmtMoney(Math.abs(dDelta));
-                const deltaPct = fmtDeltaPct(d.resultado, prev.resultado);
-                html += `<div style="margin-bottom:10px;"><strong class="${dDelta >= 0 ? 'number-green' : 'number-red'}">${deltaDir} de ${deltaMag}</strong> no resultado (${deltaPct})</div>`;
-                html += `<div style="font-size:12px; line-height:1.7; opacity:.85;">Entradas: ${fmtDeltaAbs(d.entradas - prev.entradas)} (${fmtDeltaPct(d.entradas, prev.entradas)})<br>Saídas: ${fmtDeltaAbs(d.saidas - prev.saidas)} (${fmtDeltaPct(d.saidas, prev.saidas)})<br>Resultado: ${fmtDeltaAbs(prevResultDelta)} (${fmtDeltaPct(d.resultado, prev.resultado)})</div>`;
-              } else {
-                html += `<div style="font-size:12px; opacity:.7;">Mês de abertura do exercício — sem mês anterior no painel para comparar os valores.</div>`;
-              }
-              if (explntn && explntn.length) {
-                html += `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">`;
-                html += `<div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-mute); margin-bottom:10px;">O que explica · controladoria <span style="opacity:.6;">(${explntn.length})</span></div>`;
-                html += `<div style="max-height:320px; overflow-y:auto; padding-right:6px;">`;
-                html += explntn.map(it => {
-                  const hasDelta = it.delta != null;
-                  const cls = hasDelta ? (it.delta >= 0 ? 'number-green' : 'number-red') : '';
-                  const dStr = hasDelta ? `<span class="${cls}" style="font-weight:600; white-space:nowrap; margin-left:8px;">${it.delta >= 0 ? '+' : ''}${fmtMoney(it.delta)}</span>` : '';
-                  return `<div style="margin-bottom:11px;"><div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><strong style="font-size:12px;">${escJ(it.conta)}</strong>${dStr}</div><div style="font-size:12px; opacity:.78; line-height:1.45; margin-top:2px;">${escJ(it.justificativa)}</div></div>`;
-                }).join('');
-                html += `</div></div>`;
-              } else if (prev) {
-                html += `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text-mute); font-style:italic;">Justificativas da controladoria ainda não disponíveis para esta transição.</div>`;
-              }
-              return html;
-            })()}
-          </div>
         </div>
       </div>
     </div>
@@ -1191,16 +1132,6 @@ function setupSideNav() {
 
 // ─── INIT ───
 function init() {
-  // Carrega justificativas de variação (assincronamente, não bloqueia)
-  if (!JUSTIFICATIVAS) {
-    const url = 'data/justificativas.json' + (window.DASHBOARD_ASSET_VERSION ? '?v=' + encodeURIComponent(window.DASHBOARD_ASSET_VERSION) : '');
-    fetch(url).then(r => r.json()).then(j => {
-      JUSTIFICATIVAS = j;
-      // Se um mês está aberto no detalhe, re-renderiza pra mostrar as justificativas
-      if (selectedMonthDetail) renderTable();
-    }).catch(e => console.warn('[10-cashflow] falha ao carregar justificativas:', e));
-  }
-
   const makeButtonLike = (el, handler) => {
     if (!el) return;
     el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0');
@@ -3216,6 +3147,169 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   console.log('[PATCH v55] Submenus secundários ocultados em todas as páginas');
 })();
 
+/* ===== src/js/45-dre.js ===== */
+
+/* Página DRE — Demonstração de Resultado do Exercício (contábil, regime de competência).
+   Lê window.DASHBOARD_DATA.dre (gerado pelo importador a partir do .xlsb da contabilidade).
+   Some uma camada via decorator de setDashboardPage — não reescreve a base. */
+(function () {
+  'use strict';
+
+  var MONTH_FULL = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  function fmt() { return (window.MarconiFormat) || {}; }
+  function esc(s) { var f = fmt(); return f.escapeHtml ? f.escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s); }
+  function money(v) { var f = fmt(); return f.moneyFull ? f.moneyFull(v) : 'R$ ' + Math.round(v || 0).toLocaleString('pt-BR'); }
+  function cell(v) {
+    var n = Math.round(Number(v) || 0);
+    return n.toLocaleString('pt-BR');
+  }
+
+  function dreData() {
+    var data = window.DASHBOARD_DATA || window.__DATA__ || {};
+    return data.dre || null;
+  }
+
+  function valOf(line, m) {
+    var v = line.values || {};
+    return Number(v[m] != null ? v[m] : (v[String(m)] != null ? v[String(m)] : 0)) || 0;
+  }
+  function sumLine(line, months) {
+    return months.reduce(function (s, m) { return s + valOf(line, m); }, 0);
+  }
+  function findLine(dre, key) {
+    for (var i = 0; i < dre.lines.length; i++) { if (dre.lines[i].key === key) return dre.lines[i]; }
+    return null;
+  }
+
+  function renderKpis(dre, filled) {
+    var host = document.getElementById('dreKpis');
+    if (!host) return;
+    var rl = findLine(dre, 'r16');      // Receita Operacional Líquida
+    var brm = findLine(dre, 'r13');     // Receita Operacional Bruta
+    var ebitda = findLine(dre, 'r36');  // EBITDA
+    var ll = findLine(dre, 'r47');      // Lucro Líquido
+    var rlV = rl ? sumLine(rl, filled) : 0;
+    var brV = brm ? sumLine(brm, filled) : 0;
+    var ebV = ebitda ? sumLine(ebitda, filled) : 0;
+    var llV = ll ? sumLine(ll, filled) : 0;
+    var margemLL = brV > 0 ? (llV / brV * 100) : 0;
+    var margemEb = brV > 0 ? (ebV / brV * 100) : 0;
+
+    var cards = [
+      { lbl: 'Receita Líquida', val: money(rlV), cls: 'number-gold', sub: 'acumulado do período' },
+      { lbl: 'EBITDA', val: (ebV >= 0 ? '+' : '') + money(ebV), cls: ebV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margemEb) + ' da receita bruta' },
+      { lbl: 'Lucro Líquido', val: (llV >= 0 ? '+' : '') + money(llV), cls: llV >= 0 ? 'number-green' : 'number-red', sub: fmtPct(margemLL) + ' da receita bruta' },
+      { lbl: 'Receita Bruta', val: money(brV), cls: '', sub: 'antes de deduções' }
+    ];
+    host.innerHTML = cards.map(function (c) {
+      return '<div class="dre-kpi"><div class="lbl">' + esc(c.lbl) + '</div>' +
+        '<div class="val ' + c.cls + '">' + c.val + '</div>' +
+        '<div class="sub">' + esc(c.sub) + '</div></div>';
+    }).join('');
+  }
+
+  function fmtPct(v) {
+    var f = fmt();
+    if (f.pct) return f.pct(v);
+    return (Math.round((v || 0) * 10) / 10).toLocaleString('pt-BR') + '%';
+  }
+
+  function renderTable(dre, filled) {
+    var wrap = document.getElementById('dreTableWrap');
+    if (!wrap) return;
+    var abbr = dre.months || ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+
+    var head = '<thead><tr><th class="dre-th-label">Linha</th>';
+    filled.forEach(function (m) { head += '<th class="num">' + esc(abbr[m - 1] || ('M' + m)) + '</th>'; });
+    head += '<th class="num dre-th-total">Acum.</th></tr></thead>';
+
+    var body = '<tbody>';
+    dre.lines.forEach(function (line) {
+      var total = sumLine(line, filled);
+      var isResult = (line.kind === 'resultado' || line.kind === 'subtotal');
+      var rowCls = 'dre-row dre-row--' + line.kind + ' dre-row--l' + (line.level || 0);
+      body += '<tr class="' + rowCls + '">';
+      body += '<td class="dre-cell-label">' + esc(line.label) + '</td>';
+      filled.forEach(function (m) {
+        var v = valOf(line, m);
+        var vc = (isResult && v < 0) ? 'number-red' : (isResult && v > 0 ? 'number-green' : '');
+        body += '<td class="num ' + vc + '">' + (v ? cell(v) : '<span class="dre-zero">—</span>') + '</td>';
+      });
+      var tc = (isResult && total < 0) ? 'number-red' : (isResult && total > 0 ? 'number-green' : '');
+      body += '<td class="num dre-td-total ' + tc + '">' + (total ? cell(total) : '—') + '</td>';
+      body += '</tr>';
+    });
+    body += '</tbody>';
+
+    wrap.innerHTML = '<table class="dre-table">' + head + body + '</table>';
+  }
+
+  function renderDrePage() {
+    var dre = dreData();
+    var ctx = document.getElementById('dreContext');
+    var foot = document.getElementById('dreFoot');
+    if (!dre || !dre.lines || !dre.lines.length) {
+      var wrap = document.getElementById('dreTableWrap');
+      if (wrap) wrap.innerHTML = '<div class="dre-empty">DRE contábil ainda não disponível para este período.</div>';
+      var kp = document.getElementById('dreKpis'); if (kp) kp.innerHTML = '';
+      return;
+    }
+    var filled = (dre.monthsFilled && dre.monthsFilled.length) ? dre.monthsFilled.slice() : [1, 2, 3, 4, 5];
+    filled.sort(function (a, b) { return a - b; });
+
+    if (ctx) {
+      var first = MONTH_FULL[filled[0]] || '';
+      var last = MONTH_FULL[filled[filled.length - 1]] || '';
+      ctx.textContent = 'REGIME DE COMPETÊNCIA · ' + (first === last ? first : (first + '—' + last)).toUpperCase();
+    }
+    renderKpis(dre, filled);
+    renderTable(dre, filled);
+    if (foot) {
+      var src = (dre.source && dre.source.workbook) ? dre.source.workbook : 'contabilidade';
+      foot.innerHTML = 'Fonte: ' + esc(src) + ' · aba ' + esc((dre.source && dre.source.sheet) || 'DRE') +
+        '. Valores em regime de competência (não confundir com o caixa do Fluxo).';
+    }
+  }
+  window.renderDrePage = renderDrePage;
+
+  function maybeRenderDre(page) {
+    if (page === 'dre') {
+      try { renderDrePage(); } catch (e) { console.error('Erro DRE:', e); }
+    }
+  }
+
+  // Hook primário: o smooth-nav de 50-ux-patches chama window.__baseSetDashboardPage
+  // DIRETO (não a cadeia de window.setDashboardPage), então um decorator de
+  // window.setDashboardPage seria ignorado. 45-dre roda entre 40 (que define a base)
+  // e 50 (que a captura), então envolvemos a base antes de ela ser capturada.
+  var base = window.__baseSetDashboardPage;
+  if (typeof base === 'function' && !base.__dreWrapped) {
+    var wrapped = function (page) {
+      var out = base.apply(this, arguments);
+      maybeRenderDre(page);
+      return out;
+    };
+    wrapped.__dreWrapped = true;
+    window.__baseSetDashboardPage = wrapped;
+  }
+
+  // Backup idempotente: evento de troca de página.
+  if (window.MarconiEvents && window.MarconiEvents.on) {
+    window.MarconiEvents.on('page:changed', function (e) {
+      maybeRenderDre(e && e.detail && e.detail.to);
+    });
+  }
+
+  // Render inicial se a página já abrir na DRE.
+  if (window.onDashboardReady) {
+    window.onDashboardReady(function () {
+      if (document.body && document.body.dataset.page === 'dre') renderDrePage();
+    });
+  }
+})();
+
 /* ===== src/js/50-ux-patches.js ===== */
 
 /* ===== patch-v60-smooth-ux-js ===== */
@@ -4186,7 +4280,8 @@ const FIXED_COST_DATA = window.__FIXED_COST_DATA__ || {};
   const PAGE_TITLE_LABELS = {
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
-    fixed: 'Custos Fixos'
+    fixed: 'Custos Fixos',
+    dre: 'DRE'
   };
 
   function syncActivePageState() {

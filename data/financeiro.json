@@ -2,29 +2,440 @@
   "meta": {
     "empresa": "Marconi Foods",
     "periodo": "2026",
-    "ultima_atualizacao": "2026-06-16T12:41:05-03:00",
-    "fonte": "Custos Fixos.xlsx; Fluxo de Caixa.xlsx",
+    "ultima_atualizacao": "2026-06-16T23:36:00-03:00",
+    "fonte": "Fonte de Dados Dashboard - Marconi.xlsx; Custos Fixos.xlsx; DRE MARCONI 2026.xlsb",
     "versao_dashboard": "1.0",
     "consultor": "Felipe — Consultoria Financeira"
   },
   "fluxo_caixa": {
     "source": {
-      "workbook": "Fluxo de Caixa.xlsx",
-      "monthlySheet": "RESUMO MENSAL",
-      "dailySheet": "FLUXO DE CAIXA - 2026",
-      "method": "Saídas gerenciais = saídas brutas menos Transferência entre Contas e Importação, para conciliar com o RESUMO MENSAL."
+      "workbook": "Fonte de Dados Dashboard - Marconi.xlsx",
+      "sheets": [
+        "Cola_Bling",
+        "DePara_Bling",
+        "d_CategCustos"
+      ],
+      "method": "Extrato Bling classificado por DE-PARA + d_CategCustos. Exclui Classe AJUSTE (transferências/ajuste) do resultado; Importação conta como saída real. Categorias = saídas por Grupo DRE. Apenas realizado (mês futuro = zero).",
+      "diagnostics": {
+        "linhas_dc": 1404,
+        "linhas_saldo": 2,
+        "ids_dup": 0,
+        "sem_categoria": 15,
+        "categorias_sem_depara": [
+          "(vazio)"
+        ],
+        "al3_sem_classe": [],
+        "ajuste_movimentado": 41110830.32,
+        "fora_do_ano": 0
+      }
     },
-    "daily": [
-      {
-        "date": "2026-01-01",
-        "month": 1,
-        "day": 1,
+    "monthly": {
+      "1": {
+        "name": "Janeiro",
+        "entradas": 4853931.98,
+        "saidas": 4758421.91,
+        "resultado": 95510.07,
+        "projection": false,
+        "partial": false
+      },
+      "2": {
+        "name": "Fevereiro",
+        "entradas": 3909298.76,
+        "saidas": 3885077.99,
+        "resultado": 24220.77,
+        "projection": false,
+        "partial": false
+      },
+      "3": {
+        "name": "Março",
+        "entradas": 12240304.99,
+        "saidas": 12095975.2,
+        "resultado": 144329.79,
+        "projection": false,
+        "partial": false
+      },
+      "4": {
+        "name": "Abril",
+        "entradas": 14044291.36,
+        "saidas": 14179111.19,
+        "resultado": -134819.83,
+        "projection": false,
+        "partial": false
+      },
+      "5": {
+        "name": "Maio",
+        "entradas": 9313635.8,
+        "saidas": 9241943.07,
+        "resultado": 71692.73,
+        "projection": false,
+        "partial": false
+      },
+      "6": {
+        "name": "Junho",
+        "entradas": 4067134.03,
+        "saidas": 3850076.25,
+        "resultado": 217057.78,
+        "projection": false,
+        "partial": true
+      },
+      "7": {
+        "name": "Julho",
         "entradas": 0,
         "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
+        "resultado": 0,
+        "projection": true,
+        "partial": false
       },
+      "8": {
+        "name": "Agosto",
+        "entradas": 0,
+        "saidas": 0,
+        "resultado": 0,
+        "projection": true,
+        "partial": false
+      },
+      "9": {
+        "name": "Setembro",
+        "entradas": 0,
+        "saidas": 0,
+        "resultado": 0,
+        "projection": true,
+        "partial": false
+      },
+      "10": {
+        "name": "Outubro",
+        "entradas": 0,
+        "saidas": 0,
+        "resultado": 0,
+        "projection": true,
+        "partial": false
+      },
+      "11": {
+        "name": "Novembro",
+        "entradas": 0,
+        "saidas": 0,
+        "resultado": 0,
+        "projection": true,
+        "partial": false
+      },
+      "12": {
+        "name": "Dezembro",
+        "entradas": 0,
+        "saidas": 0,
+        "resultado": 0,
+        "projection": true,
+        "partial": false
+      }
+    },
+    "categoryMonthly": [
+      {
+        "name": "CMV / CPV",
+        "months": {
+          "1": 3405119.3,
+          "2": 2503225.68,
+          "3": 5949731.75,
+          "4": 7869261.24,
+          "5": 3673956.92,
+          "6": 2340992.85,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 25742287.74,
+        "pct": 53.6
+      },
+      {
+        "name": "Deduções de Vendas",
+        "months": {
+          "1": 142965.08,
+          "2": 37140.77,
+          "3": 4998925.99,
+          "4": 4491403.62,
+          "5": 4674438.14,
+          "6": 1320153.29,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 15665026.89,
+        "pct": 32.6
+      },
+      {
+        "name": "Mov. Financeiras (antecip./empréstimos)",
+        "months": {
+          "1": 737558.45,
+          "2": 1117402.77,
+          "3": 56600,
+          "4": 410162.78,
+          "5": 101011.07,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 2422735.07,
+        "pct": 5
+      },
+      {
+        "name": "Despesas Variáveis",
+        "months": {
+          "1": 210825.62,
+          "2": 60529.07,
+          "3": 295157.81,
+          "4": 1043643.53,
+          "5": 582250.56,
+          "6": 143054.73,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 2335461.32,
+        "pct": 4.9
+      },
+      {
+        "name": "Despesas Operacionais",
+        "months": {
+          "1": 216702.43,
+          "2": 154259.45,
+          "3": 256047.31,
+          "4": 317140.93,
+          "5": 188486.42,
+          "6": 43619.8,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 1176256.34,
+        "pct": 2.4
+      },
+      {
+        "name": "Sem classificação",
+        "months": {
+          "1": 0,
+          "2": 0,
+          "3": 531065.9,
+          "4": 12000,
+          "5": 15000,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 558065.9,
+        "pct": 1.2
+      },
+      {
+        "name": "Gasto com Pessoal",
+        "months": {
+          "1": 6714.7,
+          "2": 11547.32,
+          "3": 6420.9,
+          "4": 34785.16,
+          "5": 5467.9,
+          "6": 2000,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 66935.98,
+        "pct": 0.1
+      },
+      {
+        "name": "Despesas Financeiras",
+        "months": {
+          "1": 38536.33,
+          "2": 972.93,
+          "3": 2025.54,
+          "4": 713.93,
+          "5": 1332.06,
+          "6": 255.58,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 43836.37,
+        "pct": 0.1
+      }
+    ],
+    "categories": [
+      {
+        "name": "CMV / CPV",
+        "months": {
+          "1": 3405119.3,
+          "2": 2503225.68,
+          "3": 5949731.75,
+          "4": 7869261.24,
+          "5": 3673956.92,
+          "6": 2340992.85,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 25742287.74,
+        "pct": 53.6
+      },
+      {
+        "name": "Deduções de Vendas",
+        "months": {
+          "1": 142965.08,
+          "2": 37140.77,
+          "3": 4998925.99,
+          "4": 4491403.62,
+          "5": 4674438.14,
+          "6": 1320153.29,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 15665026.89,
+        "pct": 32.6
+      },
+      {
+        "name": "Mov. Financeiras (antecip./empréstimos)",
+        "months": {
+          "1": 737558.45,
+          "2": 1117402.77,
+          "3": 56600,
+          "4": 410162.78,
+          "5": 101011.07,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 2422735.07,
+        "pct": 5
+      },
+      {
+        "name": "Despesas Variáveis",
+        "months": {
+          "1": 210825.62,
+          "2": 60529.07,
+          "3": 295157.81,
+          "4": 1043643.53,
+          "5": 582250.56,
+          "6": 143054.73,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 2335461.32,
+        "pct": 4.9
+      },
+      {
+        "name": "Despesas Operacionais",
+        "months": {
+          "1": 216702.43,
+          "2": 154259.45,
+          "3": 256047.31,
+          "4": 317140.93,
+          "5": 188486.42,
+          "6": 43619.8,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 1176256.34,
+        "pct": 2.4
+      },
+      {
+        "name": "Sem classificação",
+        "months": {
+          "1": 0,
+          "2": 0,
+          "3": 531065.9,
+          "4": 12000,
+          "5": 15000,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 558065.9,
+        "pct": 1.2
+      },
+      {
+        "name": "Gasto com Pessoal",
+        "months": {
+          "1": 6714.7,
+          "2": 11547.32,
+          "3": 6420.9,
+          "4": 34785.16,
+          "5": 5467.9,
+          "6": 2000,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 66935.98,
+        "pct": 0.1
+      },
+      {
+        "name": "Despesas Financeiras",
+        "months": {
+          "1": 38536.33,
+          "2": 972.93,
+          "3": 2025.54,
+          "4": 713.93,
+          "5": 1332.06,
+          "6": 255.58,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        },
+        "value": 43836.37,
+        "pct": 0.1
+      }
+    ],
+    "daily": [
       {
         "date": "2026-01-02",
         "month": 1,
@@ -32,26 +443,6 @@
         "entradas": 0,
         "saidas": 198762.16,
         "saidasBrutas": 198762.16,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-01-03",
-        "month": 1,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-01-04",
-        "month": 1,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -106,22 +497,12 @@
         "projection": false
       },
       {
-        "date": "2026-01-10",
-        "month": 1,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
         "date": "2026-01-11",
         "month": 1,
         "day": 11,
         "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 10000,
+        "saidasBrutas": 10000,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -130,8 +511,8 @@
         "month": 1,
         "day": 12,
         "entradas": 82022.14,
-        "saidas": 97853.71,
-        "saidasBrutas": 97853.71,
+        "saidas": 87853.71,
+        "saidasBrutas": 87853.71,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -139,9 +520,9 @@
         "date": "2026-01-13",
         "month": 1,
         "day": 13,
-        "entradas": 311834.88,
-        "saidas": 34418.87,
-        "saidasBrutas": 346253.75,
+        "entradas": 623669.76,
+        "saidas": 346453.75,
+        "saidasBrutas": 658288.63,
         "ajustesGerenciais": 311834.88,
         "projection": false
       },
@@ -169,39 +550,19 @@
         "date": "2026-01-16",
         "month": 1,
         "day": 16,
-        "entradas": 298544.08,
-        "saidas": 138953.93,
-        "saidasBrutas": 221736.03,
-        "ajustesGerenciais": 82782.1,
-        "projection": false
-      },
-      {
-        "date": "2026-01-17",
-        "month": 1,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-01-18",
-        "month": 1,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 533.75,
-        "saidasBrutas": 533.75,
-        "ajustesGerenciais": 0,
+        "entradas": 380826.18,
+        "saidas": 604447.49,
+        "saidasBrutas": 604947.49,
+        "ajustesGerenciais": 500,
         "projection": false
       },
       {
         "date": "2026-01-19",
         "month": 1,
         "day": 19,
-        "entradas": 0,
-        "saidas": 28852.66,
-        "saidasBrutas": 28852.66,
+        "entradas": 13.11,
+        "saidas": 29399.52,
+        "saidasBrutas": 29399.52,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -209,10 +570,10 @@
         "date": "2026-01-20",
         "month": 1,
         "day": 20,
-        "entradas": 801882.79,
-        "saidas": 75333.68,
-        "saidasBrutas": 877555.4,
-        "ajustesGerenciais": 802221.72,
+        "entradas": 802427.39,
+        "saidas": 577357.17,
+        "saidasBrutas": 1256578.89,
+        "ajustesGerenciais": 679221.72,
         "projection": false
       },
       {
@@ -230,8 +591,8 @@
         "month": 1,
         "day": 22,
         "entradas": 0,
-        "saidas": 2610,
-        "saidasBrutas": 2610,
+        "saidas": 2616.1,
+        "saidasBrutas": 2616.1,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -240,29 +601,9 @@
         "month": 1,
         "day": 23,
         "entradas": 535217.04,
-        "saidas": 535583.48,
-        "saidasBrutas": 535583.48,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-01-24",
-        "month": 1,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-01-25",
-        "month": 1,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "saidas": 535590.12,
+        "saidasBrutas": 1040807.16,
+        "ajustesGerenciais": 505217.04,
         "projection": false
       },
       {
@@ -270,9 +611,9 @@
         "month": 1,
         "day": 26,
         "entradas": 686349.65,
-        "saidas": 683260.46,
-        "saidasBrutas": 683260.46,
-        "ajustesGerenciais": 0,
+        "saidas": 683272.31,
+        "saidasBrutas": 1030144.51,
+        "ajustesGerenciais": 346872.2,
         "projection": false
       },
       {
@@ -280,9 +621,9 @@
         "month": 1,
         "day": 27,
         "entradas": 705000,
-        "saidas": 182165.17,
-        "saidasBrutas": 707165.17,
-        "ajustesGerenciais": 525000,
+        "saidas": 707171.27,
+        "saidasBrutas": 707171.27,
+        "ajustesGerenciais": 0,
         "projection": false
       },
       {
@@ -300,9 +641,9 @@
         "month": 1,
         "day": 29,
         "entradas": 141000,
-        "saidas": 55098.19,
-        "saidasBrutas": 135098.19,
-        "ajustesGerenciais": 80000,
+        "saidas": 135128.69,
+        "saidasBrutas": 135128.69,
+        "ajustesGerenciais": 0,
         "projection": false
       },
       {
@@ -310,8 +651,8 @@
         "month": 1,
         "day": 30,
         "entradas": 30000,
-        "saidas": 30309.09,
-        "saidasBrutas": 30309.09,
+        "saidas": 30315.19,
+        "saidasBrutas": 30315.19,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -326,23 +667,13 @@
         "projection": false
       },
       {
-        "date": "2026-02-01",
-        "month": 2,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
         "date": "2026-02-02",
         "month": 2,
         "day": 2,
-        "entradas": 533160,
-        "saidas": 349284.32,
-        "saidasBrutas": 539284.32,
-        "ajustesGerenciais": 190000,
+        "entradas": 535380.7,
+        "saidas": 541511.12,
+        "saidasBrutas": 884250.44,
+        "ajustesGerenciais": 342739.32,
         "projection": false
       },
       {
@@ -351,8 +682,8 @@
         "day": 3,
         "entradas": 143822.6,
         "saidas": 142820.33,
-        "saidasBrutas": 142820.33,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 262153.42,
+        "ajustesGerenciais": 119333.09,
         "projection": false
       },
       {
@@ -380,28 +711,8 @@
         "month": 2,
         "day": 6,
         "entradas": 572331.04,
-        "saidas": 582055.19,
-        "saidasBrutas": 582055.19,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-07",
-        "month": 2,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-08",
-        "month": 2,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 582073.49,
+        "saidasBrutas": 582073.49,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -410,8 +721,8 @@
         "month": 2,
         "day": 9,
         "entradas": 173187.46,
-        "saidas": 172944.29,
-        "saidasBrutas": 172944.29,
+        "saidas": 172950.39,
+        "saidasBrutas": 172950.39,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -420,9 +731,9 @@
         "month": 2,
         "day": 10,
         "entradas": 144500,
-        "saidas": 56316.94,
-        "saidasBrutas": 151316.94,
-        "ajustesGerenciais": 95000,
+        "saidas": 151438.55,
+        "saidasBrutas": 151438.55,
+        "ajustesGerenciais": 0,
         "projection": false
       },
       {
@@ -441,58 +752,18 @@
         "day": 12,
         "entradas": 153326.67,
         "saidas": 151966.76,
-        "saidasBrutas": 151966.76,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 294852.23,
+        "ajustesGerenciais": 142885.47,
         "projection": false
       },
       {
         "date": "2026-02-13",
         "month": 2,
         "day": 13,
-        "entradas": 694918.62,
-        "saidas": 685137.08,
-        "saidasBrutas": 685137.08,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-14",
-        "month": 2,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-15",
-        "month": 2,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-16",
-        "month": 2,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-17",
-        "month": 2,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "entradas": 694378.62,
+        "saidas": 684633.68,
+        "saidasBrutas": 1351809.4,
+        "ajustesGerenciais": 667175.72,
         "projection": false
       },
       {
@@ -500,8 +771,8 @@
         "month": 2,
         "day": 18,
         "entradas": 31957.56,
-        "saidas": 5.1,
-        "saidasBrutas": 5.1,
+        "saidas": 47.8,
+        "saidasBrutas": 47.8,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -521,28 +792,8 @@
         "day": 20,
         "entradas": 246725.65,
         "saidas": 191510.94,
-        "saidasBrutas": 191510.94,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-21",
-        "month": 2,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-22",
-        "month": 2,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 379183.69,
+        "ajustesGerenciais": 187672.75,
         "projection": false
       },
       {
@@ -550,8 +801,8 @@
         "month": 2,
         "day": 23,
         "entradas": 0,
-        "saidas": 414.2,
-        "saidasBrutas": 414.2,
+        "saidas": 432.5,
+        "saidasBrutas": 432.5,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -560,18 +811,18 @@
         "month": 2,
         "day": 24,
         "entradas": 626905.57,
-        "saidas": 674014.44,
-        "saidasBrutas": 674425.65,
-        "ajustesGerenciais": 411.21,
+        "saidas": 674431.75,
+        "saidasBrutas": 788755.05,
+        "ajustesGerenciais": 114323.3,
         "projection": false
       },
       {
         "date": "2026-02-25",
         "month": 2,
         "day": 25,
-        "entradas": 123896.12,
-        "saidas": 156635.06,
-        "saidasBrutas": 156635.06,
+        "entradas": 123906.92,
+        "saidas": 156645.86,
+        "saidasBrutas": 156645.86,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -580,8 +831,8 @@
         "month": 2,
         "day": 26,
         "entradas": 3496.52,
-        "saidas": 0,
-        "saidasBrutas": 8790,
+        "saidas": 8790,
+        "saidasBrutas": 17580,
         "ajustesGerenciais": 8790,
         "projection": false
       },
@@ -590,28 +841,8 @@
         "month": 2,
         "day": 27,
         "entradas": 13848.43,
-        "saidas": 1237.15,
-        "saidasBrutas": 1237.15,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-02-28",
-        "month": 2,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-01",
-        "month": 3,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 1267.65,
+        "saidasBrutas": 1267.65,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -620,8 +851,8 @@
         "month": 3,
         "day": 2,
         "entradas": 212000,
-        "saidas": 239470.87,
-        "saidasBrutas": 239470.87,
+        "saidas": 239476.97,
+        "saidasBrutas": 239476.97,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -631,8 +862,8 @@
         "day": 3,
         "entradas": 388019.41,
         "saidas": 374942.54,
-        "saidasBrutas": 374942.54,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 652854.17,
+        "ajustesGerenciais": 277911.63,
         "projection": false
       },
       {
@@ -659,29 +890,9 @@
         "date": "2026-03-06",
         "month": 3,
         "day": 6,
-        "entradas": 53771.76,
-        "saidas": 2663,
-        "saidasBrutas": 2663,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-07",
-        "month": 3,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-08",
-        "month": 3,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 574560,
+        "saidas": 523457.34,
+        "saidasBrutas": 523457.34,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -690,8 +901,8 @@
         "month": 3,
         "day": 9,
         "entradas": 734673.8,
-        "saidas": 801104.87,
-        "saidasBrutas": 801104.87,
+        "saidas": 801123.17,
+        "saidasBrutas": 801123.17,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -699,9 +910,9 @@
         "date": "2026-03-10",
         "month": 3,
         "day": 10,
-        "entradas": 35648.84,
-        "saidas": 37238.81,
-        "saidasBrutas": 37238.81,
+        "entradas": 53590.06,
+        "saidas": 37327.65,
+        "saidasBrutas": 37327.65,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -711,15 +922,15 @@
         "day": 11,
         "entradas": 570332.78,
         "saidas": 602789.88,
-        "saidasBrutas": 602789.88,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 967669.3,
+        "ajustesGerenciais": 364879.42,
         "projection": false
       },
       {
         "date": "2026-03-12",
         "month": 3,
         "day": 12,
-        "entradas": 99878.12,
+        "entradas": 100942.72,
         "saidas": 36165,
         "saidasBrutas": 36165,
         "ajustesGerenciais": 0,
@@ -729,29 +940,9 @@
         "date": "2026-03-13",
         "month": 3,
         "day": 13,
-        "entradas": 265311.17,
-        "saidas": 259151.4,
-        "saidasBrutas": 259151.4,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-14",
-        "month": 3,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-15",
-        "month": 3,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 190056.45,
+        "saidas": 193683.7,
+        "saidasBrutas": 193683.7,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -759,39 +950,39 @@
         "date": "2026-03-16",
         "month": 3,
         "day": 16,
-        "entradas": 273891.96,
-        "saidas": 319677.17,
-        "saidasBrutas": 319677.17,
-        "ajustesGerenciais": 0,
+        "entradas": 324755.13,
+        "saidas": 379677.17,
+        "saidasBrutas": 380477.17,
+        "ajustesGerenciais": 800,
         "projection": false
       },
       {
         "date": "2026-03-17",
         "month": 3,
         "day": 17,
-        "entradas": 759290.69,
-        "saidas": 702280.62,
-        "saidasBrutas": 702280.62,
-        "ajustesGerenciais": 0,
+        "entradas": 774332.14,
+        "saidas": 717364.77,
+        "saidasBrutas": 1248364.57,
+        "ajustesGerenciais": 530999.8,
         "projection": false
       },
       {
         "date": "2026-03-18",
         "month": 3,
         "day": 18,
-        "entradas": 1854305.75,
-        "saidas": 1582312.1,
-        "saidasBrutas": 1582312.1,
-        "ajustesGerenciais": 0,
+        "entradas": 3669707.39,
+        "saidas": 3397719.94,
+        "saidasBrutas": 4956654.77,
+        "ajustesGerenciais": 1558934.83,
         "projection": false
       },
       {
         "date": "2026-03-19",
         "month": 3,
         "day": 19,
-        "entradas": 92030.2,
-        "saidas": 24509.82,
-        "saidasBrutas": 24509.82,
+        "entradas": 604190.2,
+        "saidas": 536694.22,
+        "saidasBrutas": 536694.22,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -800,28 +991,8 @@
         "month": 3,
         "day": 20,
         "entradas": 0,
-        "saidas": 2060,
-        "saidasBrutas": 2060,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-21",
-        "month": 3,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-22",
-        "month": 3,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "saidas": 2066.1,
+        "saidasBrutas": 2066.1,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -830,9 +1001,9 @@
         "month": 3,
         "day": 23,
         "entradas": 188165.12,
-        "saidas": 481936.12,
-        "saidasBrutas": 481936.12,
-        "ajustesGerenciais": 0,
+        "saidas": 296245.84,
+        "saidasBrutas": 741715.67,
+        "ajustesGerenciais": 445469.83,
         "projection": false
       },
       {
@@ -840,9 +1011,9 @@
         "month": 3,
         "day": 24,
         "entradas": 966521.38,
-        "saidas": 962903.63,
-        "saidasBrutas": 962903.63,
-        "ajustesGerenciais": 0,
+        "saidas": 962909.73,
+        "saidasBrutas": 1742894.42,
+        "ajustesGerenciais": 779984.69,
         "projection": false
       },
       {
@@ -850,8 +1021,8 @@
         "month": 3,
         "day": 25,
         "entradas": 0,
-        "saidas": 46914.08,
-        "saidasBrutas": 46914.08,
+        "saidas": 46920.18,
+        "saidasBrutas": 46920.18,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -859,10 +1030,10 @@
         "date": "2026-03-26",
         "month": 3,
         "day": 26,
-        "entradas": 380465.18,
-        "saidas": 428278.71,
-        "saidasBrutas": 428278.71,
-        "ajustesGerenciais": 0,
+        "entradas": 2169055.66,
+        "saidas": 1978403.45,
+        "saidasBrutas": 2402571.57,
+        "ajustesGerenciais": 424168.12,
         "projection": false
       },
       {
@@ -870,29 +1041,9 @@
         "month": 3,
         "day": 27,
         "entradas": 0,
-        "saidas": 14882.86,
-        "saidasBrutas": 14882.86,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-28",
-        "month": 3,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-03-29",
-        "month": 3,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "saidas": 439149.98,
+        "saidasBrutas": 439250.98,
+        "ajustesGerenciais": 101,
         "projection": false
       },
       {
@@ -900,8 +1051,8 @@
         "month": 3,
         "day": 30,
         "entradas": 250000,
-        "saidas": 57829.03,
-        "saidasBrutas": 57829.03,
+        "saidas": 57850.46,
+        "saidasBrutas": 57850.46,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -910,19 +1061,19 @@
         "month": 3,
         "day": 31,
         "entradas": 69072.74,
-        "saidas": 101195.05,
-        "saidasBrutas": 101215.05,
-        "ajustesGerenciais": 20,
+        "saidas": 101215.05,
+        "saidasBrutas": 101240.34,
+        "ajustesGerenciais": 25.29,
         "projection": false
       },
       {
         "date": "2026-04-01",
         "month": 4,
         "day": 1,
-        "entradas": 60797.59,
-        "saidas": 220034.65,
-        "saidasBrutas": 220034.65,
-        "ajustesGerenciais": 0,
+        "entradas": 595560,
+        "saidas": 577575.45,
+        "saidasBrutas": 754797.06,
+        "ajustesGerenciais": 177221.61,
         "projection": false
       },
       {
@@ -930,48 +1081,18 @@
         "month": 4,
         "day": 2,
         "entradas": 434681.62,
-        "saidas": 447921.89,
-        "saidasBrutas": 447921.89,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-03",
-        "month": 4,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-04",
-        "month": 4,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-05",
-        "month": 4,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "saidas": 624944.05,
+        "saidasBrutas": 1054013.57,
+        "ajustesGerenciais": 429069.52,
         "projection": false
       },
       {
         "date": "2026-04-06",
         "month": 4,
         "day": 6,
-        "entradas": 1683936.72,
-        "saidas": 1160625.09,
-        "saidasBrutas": 1160625.09,
+        "entradas": 2269252.26,
+        "saidas": 1745940.63,
+        "saidasBrutas": 1745940.63,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -980,9 +1101,9 @@
         "month": 4,
         "day": 7,
         "entradas": 933074.86,
-        "saidas": 1233099.33,
-        "saidasBrutas": 1233099.33,
-        "ajustesGerenciais": 0,
+        "saidas": 1057335.89,
+        "saidasBrutas": 2238725.83,
+        "ajustesGerenciais": 1181389.94,
         "projection": false
       },
       {
@@ -990,8 +1111,8 @@
         "month": 4,
         "day": 8,
         "entradas": 177763.44,
-        "saidas": 139008.17,
-        "saidasBrutas": 139058.17,
+        "saidas": 139023.84,
+        "saidasBrutas": 139073.84,
         "ajustesGerenciais": 50,
         "projection": false
       },
@@ -1000,8 +1121,8 @@
         "month": 4,
         "day": 9,
         "entradas": 24074.96,
-        "saidas": 162005.68,
-        "saidasBrutas": 162005.68,
+        "saidas": 337775.22,
+        "saidasBrutas": 337775.22,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1009,30 +1130,10 @@
         "date": "2026-04-10",
         "month": 4,
         "day": 10,
-        "entradas": 463304.03,
-        "saidas": 428031.21,
-        "saidasBrutas": 428031.21,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-11",
-        "month": 4,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-12",
-        "month": 4,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "entradas": 465140,
+        "saidas": 429895.41,
+        "saidasBrutas": 772041.75,
+        "ajustesGerenciais": 342146.34,
         "projection": false
       },
       {
@@ -1049,9 +1150,9 @@
         "date": "2026-04-14",
         "month": 4,
         "day": 14,
-        "entradas": 314566.14,
-        "saidas": 14501.21,
-        "saidasBrutas": 14556.21,
+        "entradas": 930560,
+        "saidas": 630550.07,
+        "saidasBrutas": 630605.07,
         "ajustesGerenciais": 55,
         "projection": false
       },
@@ -1060,49 +1161,29 @@
         "month": 4,
         "day": 15,
         "entradas": 574213.76,
-        "saidas": 975123.91,
-        "saidasBrutas": 975163.91,
-        "ajustesGerenciais": 40,
+        "saidas": 975263.91,
+        "saidasBrutas": 1323351.06,
+        "ajustesGerenciais": 348087.15,
         "projection": false
       },
       {
         "date": "2026-04-16",
         "month": 4,
         "day": 16,
-        "entradas": 868886.79,
-        "saidas": 502861.63,
-        "saidasBrutas": 502861.63,
-        "ajustesGerenciais": 0,
+        "entradas": 1466265.78,
+        "saidas": 1100240.62,
+        "saidasBrutas": 2476746.31,
+        "ajustesGerenciais": 1376505.69,
         "projection": false
       },
       {
         "date": "2026-04-17",
         "month": 4,
         "day": 17,
-        "entradas": 619596.79,
-        "saidas": 988770.86,
-        "saidasBrutas": 988770.86,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-18",
-        "month": 4,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-19",
-        "month": 4,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "entradas": 1209661.84,
+        "saidas": 1578835.91,
+        "saidasBrutas": 2144097.75,
+        "ajustesGerenciais": 565261.84,
         "projection": false
       },
       {
@@ -1116,23 +1197,13 @@
         "projection": false
       },
       {
-        "date": "2026-04-21",
-        "month": 4,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
         "date": "2026-04-22",
         "month": 4,
         "day": 22,
         "entradas": 861700,
         "saidas": 1032160.93,
-        "saidasBrutas": 1032160.93,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 1999883.85,
+        "ajustesGerenciais": 967722.92,
         "projection": false
       },
       {
@@ -1140,9 +1211,9 @@
         "month": 4,
         "day": 23,
         "entradas": 51440.54,
-        "saidas": 454956.09,
-        "saidasBrutas": 454956.09,
-        "ajustesGerenciais": 0,
+        "saidas": 454856.09,
+        "saidasBrutas": 905749.09,
+        "ajustesGerenciais": 450893,
         "projection": false
       },
       {
@@ -1156,32 +1227,12 @@
         "projection": false
       },
       {
-        "date": "2026-04-25",
-        "month": 4,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-04-26",
-        "month": 4,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
         "date": "2026-04-27",
         "month": 4,
         "day": 27,
-        "entradas": 53219.02,
-        "saidas": 109756.36,
-        "saidasBrutas": 109756.36,
+        "entradas": 621880,
+        "saidas": 678417.34,
+        "saidasBrutas": 678417.34,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1189,19 +1240,19 @@
         "date": "2026-04-28",
         "month": 4,
         "day": 28,
-        "entradas": 846036.18,
-        "saidas": 747000.08,
-        "saidasBrutas": 747000.08,
-        "ajustesGerenciais": 0,
+        "entradas": 1221537.05,
+        "saidas": 1122300.95,
+        "saidasBrutas": 1862360.77,
+        "ajustesGerenciais": 740059.82,
         "projection": false
       },
       {
         "date": "2026-04-29",
         "month": 4,
         "day": 29,
-        "entradas": 20937.3,
-        "saidas": 162583.22,
-        "saidasBrutas": 162583.22,
+        "entradas": 509217.31,
+        "saidas": 651063.23,
+        "saidasBrutas": 651063.23,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1209,50 +1260,20 @@
         "date": "2026-04-30",
         "month": 4,
         "day": 30,
-        "entradas": 810006.04,
-        "saidas": 802492.11,
-        "saidasBrutas": 802492.11,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-01",
-        "month": 5,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-02",
-        "month": 5,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-03",
-        "month": 5,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "entradas": 830500,
+        "saidas": 822944.19,
+        "saidasBrutas": 1496025.51,
+        "ajustesGerenciais": 673081.32,
         "projection": false
       },
       {
         "date": "2026-05-04",
         "month": 5,
         "day": 4,
-        "entradas": 391281.8,
-        "saidas": 414764.53,
-        "saidasBrutas": 414764.53,
-        "ajustesGerenciais": 0,
+        "entradas": 788270.43,
+        "saidas": 811683.11,
+        "saidasBrutas": 1207671.74,
+        "ajustesGerenciais": 395988.63,
         "projection": false
       },
       {
@@ -1270,9 +1291,9 @@
         "month": 5,
         "day": 6,
         "entradas": 356065.02,
-        "saidas": 512714.71,
-        "saidasBrutas": 512714.71,
-        "ajustesGerenciais": 0,
+        "saidas": 104481.6,
+        "saidasBrutas": 537088.18,
+        "ajustesGerenciais": 432606.58,
         "projection": false
       },
       {
@@ -1289,29 +1310,9 @@
         "date": "2026-05-08",
         "month": 5,
         "day": 8,
-        "entradas": 230567.89,
-        "saidas": 148514.26,
-        "saidasBrutas": 148514.26,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-09",
-        "month": 5,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-10",
-        "month": 5,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 630941.83,
+        "saidas": 957221.31,
+        "saidasBrutas": 957221.31,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1329,10 +1330,10 @@
         "date": "2026-05-12",
         "month": 5,
         "day": 12,
-        "entradas": 258272.46,
-        "saidas": 562846.48,
-        "saidasBrutas": 562846.48,
-        "ajustesGerenciais": 0,
+        "entradas": 2178553.19,
+        "saidas": 2483127.21,
+        "saidasBrutas": 3042613.69,
+        "ajustesGerenciais": 559486.48,
         "projection": false
       },
       {
@@ -1341,47 +1342,27 @@
         "day": 13,
         "entradas": 300000,
         "saidas": 250562.29,
-        "saidasBrutas": 250562.29,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 429189.89,
+        "ajustesGerenciais": 178627.6,
         "projection": false
       },
       {
         "date": "2026-05-14",
         "month": 5,
         "day": 14,
-        "entradas": 558585.11,
-        "saidas": 367540.27,
-        "saidasBrutas": 367768.54,
-        "ajustesGerenciais": 228.27,
+        "entradas": 2175851.31,
+        "saidas": 1985034.74,
+        "saidasBrutas": 2341328.03,
+        "ajustesGerenciais": 356293.29,
         "projection": false
       },
       {
         "date": "2026-05-15",
         "month": 5,
         "day": 15,
-        "entradas": 62702.41,
-        "saidas": 125033.63,
-        "saidasBrutas": 125033.63,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-16",
-        "month": 5,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-17",
-        "month": 5,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 622200,
+        "saidas": 684531.22,
+        "saidasBrutas": 684531.22,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1400,9 +1381,9 @@
         "month": 5,
         "day": 19,
         "entradas": 377515.17,
-        "saidas": 363542.7,
-        "saidasBrutas": 363542.7,
-        "ajustesGerenciais": 0,
+        "saidas": 354.47,
+        "saidasBrutas": 363897.17,
+        "ajustesGerenciais": 363542.7,
         "projection": false
       },
       {
@@ -1410,8 +1391,8 @@
         "month": 5,
         "day": 20,
         "entradas": 966120.2,
-        "saidas": 38527.89,
-        "saidasBrutas": 38882.36,
+        "saidas": 402070.59,
+        "saidasBrutas": 402425.06,
         "ajustesGerenciais": 354.47,
         "projection": false
       },
@@ -1421,8 +1402,8 @@
         "day": 21,
         "entradas": 0,
         "saidas": 567748.97,
-        "saidasBrutas": 567748.97,
-        "ajustesGerenciais": 0,
+        "saidasBrutas": 990713.98,
+        "ajustesGerenciais": 422965.01,
         "projection": false
       },
       {
@@ -1430,29 +1411,9 @@
         "month": 5,
         "day": 22,
         "entradas": 0,
-        "saidas": 101923.56,
-        "saidasBrutas": 102002.86,
+        "saidas": 102002.86,
+        "saidasBrutas": 102082.16,
         "ajustesGerenciais": 79.3,
-        "projection": false
-      },
-      {
-        "date": "2026-05-23",
-        "month": 5,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-24",
-        "month": 5,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
         "projection": false
       },
       {
@@ -1470,9 +1431,9 @@
         "month": 5,
         "day": 26,
         "entradas": 422132.4,
-        "saidas": 441662.07,
+        "saidas": 19529.67,
         "saidasBrutas": 441662.07,
-        "ajustesGerenciais": 0,
+        "ajustesGerenciais": 422132.4,
         "projection": false
       },
       {
@@ -1480,9 +1441,9 @@
         "month": 5,
         "day": 27,
         "entradas": 0,
-        "saidas": 188269.86,
-        "saidasBrutas": 188269.86,
-        "ajustesGerenciais": 0,
+        "saidas": 464527.85,
+        "saidasBrutas": 610402.97,
+        "ajustesGerenciais": 145875.12,
         "projection": false
       },
       {
@@ -1490,8 +1451,8 @@
         "month": 5,
         "day": 28,
         "entradas": 4000,
-        "saidas": 54539.41,
-        "saidasBrutas": 54541.92,
+        "saidas": 200416.33,
+        "saidasBrutas": 200418.84,
         "ajustesGerenciais": 2.51,
         "projection": false
       },
@@ -1502,26 +1463,6 @@
         "entradas": 967.26,
         "saidas": 41126.15,
         "saidasBrutas": 41126.15,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-30",
-        "month": 5,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-05-31",
-        "month": 5,
-        "day": 31,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1540,58 +1481,28 @@
         "month": 6,
         "day": 2,
         "entradas": 0,
-        "saidas": 102716.41,
-        "saidasBrutas": 102716.41,
-        "ajustesGerenciais": 0,
+        "saidas": 102828.79,
+        "saidasBrutas": 113132.8,
+        "ajustesGerenciais": 10304.01,
         "projection": false
       },
       {
         "date": "2026-06-03",
         "month": 6,
         "day": 3,
-        "entradas": 1420508.47,
-        "saidas": 1421978.07,
-        "saidasBrutas": 1421978.07,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-04",
-        "month": 6,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
+        "entradas": 1441049.65,
+        "saidas": 1422045.27,
+        "saidasBrutas": 2842253.74,
+        "ajustesGerenciais": 1420208.47,
         "projection": false
       },
       {
         "date": "2026-06-05",
         "month": 6,
         "day": 5,
-        "entradas": 419166.3,
-        "saidas": 16000,
-        "saidasBrutas": 16000,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-06",
-        "month": 6,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-07",
-        "month": 6,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 420000,
+        "saidas": 16839.8,
+        "saidasBrutas": 16839.8,
         "ajustesGerenciais": 0,
         "projection": false
       },
@@ -1599,2553 +1510,21 @@
         "date": "2026-06-08",
         "month": 6,
         "day": 8,
-        "entradas": 1000,
-        "saidas": 174196.98,
-        "saidasBrutas": 174196.98,
-        "ajustesGerenciais": 0,
+        "entradas": 922084.38,
+        "saidas": 1089403.64,
+        "saidasBrutas": 2030888.02,
+        "ajustesGerenciais": 941484.38,
         "projection": false
       },
       {
         "date": "2026-06-09",
         "month": 6,
         "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
+        "entradas": 1284000,
+        "saidas": 1215093.27,
+        "saidasBrutas": 1215093.27,
         "ajustesGerenciais": 0,
         "projection": false
-      },
-      {
-        "date": "2026-06-10",
-        "month": 6,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 216522,
-        "saidasBrutas": 216522,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-11",
-        "month": 6,
-        "day": 11,
-        "entradas": 1000,
-        "saidas": 12773.64,
-        "saidasBrutas": 12773.64,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-12",
-        "month": 6,
-        "day": 12,
-        "entradas": 420000,
-        "saidas": 57120,
-        "saidasBrutas": 57120,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-13",
-        "month": 6,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-14",
-        "month": 6,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-15",
-        "month": 6,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 55350.81,
-        "saidasBrutas": 55350.81,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-16",
-        "month": 6,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-17",
-        "month": 6,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 29258.18,
-        "saidasBrutas": 29258.18,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-18",
-        "month": 6,
-        "day": 18,
-        "entradas": 1000,
-        "saidas": 189.9,
-        "saidasBrutas": 189.9,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-19",
-        "month": 6,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 385.85,
-        "saidasBrutas": 385.85,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-20",
-        "month": 6,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-21",
-        "month": 6,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-22",
-        "month": 6,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 41070.52,
-        "saidasBrutas": 41070.52,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-23",
-        "month": 6,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-24",
-        "month": 6,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-25",
-        "month": 6,
-        "day": 25,
-        "entradas": 1000,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-26",
-        "month": 6,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-27",
-        "month": 6,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-28",
-        "month": 6,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-29",
-        "month": 6,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2562.06,
-        "saidasBrutas": 2562.06,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-06-30",
-        "month": 6,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22856.67,
-        "saidasBrutas": 22856.67,
-        "ajustesGerenciais": 0,
-        "projection": false
-      },
-      {
-        "date": "2026-07-01",
-        "month": 7,
-        "day": 1,
-        "entradas": 236758.1,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-02",
-        "month": 7,
-        "day": 2,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-03",
-        "month": 7,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 900.37,
-        "saidasBrutas": 900.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-04",
-        "month": 7,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-05",
-        "month": 7,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 37146,
-        "saidasBrutas": 37146,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-06",
-        "month": 7,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-07",
-        "month": 7,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-08",
-        "month": 7,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-09",
-        "month": 7,
-        "day": 9,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-10",
-        "month": 7,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 26170.5,
-        "saidasBrutas": 26170.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-11",
-        "month": 7,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-12",
-        "month": 7,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-13",
-        "month": 7,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-14",
-        "month": 7,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-15",
-        "month": 7,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 18330,
-        "saidasBrutas": 18330,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-16",
-        "month": 7,
-        "day": 16,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-17",
-        "month": 7,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-18",
-        "month": 7,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-19",
-        "month": 7,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-20",
-        "month": 7,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 42304.52,
-        "saidasBrutas": 42304.52,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-21",
-        "month": 7,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-22",
-        "month": 7,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-23",
-        "month": 7,
-        "day": 23,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-24",
-        "month": 7,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-25",
-        "month": 7,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-26",
-        "month": 7,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-27",
-        "month": 7,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-28",
-        "month": 7,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-29",
-        "month": 7,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2006.58,
-        "saidasBrutas": 2006.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-30",
-        "month": 7,
-        "day": 30,
-        "entradas": 1000,
-        "saidas": 17746.67,
-        "saidasBrutas": 17746.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-07-31",
-        "month": 7,
-        "day": 31,
-        "entradas": 0,
-        "saidas": 7500,
-        "saidasBrutas": 7500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-01",
-        "month": 8,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-02",
-        "month": 8,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-03",
-        "month": 8,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 900.37,
-        "saidasBrutas": 900.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-04",
-        "month": 8,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-05",
-        "month": 8,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 37146,
-        "saidasBrutas": 37146,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-06",
-        "month": 8,
-        "day": 6,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-07",
-        "month": 8,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-08",
-        "month": 8,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-09",
-        "month": 8,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-10",
-        "month": 8,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 27090.5,
-        "saidasBrutas": 27090.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-11",
-        "month": 8,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-12",
-        "month": 8,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-13",
-        "month": 8,
-        "day": 13,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-14",
-        "month": 8,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-15",
-        "month": 8,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 17410,
-        "saidasBrutas": 17410,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-16",
-        "month": 8,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-17",
-        "month": 8,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-18",
-        "month": 8,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-19",
-        "month": 8,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-20",
-        "month": 8,
-        "day": 20,
-        "entradas": 1000,
-        "saidas": 44804.52,
-        "saidasBrutas": 44804.52,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-21",
-        "month": 8,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-22",
-        "month": 8,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-23",
-        "month": 8,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-24",
-        "month": 8,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-25",
-        "month": 8,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-26",
-        "month": 8,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-27",
-        "month": 8,
-        "day": 27,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-28",
-        "month": 8,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-29",
-        "month": 8,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2006.58,
-        "saidasBrutas": 2006.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-30",
-        "month": 8,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22146.67,
-        "saidasBrutas": 22146.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-08-31",
-        "month": 8,
-        "day": 31,
-        "entradas": 0,
-        "saidas": 600,
-        "saidasBrutas": 600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-01",
-        "month": 9,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-02",
-        "month": 9,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-03",
-        "month": 9,
-        "day": 3,
-        "entradas": 1000,
-        "saidas": 3400.37,
-        "saidasBrutas": 3400.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-04",
-        "month": 9,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-05",
-        "month": 9,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 37146,
-        "saidasBrutas": 37146,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-06",
-        "month": 9,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-07",
-        "month": 9,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-08",
-        "month": 9,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-09",
-        "month": 9,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-10",
-        "month": 9,
-        "day": 10,
-        "entradas": 1000,
-        "saidas": 28670.5,
-        "saidasBrutas": 28670.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-11",
-        "month": 9,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-12",
-        "month": 9,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-13",
-        "month": 9,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-14",
-        "month": 9,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-15",
-        "month": 9,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 18330,
-        "saidasBrutas": 18330,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-16",
-        "month": 9,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-17",
-        "month": 9,
-        "day": 17,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-18",
-        "month": 9,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-19",
-        "month": 9,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-20",
-        "month": 9,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 42304.52,
-        "saidasBrutas": 42304.52,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-21",
-        "month": 9,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-22",
-        "month": 9,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-23",
-        "month": 9,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-24",
-        "month": 9,
-        "day": 24,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-25",
-        "month": 9,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-26",
-        "month": 9,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-27",
-        "month": 9,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-28",
-        "month": 9,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-29",
-        "month": 9,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2006.58,
-        "saidasBrutas": 2006.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-09-30",
-        "month": 9,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22746.67,
-        "saidasBrutas": 22746.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-01",
-        "month": 10,
-        "day": 1,
-        "entradas": 1000,
-        "saidas": 8100,
-        "saidasBrutas": 8100,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-02",
-        "month": 10,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-03",
-        "month": 10,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 900.37,
-        "saidasBrutas": 900.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-04",
-        "month": 10,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-05",
-        "month": 10,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 37146,
-        "saidasBrutas": 37146,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-06",
-        "month": 10,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-07",
-        "month": 10,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-08",
-        "month": 10,
-        "day": 8,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-09",
-        "month": 10,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-10",
-        "month": 10,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 26170.5,
-        "saidasBrutas": 26170.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-11",
-        "month": 10,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-12",
-        "month": 10,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-13",
-        "month": 10,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-14",
-        "month": 10,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-15",
-        "month": 10,
-        "day": 15,
-        "entradas": 1000,
-        "saidas": 20830,
-        "saidasBrutas": 20830,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-16",
-        "month": 10,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-17",
-        "month": 10,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-18",
-        "month": 10,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-19",
-        "month": 10,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-20",
-        "month": 10,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 42304.52,
-        "saidasBrutas": 42304.52,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-21",
-        "month": 10,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-22",
-        "month": 10,
-        "day": 22,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-23",
-        "month": 10,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-24",
-        "month": 10,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-25",
-        "month": 10,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-26",
-        "month": 10,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-27",
-        "month": 10,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-28",
-        "month": 10,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-29",
-        "month": 10,
-        "day": 29,
-        "entradas": 1000,
-        "saidas": 4506.58,
-        "saidasBrutas": 4506.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-30",
-        "month": 10,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22746.67,
-        "saidasBrutas": 22746.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-10-31",
-        "month": 10,
-        "day": 31,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-01",
-        "month": 11,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-02",
-        "month": 11,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-03",
-        "month": 11,
-        "day": 3,
-        "entradas": 0,
-        "saidas": 900.37,
-        "saidasBrutas": 900.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-04",
-        "month": 11,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-05",
-        "month": 11,
-        "day": 5,
-        "entradas": 1000,
-        "saidas": 39612.2,
-        "saidasBrutas": 39612.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-06",
-        "month": 11,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-07",
-        "month": 11,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-08",
-        "month": 11,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-09",
-        "month": 11,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-10",
-        "month": 11,
-        "day": 10,
-        "entradas": 0,
-        "saidas": 26170.5,
-        "saidasBrutas": 26170.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-11",
-        "month": 11,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-12",
-        "month": 11,
-        "day": 12,
-        "entradas": 1000,
-        "saidas": 3700,
-        "saidasBrutas": 3700,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-13",
-        "month": 11,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-14",
-        "month": 11,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-15",
-        "month": 11,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 18330,
-        "saidasBrutas": 18330,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-16",
-        "month": 11,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-17",
-        "month": 11,
-        "day": 17,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-18",
-        "month": 11,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-19",
-        "month": 11,
-        "day": 19,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-20",
-        "month": 11,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 42700.21,
-        "saidasBrutas": 42700.21,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-21",
-        "month": 11,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-22",
-        "month": 11,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-23",
-        "month": 11,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-24",
-        "month": 11,
-        "day": 24,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-25",
-        "month": 11,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-26",
-        "month": 11,
-        "day": 26,
-        "entradas": 1000,
-        "saidas": 4500,
-        "saidasBrutas": 4500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-27",
-        "month": 11,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-28",
-        "month": 11,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-29",
-        "month": 11,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2006.58,
-        "saidasBrutas": 2006.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-11-30",
-        "month": 11,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22746.67,
-        "saidasBrutas": 22746.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-01",
-        "month": 12,
-        "day": 1,
-        "entradas": 0,
-        "saidas": 5600,
-        "saidasBrutas": 5600,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-02",
-        "month": 12,
-        "day": 2,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-03",
-        "month": 12,
-        "day": 3,
-        "entradas": 1000,
-        "saidas": 3400.37,
-        "saidasBrutas": 3400.37,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-04",
-        "month": 12,
-        "day": 4,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-05",
-        "month": 12,
-        "day": 5,
-        "entradas": 0,
-        "saidas": 37112.2,
-        "saidasBrutas": 37112.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-06",
-        "month": 12,
-        "day": 6,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-07",
-        "month": 12,
-        "day": 7,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-08",
-        "month": 12,
-        "day": 8,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-09",
-        "month": 12,
-        "day": 9,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-10",
-        "month": 12,
-        "day": 10,
-        "entradas": 1000,
-        "saidas": 28670.5,
-        "saidasBrutas": 28670.5,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-11",
-        "month": 12,
-        "day": 11,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-12",
-        "month": 12,
-        "day": 12,
-        "entradas": 0,
-        "saidas": 1200,
-        "saidasBrutas": 1200,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-13",
-        "month": 12,
-        "day": 13,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-14",
-        "month": 12,
-        "day": 14,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-15",
-        "month": 12,
-        "day": 15,
-        "entradas": 0,
-        "saidas": 18330,
-        "saidasBrutas": 18330,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-16",
-        "month": 12,
-        "day": 16,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-17",
-        "month": 12,
-        "day": 17,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-18",
-        "month": 12,
-        "day": 18,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-19",
-        "month": 12,
-        "day": 19,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-20",
-        "month": 12,
-        "day": 20,
-        "entradas": 0,
-        "saidas": 42700.21,
-        "saidasBrutas": 42700.21,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-21",
-        "month": 12,
-        "day": 21,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-22",
-        "month": 12,
-        "day": 22,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-23",
-        "month": 12,
-        "day": 23,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-24",
-        "month": 12,
-        "day": 24,
-        "entradas": 1000,
-        "saidas": 2500,
-        "saidasBrutas": 2500,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-25",
-        "month": 12,
-        "day": 25,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-26",
-        "month": 12,
-        "day": 26,
-        "entradas": 0,
-        "saidas": 2000,
-        "saidasBrutas": 2000,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-27",
-        "month": 12,
-        "day": 27,
-        "entradas": 0,
-        "saidas": 0,
-        "saidasBrutas": 0,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-28",
-        "month": 12,
-        "day": 28,
-        "entradas": 0,
-        "saidas": 485.2,
-        "saidasBrutas": 485.2,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-29",
-        "month": 12,
-        "day": 29,
-        "entradas": 0,
-        "saidas": 2006.58,
-        "saidasBrutas": 2006.58,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-30",
-        "month": 12,
-        "day": 30,
-        "entradas": 0,
-        "saidas": 22146.67,
-        "saidasBrutas": 22146.67,
-        "ajustesGerenciais": 0,
-        "projection": true
-      },
-      {
-        "date": "2026-12-31",
-        "month": 12,
-        "day": 31,
-        "entradas": 1000,
-        "saidas": 3100,
-        "saidasBrutas": 3100,
-        "ajustesGerenciais": 0,
-        "projection": true
-      }
-    ],
-    "monthly": {
-      "1": {
-        "name": "Janeiro",
-        "entradas": 4459257.29,
-        "saidas": 2873789.58,
-        "resultado": 1585467.71,
-        "projection": false,
-        "partial": false
-      },
-      "2": {
-        "name": "Fevereiro",
-        "entradas": 3907607.26,
-        "saidas": 3588898.97,
-        "resultado": 318708.29,
-        "projection": false,
-        "partial": false
-      },
-      "3": {
-        "name": "Março",
-        "entradas": 7593708.91,
-        "saidas": 7449097.62,
-        "resultado": 144611.29,
-        "projection": false,
-        "partial": false
-      },
-      "4": {
-        "name": "Abril",
-        "entradas": 9666003.72,
-        "saidas": 9800919.88,
-        "resultado": -134916.16,
-        "projection": false,
-        "partial": false
-      },
-      "5": {
-        "name": "Maio",
-        "entradas": 4419228.71,
-        "saidas": 4346841.48,
-        "resultado": 72387.23,
-        "projection": false,
-        "partial": false
-      },
-      "6": {
-        "name": "Junho",
-        "entradas": 2263674.77,
-        "saidas": 2158846.57,
-        "resultado": 104828.2,
-        "projection": false,
-        "partial": true
-      },
-      "7": {
-        "name": "Julho",
-        "entradas": 241758.1,
-        "saidas": 171389.84,
-        "resultado": 70368.26,
-        "projection": true,
-        "partial": false
-      },
-      "8": {
-        "name": "Agosto",
-        "entradas": 4000,
-        "saidas": 168889.84,
-        "resultado": -164889.84,
-        "projection": true,
-        "partial": false
-      },
-      "9": {
-        "name": "Setembro",
-        "entradas": 4000,
-        "saidas": 168889.84,
-        "resultado": -164889.84,
-        "projection": true,
-        "partial": false
-      },
-      "10": {
-        "name": "Outubro",
-        "entradas": 5000,
-        "saidas": 171389.84,
-        "resultado": -166389.84,
-        "projection": true,
-        "partial": false
-      },
-      "11": {
-        "name": "Novembro",
-        "entradas": 4000,
-        "saidas": 169251.73,
-        "resultado": -165251.73,
-        "projection": true,
-        "partial": false
-      },
-      "12": {
-        "name": "Dezembro",
-        "entradas": 5000,
-        "saidas": 171751.73,
-        "resultado": -166751.73,
-        "projection": true,
-        "partial": false
-      }
-    },
-    "categoryMonthly": [
-      {
-        "name": "Fornecedores Importação",
-        "months": {
-          "1": 852089.24,
-          "2": 2062261.41,
-          "3": 5662052.38,
-          "4": 7865452.57,
-          "5": 3277138.53,
-          "6": 1420208.47,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 21139202.6,
-        "pct": 67.7
-      },
-      {
-        "name": "Antecipação Recebíveis",
-        "months": {
-          "1": 832568.1,
-          "2": 1064231.95,
-          "3": 265181.18,
-          "4": 22516.39,
-          "5": 0,
-          "6": 0,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 2184497.62,
-        "pct": 7
-      },
-      {
-        "name": "Outros",
-        "months": {
-          "1": 172586.24,
-          "2": 137191.43,
-          "3": 214153.53,
-          "4": 647230.97,
-          "5": 162532.42,
-          "6": 71292.87,
-          "7": 43666.74,
-          "8": 43666.74,
-          "9": 43666.74,
-          "10": 43666.74,
-          "11": 44062.43,
-          "12": 44062.43
-        },
-        "value": 1667779.28,
-        "pct": 5.3
-      },
-      {
-        "name": "Fornecedores Nacionais",
-        "months": {
-          "1": 511978.29,
-          "2": 147614.27,
-          "3": 817037.75,
-          "4": 0,
-          "5": 0,
-          "6": 180000,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1656630.31,
-        "pct": 5.3
-      },
-      {
-        "name": "Frete Rodoviário",
-        "months": {
-          "1": 156787.18,
-          "2": 41169.84,
-          "3": 221501.64,
-          "4": 288394.7,
-          "5": 243077.48,
-          "6": 268364.24,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1219295.08,
-        "pct": 3.9
-      },
-      {
-        "name": "Consultoria",
-        "months": {
-          "1": 134785.94,
-          "2": 74778.07,
-          "3": 81717.42,
-          "4": 94264.25,
-          "5": 125996.55,
-          "6": 90570.52,
-          "7": 103070.52,
-          "8": 100570.52,
-          "9": 100570.52,
-          "10": 103070.52,
-          "11": 100570.52,
-          "12": 103070.52
-        },
-        "value": 1213035.87,
-        "pct": 3.9
-      },
-      {
-        "name": "Despacho Aduaneiro",
-        "months": {
-          "1": 19334.51,
-          "2": 6023.54,
-          "3": 70529.93,
-          "4": 757600.46,
-          "5": 322583.02,
-          "6": 4463.75,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1180535.21,
-        "pct": 3.8
-      },
-      {
-        "name": "Impostos e Taxas",
-        "months": {
-          "1": 16895.18,
-          "2": 28794.61,
-          "3": 26579.11,
-          "4": 100930.23,
-          "5": 137272.24,
-          "6": 103589.72,
-          "7": 2006.58,
-          "8": 2006.58,
-          "9": 2006.58,
-          "10": 2006.58,
-          "11": 2006.58,
-          "12": 2006.58
-        },
-        "value": 426100.57,
-        "pct": 1.4
-      },
-      {
-        "name": "Devoluções de Vendas",
-        "months": {
-          "1": 154093.9,
-          "2": 743.06,
-          "3": 66000,
-          "4": 2172.35,
-          "5": 56574.27,
-          "6": 0,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 279583.58,
-        "pct": 0.9
-      },
-      {
-        "name": "Pessoal",
-        "months": {
-          "1": 22671,
-          "2": 26090.79,
-          "3": 24344.68,
-          "4": 22357.96,
-          "5": 21666.97,
-          "6": 20357,
-          "7": 22646,
-          "8": 22646,
-          "9": 22646,
-          "10": 22646,
-          "11": 22612.2,
-          "12": 22612.2
-        },
-        "value": 273296.8,
-        "pct": 0.9
-      }
-    ],
-    "categories": [
-      {
-        "name": "Fornecedores Importação",
-        "months": {
-          "1": 852089.24,
-          "2": 2062261.41,
-          "3": 5662052.38,
-          "4": 7865452.57,
-          "5": 3277138.53,
-          "6": 1420208.47,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 21139202.6,
-        "pct": 67.7
-      },
-      {
-        "name": "Antecipação Recebíveis",
-        "months": {
-          "1": 832568.1,
-          "2": 1064231.95,
-          "3": 265181.18,
-          "4": 22516.39,
-          "5": 0,
-          "6": 0,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 2184497.62,
-        "pct": 7
-      },
-      {
-        "name": "Outros",
-        "months": {
-          "1": 172586.24,
-          "2": 137191.43,
-          "3": 214153.53,
-          "4": 647230.97,
-          "5": 162532.42,
-          "6": 71292.87,
-          "7": 43666.74,
-          "8": 43666.74,
-          "9": 43666.74,
-          "10": 43666.74,
-          "11": 44062.43,
-          "12": 44062.43
-        },
-        "value": 1667779.28,
-        "pct": 5.3
-      },
-      {
-        "name": "Fornecedores Nacionais",
-        "months": {
-          "1": 511978.29,
-          "2": 147614.27,
-          "3": 817037.75,
-          "4": 0,
-          "5": 0,
-          "6": 180000,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1656630.31,
-        "pct": 5.3
-      },
-      {
-        "name": "Frete Rodoviário",
-        "months": {
-          "1": 156787.18,
-          "2": 41169.84,
-          "3": 221501.64,
-          "4": 288394.7,
-          "5": 243077.48,
-          "6": 268364.24,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1219295.08,
-        "pct": 3.9
-      },
-      {
-        "name": "Consultoria",
-        "months": {
-          "1": 134785.94,
-          "2": 74778.07,
-          "3": 81717.42,
-          "4": 94264.25,
-          "5": 125996.55,
-          "6": 90570.52,
-          "7": 103070.52,
-          "8": 100570.52,
-          "9": 100570.52,
-          "10": 103070.52,
-          "11": 100570.52,
-          "12": 103070.52
-        },
-        "value": 1213035.87,
-        "pct": 3.9
-      },
-      {
-        "name": "Despacho Aduaneiro",
-        "months": {
-          "1": 19334.51,
-          "2": 6023.54,
-          "3": 70529.93,
-          "4": 757600.46,
-          "5": 322583.02,
-          "6": 4463.75,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 1180535.21,
-        "pct": 3.8
-      },
-      {
-        "name": "Impostos e Taxas",
-        "months": {
-          "1": 16895.18,
-          "2": 28794.61,
-          "3": 26579.11,
-          "4": 100930.23,
-          "5": 137272.24,
-          "6": 103589.72,
-          "7": 2006.58,
-          "8": 2006.58,
-          "9": 2006.58,
-          "10": 2006.58,
-          "11": 2006.58,
-          "12": 2006.58
-        },
-        "value": 426100.57,
-        "pct": 1.4
-      },
-      {
-        "name": "Devoluções de Vendas",
-        "months": {
-          "1": 154093.9,
-          "2": 743.06,
-          "3": 66000,
-          "4": 2172.35,
-          "5": 56574.27,
-          "6": 0,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0
-        },
-        "value": 279583.58,
-        "pct": 0.9
-      },
-      {
-        "name": "Pessoal",
-        "months": {
-          "1": 22671,
-          "2": 26090.79,
-          "3": 24344.68,
-          "4": 22357.96,
-          "5": 21666.97,
-          "6": 20357,
-          "7": 22646,
-          "8": 22646,
-          "9": 22646,
-          "10": 22646,
-          "11": 22612.2,
-          "12": 22612.2
-        },
-        "value": 273296.8,
-        "pct": 0.9
       }
     ],
     "reconciliation": [
@@ -4212,7 +1591,7 @@
     ],
     "precomputed": {
       "version": "20260528-phase5",
-      "generated_at": "2026-06-16T12:41:05-03:00",
+      "generated_at": "2026-06-16T23:36:00-03:00",
       "periodAliases": {
         "year": "1,2,3,4,5,6,7,8,9,10,11,12",
         "realized": "1,2,3,4,5,6",
@@ -4238,1235 +1617,770 @@
       },
       "aggregates": {
         "1": {
-          "entradas": 4459257.29,
-          "saidas": 2873789.58,
-          "resultado": 1585467.71,
-          "margem": 35.55452414812333
+          "entradas": 4853931.98,
+          "saidas": 4758421.91,
+          "resultado": 95510.0700000003,
+          "margem": 1.9676845574585142
         },
         "2": {
-          "entradas": 3907607.26,
-          "saidas": 3588898.97,
-          "resultado": 318708.2899999996,
-          "margem": 8.15609831782326
+          "entradas": 3909298.76,
+          "saidas": 3885077.99,
+          "resultado": 24220.769999999553,
+          "margem": 0.619568149864288
         },
         "3": {
-          "entradas": 7593708.91,
-          "saidas": 7449097.62,
-          "resultado": 144611.29000000004,
-          "margem": 1.9043565102892526
+          "entradas": 12240304.99,
+          "saidas": 12095975.2,
+          "resultado": 144329.79000000097,
+          "margem": 1.1791355698891042
         },
         "4": {
-          "entradas": 9666003.72,
-          "saidas": 9800919.88,
-          "resultado": -134916.16000000015,
-          "margem": -1.3957801373575318
+          "entradas": 14044291.36,
+          "saidas": 14179111.19,
+          "resultado": -134819.83000000007,
+          "margem": -0.9599617847859864
         },
         "5": {
-          "entradas": 4419228.71,
-          "saidas": 4346841.48,
-          "resultado": 72387.22999999952,
-          "margem": 1.6380059677879744
+          "entradas": 9313635.8,
+          "saidas": 9241943.07,
+          "resultado": 71692.73000000045,
+          "margem": 0.7697609348220428
         },
         "6": {
-          "entradas": 2263674.77,
-          "saidas": 2158846.57,
-          "resultado": 104828.20000000019,
-          "margem": 4.630886087933921
+          "entradas": 4067134.03,
+          "saidas": 3850076.25,
+          "resultado": 217057.7799999998,
+          "margem": 5.336873051119976
         },
         "7": {
-          "entradas": 241758.1,
-          "saidas": 171389.84,
-          "resultado": 70368.26000000001,
-          "margem": 29.10688824903902
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "8": {
-          "entradas": 4000,
-          "saidas": 168889.84,
-          "resultado": -164889.84,
-          "margem": -4122.246
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "9": {
-          "entradas": 4000,
-          "saidas": 168889.84,
-          "resultado": -164889.84,
-          "margem": -4122.246
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "10": {
-          "entradas": 5000,
-          "saidas": 171389.84,
-          "resultado": -166389.84,
-          "margem": -3327.7968
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "11": {
-          "entradas": 4000,
-          "saidas": 169251.73,
-          "resultado": -165251.73,
-          "margem": -4131.293250000001
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "12": {
-          "entradas": 5000,
-          "saidas": 171751.73,
-          "resultado": -166751.73,
-          "margem": -3335.0346
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "1,2,3,4,5,6,7,8,9,10,11,12": {
-          "entradas": 32573238.76,
-          "saidas": 31239956.920000006,
-          "resultado": 1333281.8399999961,
-          "margem": 4.093181675373555
+          "entradas": 48428596.92,
+          "saidas": 48010605.61,
+          "resultado": 417991.3100000024,
+          "margem": 0.863108445389176
         },
         "1,2,3,4,5,6": {
-          "entradas": 32309480.66,
-          "saidas": 30218394.100000005,
-          "resultado": 2091086.559999995,
-          "margem": 6.472052528497668
+          "entradas": 48428596.92,
+          "saidas": 48010605.61,
+          "resultado": 417991.3100000024,
+          "margem": 0.863108445389176
         },
         "7,8,9,10,11,12": {
-          "entradas": 263758.1,
-          "saidas": 1021562.82,
-          "resultado": -757804.72,
-          "margem": -287.3105015542651
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "1,2,3": {
-          "entradas": 15960573.46,
-          "saidas": 13911786.170000002,
-          "resultado": 2048787.289999999,
-          "margem": 12.836551864095732
+          "entradas": 21003535.73,
+          "saidas": 20739475.1,
+          "resultado": 264060.62999999896,
+          "margem": 1.2572198957094305
         },
         "4,5,6": {
-          "entradas": 16348907.2,
-          "saidas": 16306607.930000002,
-          "resultado": 42299.26999999769,
-          "margem": 0.2587284243683131
+          "entradas": 27425061.19,
+          "saidas": 27271130.509999998,
+          "resultado": 153930.68000000343,
+          "margem": 0.5612774350203863
         },
         "7,8,9": {
-          "entradas": 249758.1,
-          "saidas": 509169.52,
-          "resultado": -259411.42,
-          "margem": -103.86506783964164
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         },
         "10,11,12": {
-          "entradas": 14000,
-          "saidas": 512393.30000000005,
-          "resultado": -498393.30000000005,
-          "margem": -3559.9521428571434
+          "entradas": 0,
+          "saidas": 0,
+          "resultado": 0,
+          "margem": 0
         }
       },
       "categoryBreakdown": {
         "1": [
           {
-            "name": "Fornecedores Importação",
-            "value": 852089.24,
-            "pct": 29.65036987850725
+            "name": "CMV / CPV",
+            "value": 3405119.3,
+            "pct": 71.55984409125251
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 832568.1,
-            "pct": 28.971087716171617
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 737558.45,
+            "pct": 15.500064179891101
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 511978.29,
-            "pct": 17.815441101293157
+            "name": "Despesas Operacionais",
+            "value": 216702.43,
+            "pct": 4.5540818804778915
           },
           {
-            "name": "Outros",
-            "value": 172586.24,
-            "pct": 6.005528073492423
+            "name": "Despesas Variáveis",
+            "value": 210825.62,
+            "pct": 4.430578540270718
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 156787.18,
-            "pct": 5.4557640925122985
+            "name": "Deduções de Vendas",
+            "value": 142965.08,
+            "pct": 3.0044641417683784
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 154093.9,
-            "pct": 5.362045331099015
+            "name": "Despesas Financeiras",
+            "value": 38536.33,
+            "pct": 0.8098552572443077
           },
           {
-            "name": "Consultoria",
-            "value": 134785.94,
-            "pct": 4.690181248412766
-          },
-          {
-            "name": "Pessoal",
-            "value": 22671,
-            "pct": 0.7888886562112177
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 19334.51,
-            "pct": 0.6727879499096798
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 16895.18,
-            "pct": 0.5879059523905713
+            "name": "Gasto com Pessoal",
+            "value": 6714.7,
+            "pct": 0.14111190909508906
           }
         ],
         "2": [
           {
-            "name": "Fornecedores Importação",
-            "value": 2062261.41,
-            "pct": 57.46223081894111
+            "name": "CMV / CPV",
+            "value": 2503225.68,
+            "pct": 64.43179999071266
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 1064231.95,
-            "pct": 29.653438530759203
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 1117402.77,
+            "pct": 28.76139868687681
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 147614.27,
-            "pct": 4.113079560999735
+            "name": "Despesas Operacionais",
+            "value": 154259.45,
+            "pct": 3.970562506005188
           },
           {
-            "name": "Outros",
-            "value": 137191.43,
-            "pct": 3.822660686377583
+            "name": "Despesas Variáveis",
+            "value": 60529.07,
+            "pct": 1.5579885437512155
           },
           {
-            "name": "Consultoria",
-            "value": 74778.07,
-            "pct": 2.083593620914885
+            "name": "Deduções de Vendas",
+            "value": 37140.77,
+            "pct": 0.9559851847401393
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 41169.84,
-            "pct": 1.1471440222793454
+            "name": "Gasto com Pessoal",
+            "value": 11547.32,
+            "pct": 0.29722234739488457
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 28794.61,
-            "pct": 0.8023243407155595
-          },
-          {
-            "name": "Pessoal",
-            "value": 26090.79,
-            "pct": 0.7269859145686679
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 6023.54,
-            "pct": 0.1678381043977953
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 743.06,
-            "pct": 0.02070440004612334
+            "name": "Despesas Financeiras",
+            "value": 972.93,
+            "pct": 0.02504274051909058
           }
         ],
         "3": [
           {
-            "name": "Fornecedores Importação",
-            "value": 5662052.38,
-            "pct": 76.00990977481646
+            "name": "CMV / CPV",
+            "value": 5949731.75,
+            "pct": 49.18769798734375
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 817037.75,
-            "pct": 10.96827819528562
+            "name": "Deduções de Vendas",
+            "value": 4998925.99,
+            "pct": 41.32718451671428
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 265181.18,
-            "pct": 3.5599101196904437
+            "name": "Sem classificação",
+            "value": 531065.9,
+            "pct": 4.390434762134763
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 221501.64,
-            "pct": 2.9735365449540185
+            "name": "Despesas Variáveis",
+            "value": 295157.81,
+            "pct": 2.440132400403731
           },
           {
-            "name": "Outros",
-            "value": 214153.53,
-            "pct": 2.8748922476867746
+            "name": "Despesas Operacionais",
+            "value": 256047.31,
+            "pct": 2.1167975774288954
           },
           {
-            "name": "Consultoria",
-            "value": 81717.42,
-            "pct": 1.0970109960782068
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 56600,
+            "pct": 0.4679242397917614
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 70529.93,
-            "pct": 0.946825153836553
+            "name": "Gasto com Pessoal",
+            "value": 6420.9,
+            "pct": 0.05308294613566998
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 66000,
-            "pct": 0.8860133584878433
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 26579.11,
-            "pct": 0.35680979570784577
-          },
-          {
-            "name": "Pessoal",
-            "value": 24344.68,
-            "pct": 0.32681381345623983
+            "name": "Despesas Financeiras",
+            "value": 2025.54,
+            "pct": 0.016745570047134353
           }
         ],
         "4": [
           {
-            "name": "Fornecedores Importação",
-            "value": 7865452.57,
-            "pct": 80.25218720592171
+            "name": "CMV / CPV",
+            "value": 7869261.24,
+            "pct": 55.49897405099622
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 757600.46,
-            "pct": 7.729891370155754
+            "name": "Deduções de Vendas",
+            "value": 4491403.62,
+            "pct": 31.676200008697446
           },
           {
-            "name": "Outros",
-            "value": 647230.97,
-            "pct": 6.6037777874376395
+            "name": "Despesas Variáveis",
+            "value": 1043643.53,
+            "pct": 7.360429832414623
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 288394.7,
-            "pct": 2.942526860039998
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 410162.78,
+            "pct": 2.8927256053205412
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 100930.23,
-            "pct": 1.0298036432882254
+            "name": "Despesas Operacionais",
+            "value": 317140.93,
+            "pct": 2.236677079051808
           },
           {
-            "name": "Consultoria",
-            "value": 94264.25,
-            "pct": 0.9617898233446224
+            "name": "Gasto com Pessoal",
+            "value": 34785.16,
+            "pct": 0.24532680175702895
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 22516.39,
-            "pct": 0.22973751725026847
+            "name": "Sem classificação",
+            "value": 12000,
+            "pct": 0.08463153888279792
           },
           {
-            "name": "Pessoal",
-            "value": 22357.96,
-            "pct": 0.22812103632868383
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 2172.35,
-            "pct": 0.022164756233064926
+            "name": "Despesas Financeiras",
+            "value": 713.93,
+            "pct": 0.00503508287954966
           }
         ],
         "5": [
           {
-            "name": "Fornecedores Importação",
-            "value": 3277138.53,
-            "pct": 75.39125926441653
+            "name": "Deduções de Vendas",
+            "value": 4674438.14,
+            "pct": 50.57852125462183
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 322583.02,
-            "pct": 7.421090037081364
+            "name": "CMV / CPV",
+            "value": 3673956.92,
+            "pct": 39.75307889447971
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 243077.48,
-            "pct": 5.592048413046801
+            "name": "Despesas Variáveis",
+            "value": 582250.56,
+            "pct": 6.300088148021886
           },
           {
-            "name": "Outros",
-            "value": 162532.42,
-            "pct": 3.7390924133722967
+            "name": "Despesas Operacionais",
+            "value": 188486.42,
+            "pct": 2.0394674428566892
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 137272.24,
-            "pct": 3.157976674134435
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 101011.07,
+            "pct": 1.092963560096892
           },
           {
-            "name": "Consultoria",
-            "value": 125996.55,
-            "pct": 2.898577060601714
+            "name": "Sem classificação",
+            "value": 15000,
+            "pct": 0.16230353169660888
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 56574.27,
-            "pct": 1.3015029478369662
+            "name": "Gasto com Pessoal",
+            "value": 5467.9,
+            "pct": 0.05916396539759252
           },
           {
-            "name": "Pessoal",
-            "value": 21666.97,
-            "pct": 0.4984531895099153
+            "name": "Despesas Financeiras",
+            "value": 1332.06,
+            "pct": 0.014413202828785656
           }
         ],
         "6": [
           {
-            "name": "Fornecedores Importação",
-            "value": 1420208.47,
-            "pct": 65.78552129343774
+            "name": "CMV / CPV",
+            "value": 2340992.85,
+            "pct": 60.803804859708954
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 268364.24,
-            "pct": 12.430908417915036
+            "name": "Deduções de Vendas",
+            "value": 1320153.29,
+            "pct": 34.28901674349956
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 180000,
-            "pct": 8.337785672281473
+            "name": "Despesas Variáveis",
+            "value": 143054.73,
+            "pct": 3.715633683878339
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 103589.72,
-            "pct": 4.798382684509164
+            "name": "Despesas Operacionais",
+            "value": 43619.8,
+            "pct": 1.1329593797005968
           },
           {
-            "name": "Consultoria",
-            "value": 90570.52,
-            "pct": 4.1953199110393475
+            "name": "Gasto com Pessoal",
+            "value": 2000,
+            "pct": 0.05194702312713937
           },
           {
-            "name": "Outros",
-            "value": 71292.87,
-            "pct": 3.3023592778990314
-          },
-          {
-            "name": "Pessoal",
-            "value": 20357,
-            "pct": 0.942957238503522
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 4463.75,
-            "pct": 0.20676550441470234
+            "name": "Despesas Financeiras",
+            "value": 255.58,
+            "pct": 0.00663831008541714
           }
         ],
-        "7": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.138057191721515
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.478021334286794
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.213151958132407
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.170769515859283
-          }
-        ],
-        "8": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.547998861269576
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.85516097356715
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.40874027709423
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1880998880690514
-          }
-        ],
-        "9": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.547998861269576
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.85516097356715
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.40874027709423
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1880998880690514
-          }
-        ],
-        "10": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.138057191721515
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.478021334286794
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.213151958132407
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.170769515859283
-          }
-        ],
-        "11": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.42067475469822
-          },
-          {
-            "name": "Outros",
-            "value": 44062.43,
-            "pct": 26.033665948348062
-          },
-          {
-            "name": "Pessoal",
-            "value": 22612.2,
-            "pct": 13.36009977564188
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1855595213118353
-          }
-        ],
-        "12": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.011343117184325
-          },
-          {
-            "name": "Outros",
-            "value": 44062.43,
-            "pct": 25.654722662764446
-          },
-          {
-            "name": "Pessoal",
-            "value": 22612.2,
-            "pct": 13.165631577626613
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1683026424246206
-          }
-        ],
+        "7": [],
+        "8": [],
+        "9": [],
+        "10": [],
+        "11": [],
+        "12": [],
         "1,2,3,4,5,6,7,8,9,10,11,12": [
           {
-            "name": "Fornecedores Importação",
-            "value": 21139202.599999998,
-            "pct": 67.6671951057223
+            "name": "CMV / CPV",
+            "value": 25742287.740000002,
+            "pct": 53.61791923457473
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 2184497.62,
-            "pct": 6.992639668467252
+            "name": "Deduções de Vendas",
+            "value": 15665026.89,
+            "pct": 32.62826346588966
           },
           {
-            "name": "Outros",
-            "value": 1667779.2799999998,
-            "pct": 5.338609410604782
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 2422735.07,
+            "pct": 5.046249759231063
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 1656630.31,
-            "pct": 5.3029212371910015
+            "name": "Despesas Variáveis",
+            "value": 2335461.32,
+            "pct": 4.864469611092665
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 1219295.08,
-            "pct": 3.9029985960684868
+            "name": "Despesas Operacionais",
+            "value": 1176256.3399999999,
+            "pct": 2.4499927152658136
           },
           {
-            "name": "Consultoria",
-            "value": 1213035.87,
-            "pct": 3.882962684956225
+            "name": "Sem classificação",
+            "value": 558065.9,
+            "pct": 1.1623804634611026
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 1180535.21,
-            "pct": 3.7789271381620066
+            "name": "Gasto com Pessoal",
+            "value": 66935.98000000001,
+            "pct": 0.13941915364229046
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 426100.57000000007,
-            "pct": 1.363960171555832
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 279583.58,
-            "pct": 0.8949550753733881
-          },
-          {
-            "name": "Pessoal",
-            "value": 273296.8,
-            "pct": 0.8748309118987094
+            "name": "Despesas Financeiras",
+            "value": 43836.37,
+            "pct": 0.09130559684268896
           }
         ],
         "1,2,3,4,5,6": [
           {
-            "name": "Fornecedores Importação",
-            "value": 21139202.599999998,
-            "pct": 69.95475183110409
+            "name": "CMV / CPV",
+            "value": 25742287.740000002,
+            "pct": 53.61791923457473
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 2184497.62,
-            "pct": 7.2290327962861545
+            "name": "Deduções de Vendas",
+            "value": 15665026.89,
+            "pct": 32.62826346588966
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 1656630.31,
-            "pct": 5.482191755517545
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 2422735.07,
+            "pct": 5.046249759231063
           },
           {
-            "name": "Outros",
-            "value": 1404987.46,
-            "pct": 4.649444491823608
+            "name": "Despesas Variáveis",
+            "value": 2335461.32,
+            "pct": 4.864469611092665
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 1219295.08,
-            "pct": 4.034943339361638
+            "name": "Despesas Operacionais",
+            "value": 1176256.3399999999,
+            "pct": 2.4499927152658136
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 1180535.21,
-            "pct": 3.906677522615274
+            "name": "Sem classificação",
+            "value": 558065.9,
+            "pct": 1.1623804634611026
           },
           {
-            "name": "Consultoria",
-            "value": 602112.75,
-            "pct": 1.9925372208975194
+            "name": "Gasto com Pessoal",
+            "value": 66935.98000000001,
+            "pct": 0.13941915364229046
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 414061.08999999997,
-            "pct": 1.3702286383246287
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 279583.58,
-            "pct": 0.9252099204040761
-          },
-          {
-            "name": "Pessoal",
-            "value": 137488.4,
-            "pct": 0.45498248366547045
+            "name": "Despesas Financeiras",
+            "value": 43836.37,
+            "pct": 0.09130559684268896
           }
         ],
-        "7,8,9,10,11,12": [
-          {
-            "name": "Consultoria",
-            "value": 610923.12,
-            "pct": 59.802795093893494
-          },
-          {
-            "name": "Outros",
-            "value": 262791.82,
-            "pct": 25.724489464093853
-          },
-          {
-            "name": "Pessoal",
-            "value": 135808.4,
-            "pct": 13.294179989831658
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 12039.48,
-            "pct": 1.1785354521810025
-          }
-        ],
+        "7,8,9,10,11,12": [],
         "1,2,3": [
           {
-            "name": "Fornecedores Importação",
-            "value": 8576403.03,
-            "pct": 61.64846789044629
+            "name": "CMV / CPV",
+            "value": 11858076.73,
+            "pct": 57.17635896194885
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 2161981.23,
-            "pct": 15.540644483611981
+            "name": "Deduções de Vendas",
+            "value": 5179031.84,
+            "pct": 24.971855917414224
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 1476630.31,
-            "pct": 10.614239551670739
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 1911561.22,
+            "pct": 9.217018322705766
           },
           {
-            "name": "Outros",
-            "value": 523931.19999999995,
-            "pct": 3.7660958384325127
+            "name": "Despesas Operacionais",
+            "value": 627009.19,
+            "pct": 3.0232645087531647
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 419458.66000000003,
-            "pct": 3.015131593271175
+            "name": "Despesas Variáveis",
+            "value": 566512.5,
+            "pct": 2.7315662391089157
           },
           {
-            "name": "Consultoria",
-            "value": 291281.43,
-            "pct": 2.0937744904973616
+            "name": "Sem classificação",
+            "value": 531065.9,
+            "pct": 2.5606525596204697
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 220836.96,
-            "pct": 1.5874091026228012
+            "name": "Despesas Financeiras",
+            "value": 41534.8,
+            "pct": 0.20026929225417087
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 95887.98,
-            "pct": 0.6892571437503627
-          },
-          {
-            "name": "Pessoal",
-            "value": 73106.47,
-            "pct": 0.5255002420727977
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 72268.9,
-            "pct": 0.5194796636239557
+            "name": "Gasto com Pessoal",
+            "value": 24682.92,
+            "pct": 0.11901419819443741
           }
         ],
         "4,5,6": [
           {
-            "name": "Fornecedores Importação",
-            "value": 12562799.57,
-            "pct": 77.04115793995177
+            "name": "CMV / CPV",
+            "value": 13884211.01,
+            "pct": 50.91175448303774
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 1084647.23,
-            "pct": 6.651580970463672
+            "name": "Deduções de Vendas",
+            "value": 10485995.05,
+            "pct": 38.45089973866287
           },
           {
-            "name": "Outros",
-            "value": 881056.26,
-            "pct": 5.40306275702552
+            "name": "Despesas Variáveis",
+            "value": 1768948.82,
+            "pct": 6.48652544620894
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 799836.42,
-            "pct": 4.904983448633146
+            "name": "Despesas Operacionais",
+            "value": 549247.15,
+            "pct": 2.0140241336845115
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 341792.18999999994,
-            "pct": 2.096034880259735
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 511173.85000000003,
+            "pct": 1.8744138597868492
           },
           {
-            "name": "Consultoria",
-            "value": 310831.32,
-            "pct": 1.9061678635698946
+            "name": "Gasto com Pessoal",
+            "value": 42253.060000000005,
+            "pct": 0.15493695791051385
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 180000,
-            "pct": 1.1038469850547268
+            "name": "Sem classificação",
+            "value": 27000,
+            "pct": 0.09900579658807844
           },
           {
-            "name": "Pessoal",
-            "value": 64381.93,
-            "pct": 0.394821107347247
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 58746.619999999995,
-            "pct": 0.3602626631619762
-          },
-          {
-            "name": "Antecipação Recebíveis",
-            "value": 22516.39,
-            "pct": 0.13808138453231333
+            "name": "Despesas Financeiras",
+            "value": 2301.5699999999997,
+            "pct": 0.008439584120489766
           }
         ],
-        "7,8,9": [
-          {
-            "name": "Consultoria",
-            "value": 304211.56,
-            "pct": 59.746616411760066
-          },
-          {
-            "name": "Outros",
-            "value": 131000.22,
-            "pct": 25.728213267754125
-          },
-          {
-            "name": "Pessoal",
-            "value": 67938,
-            "pct": 13.342903950731378
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 6019.74,
-            "pct": 1.182266369754419
-          }
-        ],
-        "10,11,12": [
-          {
-            "name": "Consultoria",
-            "value": 306711.56,
-            "pct": 59.85862032153816
-          },
-          {
-            "name": "Outros",
-            "value": 131791.6,
-            "pct": 25.72078908916256
-          },
-          {
-            "name": "Pessoal",
-            "value": 67870.4,
-            "pct": 13.245762581204708
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 6019.74,
-            "pct": 1.1748280080945632
-          }
-        ]
+        "7,8,9": [],
+        "10,11,12": []
       },
       "monthCategoryBreakdown": {
         "1": [
           {
-            "name": "Fornecedores Importação",
-            "value": 852089.24,
-            "pct": 29.65036987850725
+            "name": "CMV / CPV",
+            "value": 3405119.3,
+            "pct": 71.55984409125251
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 832568.1,
-            "pct": 28.971087716171617
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 737558.45,
+            "pct": 15.500064179891101
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 511978.29,
-            "pct": 17.815441101293157
+            "name": "Despesas Operacionais",
+            "value": 216702.43,
+            "pct": 4.5540818804778915
           },
           {
-            "name": "Outros",
-            "value": 172586.24,
-            "pct": 6.005528073492423
+            "name": "Despesas Variáveis",
+            "value": 210825.62,
+            "pct": 4.430578540270718
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 156787.18,
-            "pct": 5.4557640925122985
+            "name": "Deduções de Vendas",
+            "value": 142965.08,
+            "pct": 3.0044641417683784
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 154093.9,
-            "pct": 5.362045331099015
+            "name": "Despesas Financeiras",
+            "value": 38536.33,
+            "pct": 0.8098552572443077
           },
           {
-            "name": "Consultoria",
-            "value": 134785.94,
-            "pct": 4.690181248412766
-          },
-          {
-            "name": "Pessoal",
-            "value": 22671,
-            "pct": 0.7888886562112177
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 19334.51,
-            "pct": 0.6727879499096798
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 16895.18,
-            "pct": 0.5879059523905713
+            "name": "Gasto com Pessoal",
+            "value": 6714.7,
+            "pct": 0.14111190909508906
           }
         ],
         "2": [
           {
-            "name": "Fornecedores Importação",
-            "value": 2062261.41,
-            "pct": 57.46223081894111
+            "name": "CMV / CPV",
+            "value": 2503225.68,
+            "pct": 64.43179999071266
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 1064231.95,
-            "pct": 29.653438530759203
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 1117402.77,
+            "pct": 28.76139868687681
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 147614.27,
-            "pct": 4.113079560999735
+            "name": "Despesas Operacionais",
+            "value": 154259.45,
+            "pct": 3.970562506005188
           },
           {
-            "name": "Outros",
-            "value": 137191.43,
-            "pct": 3.822660686377583
+            "name": "Despesas Variáveis",
+            "value": 60529.07,
+            "pct": 1.5579885437512155
           },
           {
-            "name": "Consultoria",
-            "value": 74778.07,
-            "pct": 2.083593620914885
+            "name": "Deduções de Vendas",
+            "value": 37140.77,
+            "pct": 0.9559851847401393
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 41169.84,
-            "pct": 1.1471440222793454
+            "name": "Gasto com Pessoal",
+            "value": 11547.32,
+            "pct": 0.29722234739488457
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 28794.61,
-            "pct": 0.8023243407155595
-          },
-          {
-            "name": "Pessoal",
-            "value": 26090.79,
-            "pct": 0.7269859145686679
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 6023.54,
-            "pct": 0.1678381043977953
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 743.06,
-            "pct": 0.02070440004612334
+            "name": "Despesas Financeiras",
+            "value": 972.93,
+            "pct": 0.02504274051909058
           }
         ],
         "3": [
           {
-            "name": "Fornecedores Importação",
-            "value": 5662052.38,
-            "pct": 76.00990977481646
+            "name": "CMV / CPV",
+            "value": 5949731.75,
+            "pct": 49.18769798734375
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 817037.75,
-            "pct": 10.96827819528562
+            "name": "Deduções de Vendas",
+            "value": 4998925.99,
+            "pct": 41.32718451671428
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 265181.18,
-            "pct": 3.5599101196904437
+            "name": "Sem classificação",
+            "value": 531065.9,
+            "pct": 4.390434762134763
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 221501.64,
-            "pct": 2.9735365449540185
+            "name": "Despesas Variáveis",
+            "value": 295157.81,
+            "pct": 2.440132400403731
           },
           {
-            "name": "Outros",
-            "value": 214153.53,
-            "pct": 2.8748922476867746
+            "name": "Despesas Operacionais",
+            "value": 256047.31,
+            "pct": 2.1167975774288954
           },
           {
-            "name": "Consultoria",
-            "value": 81717.42,
-            "pct": 1.0970109960782068
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 56600,
+            "pct": 0.4679242397917614
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 70529.93,
-            "pct": 0.946825153836553
+            "name": "Gasto com Pessoal",
+            "value": 6420.9,
+            "pct": 0.05308294613566998
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 66000,
-            "pct": 0.8860133584878433
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 26579.11,
-            "pct": 0.35680979570784577
-          },
-          {
-            "name": "Pessoal",
-            "value": 24344.68,
-            "pct": 0.32681381345623983
+            "name": "Despesas Financeiras",
+            "value": 2025.54,
+            "pct": 0.016745570047134353
           }
         ],
         "4": [
           {
-            "name": "Fornecedores Importação",
-            "value": 7865452.57,
-            "pct": 80.25218720592171
+            "name": "CMV / CPV",
+            "value": 7869261.24,
+            "pct": 55.49897405099622
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 757600.46,
-            "pct": 7.729891370155754
+            "name": "Deduções de Vendas",
+            "value": 4491403.62,
+            "pct": 31.676200008697446
           },
           {
-            "name": "Outros",
-            "value": 647230.97,
-            "pct": 6.6037777874376395
+            "name": "Despesas Variáveis",
+            "value": 1043643.53,
+            "pct": 7.360429832414623
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 288394.7,
-            "pct": 2.942526860039998
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 410162.78,
+            "pct": 2.8927256053205412
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 100930.23,
-            "pct": 1.0298036432882254
+            "name": "Despesas Operacionais",
+            "value": 317140.93,
+            "pct": 2.236677079051808
           },
           {
-            "name": "Consultoria",
-            "value": 94264.25,
-            "pct": 0.9617898233446224
+            "name": "Gasto com Pessoal",
+            "value": 34785.16,
+            "pct": 0.24532680175702895
           },
           {
-            "name": "Antecipação Recebíveis",
-            "value": 22516.39,
-            "pct": 0.22973751725026847
+            "name": "Sem classificação",
+            "value": 12000,
+            "pct": 0.08463153888279792
           },
           {
-            "name": "Pessoal",
-            "value": 22357.96,
-            "pct": 0.22812103632868383
-          },
-          {
-            "name": "Devoluções de Vendas",
-            "value": 2172.35,
-            "pct": 0.022164756233064926
+            "name": "Despesas Financeiras",
+            "value": 713.93,
+            "pct": 0.00503508287954966
           }
         ],
         "5": [
           {
-            "name": "Fornecedores Importação",
-            "value": 3277138.53,
-            "pct": 75.39125926441653
+            "name": "Deduções de Vendas",
+            "value": 4674438.14,
+            "pct": 50.57852125462183
           },
           {
-            "name": "Despacho Aduaneiro",
-            "value": 322583.02,
-            "pct": 7.421090037081364
+            "name": "CMV / CPV",
+            "value": 3673956.92,
+            "pct": 39.75307889447971
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 243077.48,
-            "pct": 5.592048413046801
+            "name": "Despesas Variáveis",
+            "value": 582250.56,
+            "pct": 6.300088148021886
           },
           {
-            "name": "Outros",
-            "value": 162532.42,
-            "pct": 3.7390924133722967
+            "name": "Despesas Operacionais",
+            "value": 188486.42,
+            "pct": 2.0394674428566892
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 137272.24,
-            "pct": 3.157976674134435
+            "name": "Mov. Financeiras (antecip./empréstimos)",
+            "value": 101011.07,
+            "pct": 1.092963560096892
           },
           {
-            "name": "Consultoria",
-            "value": 125996.55,
-            "pct": 2.898577060601714
+            "name": "Sem classificação",
+            "value": 15000,
+            "pct": 0.16230353169660888
           },
           {
-            "name": "Devoluções de Vendas",
-            "value": 56574.27,
-            "pct": 1.3015029478369662
+            "name": "Gasto com Pessoal",
+            "value": 5467.9,
+            "pct": 0.05916396539759252
           },
           {
-            "name": "Pessoal",
-            "value": 21666.97,
-            "pct": 0.4984531895099153
+            "name": "Despesas Financeiras",
+            "value": 1332.06,
+            "pct": 0.014413202828785656
           }
         ],
         "6": [
           {
-            "name": "Fornecedores Importação",
-            "value": 1420208.47,
-            "pct": 65.78552129343774
+            "name": "CMV / CPV",
+            "value": 2340992.85,
+            "pct": 60.803804859708954
           },
           {
-            "name": "Frete Rodoviário",
-            "value": 268364.24,
-            "pct": 12.430908417915036
+            "name": "Deduções de Vendas",
+            "value": 1320153.29,
+            "pct": 34.28901674349956
           },
           {
-            "name": "Fornecedores Nacionais",
-            "value": 180000,
-            "pct": 8.337785672281473
+            "name": "Despesas Variáveis",
+            "value": 143054.73,
+            "pct": 3.715633683878339
           },
           {
-            "name": "Impostos e Taxas",
-            "value": 103589.72,
-            "pct": 4.798382684509164
+            "name": "Despesas Operacionais",
+            "value": 43619.8,
+            "pct": 1.1329593797005968
           },
           {
-            "name": "Consultoria",
-            "value": 90570.52,
-            "pct": 4.1953199110393475
+            "name": "Gasto com Pessoal",
+            "value": 2000,
+            "pct": 0.05194702312713937
           },
           {
-            "name": "Outros",
-            "value": 71292.87,
-            "pct": 3.3023592778990314
-          },
-          {
-            "name": "Pessoal",
-            "value": 20357,
-            "pct": 0.942957238503522
-          },
-          {
-            "name": "Despacho Aduaneiro",
-            "value": 4463.75,
-            "pct": 0.20676550441470234
+            "name": "Despesas Financeiras",
+            "value": 255.58,
+            "pct": 0.00663831008541714
           }
         ],
-        "7": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.138057191721515
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.478021334286794
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.213151958132407
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.170769515859283
-          }
-        ],
-        "8": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.547998861269576
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.85516097356715
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.40874027709423
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1880998880690514
-          }
-        ],
-        "9": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.547998861269576
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.85516097356715
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.40874027709423
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1880998880690514
-          }
-        ],
-        "10": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.138057191721515
-          },
-          {
-            "name": "Outros",
-            "value": 43666.74,
-            "pct": 25.478021334286794
-          },
-          {
-            "name": "Pessoal",
-            "value": 22646,
-            "pct": 13.213151958132407
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.170769515859283
-          }
-        ],
-        "11": [
-          {
-            "name": "Consultoria",
-            "value": 100570.52,
-            "pct": 59.42067475469822
-          },
-          {
-            "name": "Outros",
-            "value": 44062.43,
-            "pct": 26.033665948348062
-          },
-          {
-            "name": "Pessoal",
-            "value": 22612.2,
-            "pct": 13.36009977564188
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1855595213118353
-          }
-        ],
-        "12": [
-          {
-            "name": "Consultoria",
-            "value": 103070.52,
-            "pct": 60.011343117184325
-          },
-          {
-            "name": "Outros",
-            "value": 44062.43,
-            "pct": 25.654722662764446
-          },
-          {
-            "name": "Pessoal",
-            "value": 22612.2,
-            "pct": 13.165631577626613
-          },
-          {
-            "name": "Impostos e Taxas",
-            "value": 2006.58,
-            "pct": 1.1683026424246206
-          }
-        ]
+        "7": [],
+        "8": [],
+        "9": [],
+        "10": [],
+        "11": [],
+        "12": []
       }
     }
   },
@@ -8611,7 +5525,7 @@
     ],
     "precomputed": {
       "version": "20260528-phase5",
-      "generated_at": "2026-06-16T12:41:05-03:00",
+      "generated_at": "2026-06-16T23:36:00-03:00",
       "periodAliases": {
         "year": "1,2,3,4,5,6,7,8,9,10,11,12",
         "realized": "1,2,3,4,5,6",
@@ -8752,5 +5666,555 @@
         }
       }
     }
+  },
+  "dre": {
+    "source": {
+      "workbook": "DRE MARCONI 2026.xlsb",
+      "sheet": "DRE 26 NOVO",
+      "note": "DRE contábil (regime de competência). Total = soma dos meses preenchidos."
+    },
+    "months": [
+      "JAN",
+      "FEV",
+      "MAR",
+      "ABR",
+      "MAI",
+      "JUN",
+      "JUL",
+      "AGO",
+      "SET",
+      "OUT",
+      "NOV",
+      "DEZ"
+    ],
+    "monthsFilled": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "lines": [
+      {
+        "key": "r13",
+        "label": "Receita Operacional Bruta",
+        "kind": "receita",
+        "level": 0,
+        "values": {
+          "1": 749583,
+          "2": 551969.23,
+          "3": 988486,
+          "4": 1419680.96,
+          "5": 879765.68,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r14",
+        "label": "(−) NFs de Devolução",
+        "kind": "deducao",
+        "level": 1,
+        "values": {
+          "1": 396465.17,
+          "2": 64632.15,
+          "3": 12218,
+          "4": 4567.96,
+          "5": 1667.4,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r15",
+        "label": "(−) Impostos sobre Receita",
+        "kind": "deducao",
+        "level": 1,
+        "values": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r16",
+        "label": "(=) Receita Operacional Líquida",
+        "kind": "subtotal",
+        "level": 0,
+        "values": {
+          "1": 353117.83,
+          "2": 487337.08,
+          "3": 976268,
+          "4": 1415113,
+          "5": 878098.28,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r17",
+        "label": "(−) Custo das Mercadorias Vendidas",
+        "kind": "custo",
+        "level": 1,
+        "values": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r19",
+        "label": "(=) Lucro Bruto",
+        "kind": "subtotal",
+        "level": 0,
+        "values": {
+          "1": 353117.83,
+          "2": 487337.08,
+          "3": 976268,
+          "4": 1415113,
+          "5": 878098.28,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r21",
+        "label": "Comissões",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 15278,
+          "2": 11634.21,
+          "3": 6792,
+          "4": 138400,
+          "5": 91910.8,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r22",
+        "label": "Logística",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 276374,
+          "2": 186971,
+          "3": 478846,
+          "4": 742231.5,
+          "5": 499873.19,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r23",
+        "label": "Custo Financeiro (encargo de títulos)",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 54529,
+          "2": 0,
+          "3": 32136.24,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r24",
+        "label": "Diárias / Demurrage",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 245196.5,
+          "5": 44017.7,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r25",
+        "label": "Imposto ST Pago",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 16290,
+          "2": 23641,
+          "3": 93618,
+          "4": 130116,
+          "5": 100957.01,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r26",
+        "label": "Utilidades (energia / telefonia)",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 1468.97,
+          "2": 1599.24,
+          "3": 1357,
+          "4": 1463.84,
+          "5": 1450.56,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r27",
+        "label": "Consultoria",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 162711.42,
+          "2": 113522.07,
+          "3": 90423.45,
+          "4": 84301,
+          "5": 120189.95,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r28",
+        "label": "Pessoal + Terceiros + FGTS + Viagens",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 46203.85,
+          "2": 40188.85,
+          "3": 42837.46,
+          "4": 90517,
+          "5": 58877.86,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r29",
+        "label": "Taxas e Tarifas Bancárias",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 1496.76,
+          "2": 4685.13,
+          "3": 3133.48,
+          "4": 2101,
+          "5": 2095.15,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r30",
+        "label": "(=) Total das Despesas",
+        "kind": "subtotal",
+        "level": 0,
+        "values": {
+          "1": 574352,
+          "2": 382241.5,
+          "3": 749143.63,
+          "4": 1434326.84,
+          "5": 919372.22,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r31",
+        "label": "(+) Outras Receitas",
+        "kind": "receita",
+        "level": 1,
+        "values": {
+          "1": 0,
+          "2": 651.91,
+          "3": 1522.37,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r32",
+        "label": "Aluguéis",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 1165,
+          "2": 1165,
+          "3": 1165,
+          "4": 1165,
+          "5": 1160,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r33",
+        "label": "Outros Custos (material de expediente)",
+        "kind": "despesa",
+        "level": 1,
+        "values": {
+          "1": 301.44,
+          "2": 1586.94,
+          "3": 761,
+          "4": 300,
+          "5": 1993.61,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r35",
+        "label": "(=) Custo Gerencial Total",
+        "kind": "subtotal",
+        "level": 0,
+        "values": {
+          "1": 573488.44,
+          "2": 382011.53,
+          "3": 747217.26,
+          "4": 1433461.84,
+          "5": 920205.83,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r36",
+        "label": "(=) EBITDA",
+        "kind": "resultado",
+        "level": 0,
+        "values": {
+          "1": -220370.61,
+          "2": 105325.55,
+          "3": 229050.74,
+          "4": -18348.84,
+          "5": -42107.55,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r38",
+        "label": "(=) EBIT",
+        "kind": "resultado",
+        "level": 0,
+        "values": {
+          "1": -220370.61,
+          "2": 105325.55,
+          "3": 229050.74,
+          "4": -18348.84,
+          "5": -42107.55,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r42",
+        "label": "(−) Reduções Contábeis (desconto fatura)",
+        "kind": "deducao",
+        "level": 1,
+        "values": {
+          "1": 9236.66,
+          "2": 3714.68,
+          "3": 11281.09,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r43",
+        "label": "(=) Resultado antes de Impostos",
+        "kind": "subtotal",
+        "level": 0,
+        "values": {
+          "1": -229607.27,
+          "2": 101610.87,
+          "3": 217769.65,
+          "4": -18348.84,
+          "5": -42107.55,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r46",
+        "label": "(−) IRPJ / CSLL",
+        "kind": "imposto",
+        "level": 1,
+        "values": {
+          "1": 379544.6,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      },
+      {
+        "key": "r47",
+        "label": "(=) Lucro Líquido",
+        "kind": "resultado",
+        "level": 0,
+        "values": {
+          "1": 149937.33,
+          "2": 101610.87,
+          "3": 217769.65,
+          "4": -18348.84,
+          "5": -42107.55,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0
+        }
+      }
+    ]
   }
 }

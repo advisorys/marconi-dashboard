@@ -103,6 +103,21 @@ function validateCustosFixos() {
   });
 }
 
+function validateDre() {
+  const dre = payload.dre;
+  if (!dre) return; // seção opcional — só valida se existir
+  assertObject(dre, 'dre');
+  if (!Array.isArray(dre.lines) || !dre.lines.length) fail('dre.lines vazio');
+  dre.lines.forEach((line, index) => {
+    assertObject(line, `dre.lines[${index}]`);
+    assertText(line.label, `dre.lines[${index}].label`);
+    assertObject(line.values, `dre.lines[${index}].values`);
+    for (const month of ALL_MONTHS) {
+      assertFiniteNumber(line.values[month] ?? line.values[String(month)] ?? 0, `dre.lines[${index}].values[${month}]`);
+    }
+  });
+}
+
 function validatePayload() {
   assertObject(payload, 'payload');
   assertObject(payload.meta, 'meta');
@@ -111,6 +126,7 @@ function validatePayload() {
   assertText(payload.meta.ultima_atualizacao, 'meta.ultima_atualizacao');
   validateFluxoCaixa();
   validateCustosFixos();
+  validateDre();
   console.log('[precompute] JSON validado com sucesso');
 }
 

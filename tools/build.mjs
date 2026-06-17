@@ -11,6 +11,7 @@ const jsFiles = [
   'src/js/20-interactions.js',
   'src/js/30-export-loader.js',
   'src/js/40-fixed-director.js',
+  'src/js/45-dre.js',
   'src/js/50-ux-patches.js',
   'src/js/55-theme-toggle.js',
   'src/js/60-cinema.js'
@@ -21,6 +22,7 @@ const cssFiles = [
   'src/css/20-fixed-director.css',
   'src/css/30-executive-interactions.css',
   'src/css/40-ux-patches.css',
+  'src/css/45-dre.css',
   'src/css/50-theme-light.css',
   'src/css/60-theme-light-premium.css',
   'src/css/70-solaris.css',

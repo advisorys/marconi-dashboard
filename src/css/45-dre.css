@@ -1,0 +1,96 @@
+/* Página DRE — Demonstração de Resultado do Exercício (contábil). */
+
+/* ── Visibilidade da página (espelha o padrão de Diretoria/Custos Fixos) ── */
+#dre-page { display: none; }
+body[data-page="dre"] #dre-page { display: block !important; padding-top: 26px; }
+body[data-page="dre"] section:not(#dre-page) { display: none !important; }
+body[data-page="dre"] footer { display: none !important; }
+body[data-page="dre"] .control-sidebar { display: none !important; }
+body[data-page="dre"] .dashboard-main { margin-left: 0 !important; padding-top: 92px !important; min-height: 100vh; }
+body[data-page="dre"] .top-site-nav { left: 22px !important; right: 22px !important; }
+body[data-page="dre"] .top-site-links a { display: none !important; }
+body[data-page="dre"] .page-switcher { justify-self: center !important; }
+body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: var(--gold-l); }
+
+/* ── Layout ── */
+.dre-section .container { max-width: 1280px; }
+.dre-section .section-header { margin-bottom: 26px; }
+
+/* KPIs */
+.dre-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.dre-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+  min-width: 0;
+}
+.dre-kpi .lbl {
+  font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-mute); margin-bottom: 10px;
+}
+.dre-kpi .val {
+  font-size: clamp(22px, 2.2vw, 30px); font-weight: 700;
+  font-feature-settings: 'tnum'; line-height: 1.1; white-space: nowrap;
+}
+.dre-kpi .sub { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* Tabela */
+.dre-table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 8px 0;
+  overflow: hidden;
+}
+.dre-table-wrap { overflow-x: auto; }
+.dre-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-feature-settings: 'tnum';
+  min-width: 640px;
+}
+.dre-table th, .dre-table td {
+  padding: 11px 16px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.dre-table thead th {
+  position: sticky; top: 0;
+  background: var(--surface-2);
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-mute); font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.dre-table .dre-th-label, .dre-table .dre-cell-label { text-align: left; }
+.dre-th-total, .dre-td-total { background: color-mix(in srgb, var(--gold) 8%, transparent); font-weight: 600; }
+.dre-cell-label { color: var(--text); font-size: 14px; }
+
+/* Hierarquia por nível/tipo */
+.dre-row--l1 .dre-cell-label { padding-left: 30px; color: var(--text-dim); font-size: 13px; font-weight: 400; }
+.dre-row--l1 td.num { color: var(--text-dim); }
+.dre-row--subtotal { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.dre-row--subtotal .dre-cell-label { font-weight: 700; color: var(--text); }
+.dre-row--subtotal td.num { font-weight: 600; color: var(--text); }
+.dre-row--resultado { background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.dre-row--resultado .dre-cell-label { font-weight: 800; color: var(--gold-l); letter-spacing: .2px; }
+.dre-row--resultado td.num { font-weight: 700; }
+.dre-row--receita .dre-cell-label { font-weight: 600; }
+.dre-row:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.dre-zero { color: var(--text-mute); }
+
+.dre-foot { padding: 14px 16px 16px; font-size: 12px; color: var(--text-mute); line-height: 1.5; }
+.dre-empty { padding: 48px 16px; text-align: center; color: var(--text-dim); }
+
+/* Mobile */
+@media (max-width: 760px) {
+  .dre-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .dre-kpi { padding: 16px; }
+  .dre-table th, .dre-table td { padding: 9px 12px; }
+}
