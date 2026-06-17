@@ -119,6 +119,7 @@ function validateDre() {
     for (const month of ALL_MONTHS) {
       assertFiniteNumber(line.values[month] ?? line.values[String(month)] ?? 0, `dre.lines[${index}].values[${month}]`);
     }
+    if ('acum' in line) assertFiniteNumber(line.acum, `dre.lines[${index}].acum`);
   });
 }
 
