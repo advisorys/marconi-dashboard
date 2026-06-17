@@ -1,0 +1,189 @@
+/* Página RJ — Recuperação Judicial (Onda 3).
+   Reaproveita tokens de 00-theme-base.css; sem novos !important além do
+   estritamente necessário pra visibilidade da página (espelha o padrão da DRE). */
+
+/* ── Visibilidade da página (espelha #dre-page) ── */
+#rj-page { display: none; }
+body[data-page="rj"] #rj-page { display: block !important; padding-top: 26px; }
+body[data-page="rj"] section:not(#rj-page) { display: none !important; }
+body[data-page="rj"] footer { display: none !important; }
+body[data-page="rj"] .control-sidebar { display: none !important; }
+body[data-page="rj"] .dashboard-main { margin-left: 0 !important; padding-top: 92px !important; min-height: 100vh; }
+body[data-page="rj"] .top-site-nav { left: 22px !important; right: 22px !important; }
+body[data-page="rj"] .top-site-links a { display: none !important; }
+body[data-page="rj"] .page-switcher { justify-self: center !important; }
+body[data-page="rj"] .top-site-title small::after { content: ' · Recuperação Judicial'; color: var(--gold-l); }
+
+/* ── Layout ── */
+.rj-section .container { max-width: 1280px; }
+.rj-section .section-header { margin-bottom: 22px; }
+
+/* ── Faixa de RJ (A3) ── */
+.rj-banner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px 18px;
+  padding: 14px 20px; margin-bottom: 22px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--red) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--red) 38%, transparent);
+}
+.rj-banner-flag {
+  font-size: 12px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--red);
+  padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--red) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 45%, transparent);
+}
+.rj-banner-sep { flex: 0 0 1px; align-self: stretch; background: color-mix(in srgb, var(--border) 80%, transparent); min-height: 22px; }
+.rj-banner-metric { display: flex; flex-direction: column; gap: 2px; }
+.rj-banner-metric-val { font-size: clamp(18px, 1.8vw, 24px); font-weight: 700; font-feature-settings: 'tnum'; line-height: 1.1; }
+.rj-banner-metric-lbl { font-size: 11px; color: var(--text-dim); }
+.rj-banner-tag {
+  margin-left: auto;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--gold-l);
+  padding: 4px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
+}
+
+/* ── KPIs ── */
+.rj-kpi-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px; margin-bottom: 26px;
+}
+.rj-kpi {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 22px; min-width: 0;
+}
+.rj-kpi .lbl { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-mute); margin-bottom: 10px; }
+.rj-kpi .val { font-size: clamp(20px, 2.1vw, 28px); font-weight: 700; font-feature-settings: 'tnum'; line-height: 1.1; white-space: nowrap; }
+.rj-kpi .sub { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.rj-kpi--blocked { border-style: dashed; border-color: color-mix(in srgb, var(--text-mute) 60%, transparent); background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); }
+.rj-kpi--blocked .val.rj-kpi-blocked { color: var(--text-mute); font-size: clamp(16px, 1.6vw, 20px); font-style: italic; }
+
+/* ── Cards genéricos ── */
+.rj-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 20px; margin-bottom: 22px;
+}
+.rj-card-head { margin-bottom: 14px; }
+.rj-card-title { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-mute); font-weight: 700; }
+.rj-card-sub { font-size: 13px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+.rj-empty { padding: 40px 16px; text-align: center; color: var(--text-dim); }
+
+/* ── Bloco Custo da RJ (A2): barra comparativa ── */
+.rj-split-bar {
+  display: flex; width: 100%; height: 40px; border-radius: 10px;
+  overflow: hidden; margin-bottom: 18px;
+  border: 1px solid var(--border);
+}
+.rj-split-rj, .rj-split-op {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 0; overflow: hidden;
+}
+.rj-split-rj { background: linear-gradient(90deg, color-mix(in srgb, var(--red) 55%, transparent), color-mix(in srgb, var(--red) 75%, transparent)); }
+.rj-split-op { background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 40%, transparent), color-mix(in srgb, var(--gold) 60%, transparent)); }
+.rj-split-cap { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: .3px; white-space: nowrap; padding: 0 8px; }
+
+/* ── Tabela auditável de rubricas ── */
+.rj-cost-table-wrap { overflow-x: auto; }
+.rj-cost-table { width: 100%; border-collapse: collapse; font-feature-settings: 'tnum'; min-width: 480px; }
+.rj-cost-table th, .rj-cost-table td {
+  padding: 10px 14px; text-align: right; white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.rj-cost-table thead th {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-mute); font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.rj-cost-th-name, .rj-cost-name { text-align: left; }
+.rj-cost-name { color: var(--text); font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.rj-cost-role { font-size: 11px; color: var(--text-mute); font-weight: 400; white-space: normal; }
+.rj-cost-val { font-weight: 600; }
+.rj-cost-pct { color: var(--text-dim); font-size: 13px; min-width: 92px; }
+.rj-cost-row:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.rj-cost-total { background: color-mix(in srgb, var(--red) 8%, transparent); }
+.rj-cost-total .rj-cost-name { font-weight: 800; color: var(--red); }
+.rj-cost-op { background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.rj-cost-op .rj-cost-name { font-weight: 700; color: var(--gold-l); }
+.rj-cost-grand .rj-cost-name { font-weight: 700; color: var(--text); }
+.rj-cost-grand td { border-top: 1px solid var(--border); }
+.rj-audit-note {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  font-size: 12px; color: var(--text-dim); line-height: 1.55;
+  background: color-mix(in srgb, var(--cyan) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cyan) 22%, transparent);
+}
+.rj-audit-note strong { color: var(--text); }
+
+/* ── Mini-gráfico de geração operacional (A1) ── */
+.rj-chart-svg { width: 100%; height: auto; display: block; }
+.rj-chart-zero { stroke: color-mix(in srgb, var(--text-mute) 60%, transparent); stroke-width: 1; }
+.rj-chart-axis, .rj-chart-xlabel { fill: var(--text-mute); font-size: 10px; font-family: inherit; }
+.rj-bar.rj-bar-pos { fill: var(--green); }
+.rj-bar.rj-bar-neg { fill: var(--red); }
+.rj-bar.rj-bar-partial { fill: var(--indigo); opacity: .9; }
+.rj-chart-partial-key { color: var(--indigo); font-weight: 600; }
+
+/* ── Card Runway (bloqueado) ── */
+.rj-runway-card { border-style: dashed; border-color: color-mix(in srgb, var(--text-mute) 55%, transparent); }
+.rj-blocked-tag {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--gold-l); margin-top: 0;
+  padding: 3px 9px; border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
+}
+.rj-runway-body { display: flex; flex-direction: column; gap: 10px; }
+.rj-runway-msg { font-size: 14px; color: var(--text-dim); line-height: 1.55; }
+.rj-runway-msg strong { color: var(--text); }
+.rj-runway-todo, .rj-runway-ready { font-size: 12px; color: var(--text-mute); line-height: 1.5; }
+.rj-runway-todo code, .rj-runway-ready code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;
+  padding: 1px 5px; border-radius: 5px;
+  background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-dim);
+}
+.rj-runway-ready strong { color: var(--text-dim); }
+
+/* ── Selo de reconciliação ── */
+.rj-recon-card { /* usa .rj-card */ }
+.rj-recon-seal {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+}
+.rj-recon-ok { background: color-mix(in srgb, var(--green) 12%, transparent); border: 1px solid color-mix(in srgb, var(--green) 35%, transparent); }
+.rj-recon-warn { background: color-mix(in srgb, var(--gold) 12%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); }
+.rj-recon-icon {
+  flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px;
+}
+.rj-recon-ok .rj-recon-icon { color: var(--green); background: color-mix(in srgb, var(--green) 22%, transparent); }
+.rj-recon-warn .rj-recon-icon { color: var(--gold-l); background: color-mix(in srgb, var(--gold) 22%, transparent); }
+.rj-recon-text { display: flex; flex-direction: column; gap: 2px; }
+.rj-recon-text strong { font-size: 14px; color: var(--text); }
+.rj-recon-sub { font-size: 12px; color: var(--text-dim); }
+.rj-recon-pending { margin-top: 12px; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.rj-recon-pending strong { color: var(--text); }
+
+/* ── Grade de dois cards (op chart + lateral) ── */
+.rj-two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: start; }
+.rj-two-col > * { margin-bottom: 0; }
+
+/* ── Rodapé ── */
+.rj-foot { padding: 4px 2px 8px; font-size: 12px; color: var(--text-mute); line-height: 1.55; }
+.rj-foot strong { color: var(--text-dim); }
+
+/* ── Mobile ── */
+@media (max-width: 860px) {
+  .rj-two-col { grid-template-columns: 1fr; gap: 18px; }
+  .rj-two-col > * { margin-bottom: 0; }
+}
+@media (max-width: 760px) {
+  .rj-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .rj-kpi { padding: 16px; }
+  .rj-banner-tag { margin-left: 0; }
+  .rj-cost-table th, .rj-cost-table td { padding: 9px 11px; }
+  .rj-split-cap { font-size: 10px; padding: 0 4px; }
+}

@@ -310,7 +310,9 @@
   const pageLabels = {
     cash: 'Fluxo de Caixa',
     fixed: 'Custos Fixos',
-    director: 'Diretoria'
+    director: 'Diretoria',
+    dre: 'DRE',
+    rj: 'Recuperação Judicial'
   };
 
   function metaUpdatedDate() {
@@ -967,7 +969,8 @@
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
     fixed: 'Custos Fixos',
-    dre: 'DRE'
+    dre: 'DRE',
+    rj: 'Recuperação Judicial'
   };
 
   function syncActivePageState() {

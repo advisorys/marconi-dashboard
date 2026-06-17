@@ -334,7 +334,7 @@ async function run() {
     await screenshot('phase5-desktop-cash');
 
     const topbarRects = [];
-    for (const target of ['director', 'cash', 'fixed', 'dre', 'cash']) {
+    for (const target of ['director', 'cash', 'fixed', 'dre', 'rj', 'cash']) {
       let fixedAnimationProbe = null;
       await evaluate(`document.querySelector('[data-page-link="${target}"]')?.click()`);
       if (target === 'fixed') {
@@ -390,11 +390,13 @@ async function run() {
         const topbar = document.querySelector('header.top-site-nav')?.getBoundingClientRect();
         const active = document.querySelector('.page-tab.active')?.dataset.pageLink || null;
         const dreEl = document.getElementById('dre-page');
+        const rjEl = document.getElementById('rj-page');
         const visible = {
           cash: [...document.querySelectorAll('#kpis,#monthly,#table')].some(el => getComputedStyle(el).display !== 'none'),
           fixed: getComputedStyle(document.getElementById('fixed-costs')).display !== 'none',
           director: getComputedStyle(document.getElementById('directoria')).display !== 'none',
-          dre: dreEl ? getComputedStyle(dreEl).display !== 'none' : false
+          dre: dreEl ? getComputedStyle(dreEl).display !== 'none' : false,
+          rj: rjEl ? getComputedStyle(rjEl).display !== 'none' : false
         };
         return {
           page: document.body.dataset.page,
@@ -417,8 +419,17 @@ async function run() {
           dreCmvBar: !!document.querySelector('#dreTableWrap .dre-row--cmv .dre-cmv-bar-fill'),
           dreTrend: !!document.querySelector('#dreTrend .dre-trend-svg') && !!document.querySelector('#dreTrend .dre-trend-note'),
           cashAccColumn: document.querySelectorAll('#tableBody .cash-acc').length,
+          rjKpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
+          rjBanner: !!document.querySelector('#rjBanner .rj-banner-flag'),
+          rjCostRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length,
+          rjCostTotal: !!document.querySelector('#rjCostBlock .rj-cost-total'),
+          rjSplitBar: !!document.querySelector('#rjCostBlock .rj-split-rj') && !!document.querySelector('#rjCostBlock .rj-split-op'),
+          rjOpChart: !!document.querySelector('#rjOpChart .rj-chart-svg'),
+          rjRunwayBlocked: !!document.querySelector('#rjRunway .rj-blocked-tag'),
+          rjReconSeal: !!document.querySelector('#rjRecon .rj-recon-seal'),
+          rjAuditNote: !!document.querySelector('#rjCostBlock .rj-audit-note'),
           statusSeal: (() => {
-            const sealId = { cash: 'cashStatusSeal', fixed: 'fixedStatusSeal', director: 'directorStatusSeal', dre: 'dreStatusSeal' }[document.body.dataset.page];
+            const sealId = { cash: 'cashStatusSeal', fixed: 'fixedStatusSeal', director: 'directorStatusSeal', dre: 'dreStatusSeal', rj: 'rjStatusSeal' }[document.body.dataset.page];
             const el = sealId && document.getElementById(sealId);
             return !!(el && el.classList.contains('status-seal') && el.querySelector('.status-seal-word') && (el.querySelector('.status-seal-word').textContent || '').trim() && el.dataset.tone);
           })(),
@@ -434,7 +445,7 @@ async function run() {
       pushResult(`nav_${target}`, state.page === target && state.active === target, JSON.stringify(state));
       pushResult(`visible_${target}`, state.visible[target] === true, JSON.stringify(state.visible));
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
-      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE' };
+      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE', rj: 'Recuperação Judicial' };
       pushResult(`title_${target}`, state.title === `Marconi Foods · ${titleLabels[target]} · 2026`, state.title);
       // Selo de status padronizado (E1) — presente e populado nas 4 páginas.
       pushResult(`status_seal_present_${target}`, state.statusSeal === true, `statusSeal=${state.statusSeal}`);
@@ -449,6 +460,24 @@ async function run() {
         pushResult('dre_cmv_highlight', state.dreCmvBar === true, `dreCmvBar=${state.dreCmvBar}`);
         pushResult('dre_margin_erosion_trend', state.dreTrend === true, `dreTrend=${state.dreTrend}`);
         await screenshot('dre-desktop');
+      }
+      if (target === 'rj') {
+        // Asserts da Onda 3 (espelham o padrão do dre).
+        pushResult('rj_nav', state.page === 'rj' && state.active === 'rj', JSON.stringify({ page: state.page, active: state.active }));
+        pushResult('rj_visible', state.visible.rj === true, JSON.stringify(state.visible));
+        pushResult('rj_no_overflow', state.overflow <= 2, `overflow=${state.overflow}`);
+        pushResult(
+          'rj_render_on_active',
+          state.rjKpis >= 4 && state.rjBanner === true && state.rjCostRows >= 4 && state.rjCostTotal === true &&
+          state.rjSplitBar === true && state.rjOpChart === true && state.rjRunwayBlocked === true &&
+          state.rjReconSeal === true && state.rjAuditNote === true,
+          JSON.stringify({
+            kpis: state.rjKpis, banner: state.rjBanner, costRows: state.rjCostRows, costTotal: state.rjCostTotal,
+            splitBar: state.rjSplitBar, opChart: state.rjOpChart, runwayBlocked: state.rjRunwayBlocked,
+            reconSeal: state.rjReconSeal, auditNote: state.rjAuditNote
+          })
+        );
+        await screenshot('rj-desktop');
       }
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
@@ -642,6 +671,21 @@ async function run() {
     pushResult('mobile_dre_no_overflow', mobileDre.overflow <= 2, `overflow=${mobileDre.overflow}`);
     pushResult('mobile_dre_render', mobileDre.kpis >= 4 && mobileDre.table === true, JSON.stringify(mobileDre));
     await screenshot('dre-mobile');
+
+    await evaluate(`document.querySelector('[data-page-link="rj"]')?.click()`);
+    await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });
+    const mobileRj = await evaluate(`(() => ({
+      page: document.body.dataset.page,
+      active: document.querySelector('.page-tab.active')?.dataset.pageLink || null,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      visible: getComputedStyle(document.getElementById('rj-page')).display !== 'none',
+      kpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
+      costRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length
+    }))()`);
+    pushResult('mobile_rj_nav', mobileRj.page === 'rj' && mobileRj.active === 'rj' && mobileRj.visible, JSON.stringify(mobileRj));
+    pushResult('mobile_rj_no_overflow', mobileRj.overflow <= 2, `overflow=${mobileRj.overflow}`);
+    pushResult('mobile_rj_render', mobileRj.kpis >= 4 && mobileRj.costRows >= 4, JSON.stringify(mobileRj));
+    await screenshot('rj-mobile');
     await screenshot('phase5-mobile-fixed');
 
     // ===== Modo Cinema (deck executivo) =====
