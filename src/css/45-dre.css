@@ -267,8 +267,8 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
 
 /* ============================================================
    RÉGUA DE KPIs UNIFICADA (E4 · Onda 5)
-   Alinha radius / gap / ruler tipográfico das 5 grades de KPI
-   (.kpi-card · .fixed-kpi · .dre-kpi · .rj-kpi) usando os tokens
+   Alinha radius / gap / ruler tipográfico das 4 grades de KPI
+   (.kpi-card · .fixed-kpi · .dre-kpi) usando os tokens
    --kpi-* de :root. Mudança SÓ de consistência visual — não toca
    conteúdo, números, acentos, gradientes nem os patches V36–V40
    (que controlam grid-template/colunas via !important). Sem novos
@@ -276,35 +276,30 @@ body[data-page="dre"] .top-site-title small::after { content: ' · DRE'; color: 
    ============================================================ */
 .kpi-card,
 .fixed-kpi,
-.dre-kpi,
-.rj-kpi {
+.dre-kpi {
   border-radius: var(--kpi-radius);
 }
 /* Gap das grades — alinhado ao mesmo passo; as colunas continuam
    sendo definidas pelos patches existentes (não sobrescrever). */
-.dre-kpi-grid,
-.rj-kpi-grid {
+.dre-kpi-grid {
   gap: var(--kpi-grid-gap);
 }
 /* Ruler do rótulo (label) */
 .kpi-label,
 .fixed-kpi .lbl,
-.dre-kpi .lbl,
-.rj-kpi .lbl {
+.dre-kpi .lbl {
   font-size: var(--kpi-label-size);
   letter-spacing: var(--kpi-label-spacing);
 }
 /* Ruler do valor principal */
 .kpi-value,
 .fixed-kpi .val,
-.dre-kpi .val,
-.rj-kpi .val {
+.dre-kpi .val {
   font-size: var(--kpi-value-size);
 }
 /* Ruler do subtítulo */
 .kpi-sub,
 .fixed-kpi .sub,
-.dre-kpi .sub,
-.rj-kpi .sub {
+.dre-kpi .sub {
   font-size: var(--kpi-sub-size);
 }

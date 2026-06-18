@@ -85,12 +85,12 @@
     --action-outline-text: #A5B4FC;
     --control-active-border: rgba(252,211,77,0.55);
     /* Régua de KPIs (E4 · Onda 5): escala única de radius/espaçamento/tipografia
-       compartilhada pelas 5 grades de KPI (Diretoria, Fluxo, Custos Fixos, DRE, RJ).
+       compartilhada pelas 4 grades de KPI (Diretoria, Fluxo, Custos Fixos, DRE).
        Só consistência visual — nenhum número/conteúdo muda. */
     --kpi-grid-gap: 18px;
     /* radius alinhado ao register dominante: os patches V36–V40 cravam
-       var(--r-lg) !important em .kpi-card/.fixed-kpi; a régua leva DRE/RJ
-       (que não têm esse !important) ao MESMO raio, convergindo de verdade.
+       var(--r-lg) !important em .kpi-card/.fixed-kpi; a régua leva a DRE
+       (que não tem esse !important) ao MESMO raio, convergindo de verdade.
        Fallback 12px caso --r-lg não esteja definido em algum contexto. */
     --kpi-radius: var(--r-lg, 12px);
     --kpi-label-size: 11px;

@@ -335,7 +335,7 @@ async function run() {
     pushResult('export_lazy_initial', initial.exportLoaded === false, `exportLoaded=${initial.exportLoaded}`);
     // (Onda 5) Acessibilidade: skip-link presente e aponta para #main-content.
     pushResult('skip_link_present', initial.skipLink === true, `skipLink=${initial.skipLink}`);
-    // (Onda 5) ARIA completo nas abas de página (inclui DRE e RJ): role=tab + aria-selected + aria-controls válido.
+    // (Onda 5) ARIA completo nas abas de página (inclui DRE): role=tab + aria-selected + aria-controls válido.
     pushResult('tabs_aria_complete', initial.pageTabsAria === true, `pageTabsAria=${initial.pageTabsAria}`);
     // (Onda 5) Botão do Pacote do Conselho presente (export segue lazy — validado por export_lazy_initial).
     pushResult('council_export_present', initial.councilBtn === true, `councilBtn=${initial.councilBtn}`);
@@ -348,7 +348,7 @@ async function run() {
     await screenshot('phase5-desktop-cash');
 
     const topbarRects = [];
-    for (const target of ['director', 'cash', 'fixed', 'dre', 'rj', 'cash']) {
+    for (const target of ['director', 'cash', 'fixed', 'dre', 'cash']) {
       let fixedAnimationProbe = null;
       await evaluate(`document.querySelector('[data-page-link="${target}"]')?.click()`);
       if (target === 'fixed') {
@@ -404,13 +404,11 @@ async function run() {
         const topbar = document.querySelector('header.top-site-nav')?.getBoundingClientRect();
         const active = document.querySelector('.page-tab.active')?.dataset.pageLink || null;
         const dreEl = document.getElementById('dre-page');
-        const rjEl = document.getElementById('rj-page');
         const visible = {
           cash: [...document.querySelectorAll('#kpis,#monthly,#table')].some(el => getComputedStyle(el).display !== 'none'),
           fixed: getComputedStyle(document.getElementById('fixed-costs')).display !== 'none',
           director: getComputedStyle(document.getElementById('directoria')).display !== 'none',
-          dre: dreEl ? getComputedStyle(dreEl).display !== 'none' : false,
-          rj: rjEl ? getComputedStyle(rjEl).display !== 'none' : false
+          dre: dreEl ? getComputedStyle(dreEl).display !== 'none' : false
         };
         return {
           page: document.body.dataset.page,
@@ -462,21 +460,8 @@ async function run() {
             if (hasProj) return true; // com dado, o aparato pode aparecer (não testamos esse caminho aqui)
             return projHidden && /Acumulado realizado/i.test(yearBtnTxt) && !tableHasProjAnnual && !barHasDivider;
           })(),
-          rjKpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
-          rjBanner: !!document.querySelector('#rjBanner .rj-banner-flag'),
-          rjCostRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length,
-          rjCostTotal: !!document.querySelector('#rjCostBlock .rj-cost-total'),
-          rjSplitBar: !!document.querySelector('#rjCostBlock .rj-split-rj') && !!document.querySelector('#rjCostBlock .rj-split-op'),
-          rjOpChart: !!document.querySelector('#rjOpChart .rj-chart-svg'),
-          // Runway agora é LIVE: saldo real + sparkline de evolução + bloco de status/runway.
-          rjRunwayLive: !!document.querySelector('#rjRunway .rj-runway-saldo-val') &&
-            !!document.querySelector('#rjRunway .rj-spark-svg') &&
-            !!document.querySelector('#rjRunway .rj-runway-status') &&
-            !document.querySelector('#rjRunway .rj-blocked-tag'),
-          rjReconSeal: !!document.querySelector('#rjRecon .rj-recon-seal'),
-          rjAuditNote: !!document.querySelector('#rjCostBlock .rj-audit-note'),
           statusSeal: (() => {
-            const sealId = { cash: 'cashStatusSeal', fixed: 'fixedStatusSeal', director: 'directorStatusSeal', dre: 'dreStatusSeal', rj: 'rjStatusSeal' }[document.body.dataset.page];
+            const sealId = { cash: 'cashStatusSeal', fixed: 'fixedStatusSeal', director: 'directorStatusSeal', dre: 'dreStatusSeal' }[document.body.dataset.page];
             const el = sealId && document.getElementById(sealId);
             return !!(el && el.classList.contains('status-seal') && el.querySelector('.status-seal-word') && (el.querySelector('.status-seal-word').textContent || '').trim() && el.dataset.tone);
           })(),
@@ -497,7 +482,7 @@ async function run() {
       pushResult(`nav_${target}`, state.page === target && state.active === target, JSON.stringify(state));
       pushResult(`visible_${target}`, state.visible[target] === true, JSON.stringify(state.visible));
       pushResult(`overflow_${target}`, state.overflow <= 2, `overflow=${state.overflow}`);
-      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE', rj: 'Recuperação Judicial' };
+      const titleLabels = { director: 'Diretoria', cash: 'Fluxo de Caixa', fixed: 'Custos Fixos', dre: 'DRE' };
       pushResult(`title_${target}`, state.title === `Marconi Foods · ${titleLabels[target]} · 2026`, state.title);
       // Selo de status padronizado (E1) — presente e populado nas 4 páginas.
       pushResult(`status_seal_present_${target}`, state.statusSeal === true, `statusSeal=${state.statusSeal}`);
@@ -531,26 +516,6 @@ async function run() {
         })()`);
         pushResult('kpi_ruler_consistent', ruler.match === true && !!ruler.token, JSON.stringify(ruler));
         await screenshot('dre-desktop');
-      }
-      if (target === 'rj') {
-        // Asserts da Onda 3 (espelham o padrão do dre).
-        pushResult('rj_nav', state.page === 'rj' && state.active === 'rj', JSON.stringify({ page: state.page, active: state.active }));
-        pushResult('rj_visible', state.visible.rj === true, JSON.stringify(state.visible));
-        pushResult('rj_no_overflow', state.overflow <= 2, `overflow=${state.overflow}`);
-        pushResult(
-          'rj_render_on_active',
-          state.rjKpis >= 4 && state.rjBanner === true && state.rjCostRows >= 4 && state.rjCostTotal === true &&
-          state.rjSplitBar === true && state.rjOpChart === true && state.rjRunwayLive === true &&
-          state.rjReconSeal === true && state.rjAuditNote === true,
-          JSON.stringify({
-            kpis: state.rjKpis, banner: state.rjBanner, costRows: state.rjCostRows, costTotal: state.rjCostTotal,
-            splitBar: state.rjSplitBar, opChart: state.rjOpChart, runwayLive: state.rjRunwayLive,
-            reconSeal: state.rjReconSeal, auditNote: state.rjAuditNote
-          })
-        );
-        // Runway agora ligado (saldo de caixa real do importador), não mais placeholder.
-        pushResult('rj_runway_live', state.rjRunwayLive === true, `rjRunwayLive=${state.rjRunwayLive}`);
-        await screenshot('rj-desktop');
       }
       if (target === 'fixed') {
         pushResult('fixed_render_on_active', state.fixedKpis >= 4, `fixedKpis=${state.fixedKpis}`);
@@ -612,9 +577,9 @@ async function run() {
     });
     pushResult('topbar_stable_desktop', stable, JSON.stringify(topbarRects));
 
-    // ===== Regressao da barra de navegacao (5 abas) =====
+    // ===== Regressao da barra de navegacao (4 abas) =====
     // Pontos cegos historicos: ordem das abas embaralhada por `order` faltando em
-    // DRE/RJ, e o switcher (centralizado) invadindo o titulo em telas < ~1560px.
+    // DRE, e o switcher (centralizado) invadindo o titulo em telas < ~1560px.
     const switcherLayout = await evaluate(`(() => {
       const header = document.querySelector('header.top-site-nav');
       const sw = document.querySelector('header.top-site-nav .page-switcher');
@@ -636,7 +601,7 @@ async function run() {
       })();
       return { order, overlap, titleVisible, withinHeader, activeInView, overflow: document.documentElement.scrollWidth - window.innerWidth };
     })()`);
-    pushResult('switcher_visual_order', JSON.stringify(switcherLayout.order) === JSON.stringify(['director', 'cash', 'fixed', 'dre', 'rj']), JSON.stringify(switcherLayout.order));
+    pushResult('switcher_visual_order', JSON.stringify(switcherLayout.order) === JSON.stringify(['director', 'cash', 'fixed', 'dre']), JSON.stringify(switcherLayout.order));
     pushResult('switcher_no_title_overlap', switcherLayout.overlap <= 0, JSON.stringify(switcherLayout));
     pushResult('switcher_within_header', switcherLayout.withinHeader === true, JSON.stringify(switcherLayout));
     pushResult('switcher_active_tab_visible_desktop', switcherLayout.activeInView === true, JSON.stringify(switcherLayout));
@@ -785,29 +750,6 @@ async function run() {
     pushResult('mobile_dre_active_tab_visible', mobileDre.activeTabInView === true, JSON.stringify(mobileDre));
     await screenshot('dre-mobile');
 
-    await evaluate(`document.querySelector('[data-page-link="rj"]')?.click()`);
-    await page('Runtime.evaluate', { expression: 'new Promise(resolve => setTimeout(resolve, 850))', awaitPromise: true });
-    const mobileRj = await evaluate(`(() => ({
-      page: document.body.dataset.page,
-      active: document.querySelector('.page-tab.active')?.dataset.pageLink || null,
-      overflow: document.documentElement.scrollWidth - window.innerWidth,
-      visible: getComputedStyle(document.getElementById('rj-page')).display !== 'none',
-      kpis: document.querySelectorAll('#rjKpis .rj-kpi').length,
-      costRows: document.querySelectorAll('#rjCostBlock .rj-cost-row').length,
-      activeTabInView: (() => {
-        const sw = document.querySelector('header.top-site-nav .page-switcher');
-        const a = document.querySelector('.page-tab.active');
-        if (!sw || !a) return false;
-        const s = sw.getBoundingClientRect(), r = a.getBoundingClientRect();
-        return r.left >= s.left - 1 && r.right <= s.right + 1;
-      })()
-    }))()`);
-    pushResult('mobile_rj_nav', mobileRj.page === 'rj' && mobileRj.active === 'rj' && mobileRj.visible, JSON.stringify(mobileRj));
-    pushResult('mobile_rj_no_overflow', mobileRj.overflow <= 2, `overflow=${mobileRj.overflow}`);
-    pushResult('mobile_rj_render', mobileRj.kpis >= 4 && mobileRj.costRows >= 4, JSON.stringify(mobileRj));
-    // (Bug 3) Aba ativa precisa ficar visivel no switcher rolavel do mobile.
-    pushResult('mobile_rj_active_tab_visible', mobileRj.activeTabInView === true, JSON.stringify(mobileRj));
-    await screenshot('rj-mobile');
     await screenshot('phase5-mobile-fixed');
 
     // ===== Modo Cinema (deck executivo) =====
@@ -851,7 +793,7 @@ async function run() {
     pushResult('cinema_esc_closes', cinema.closed === true, `closed=${cinema.closed}`);
 
     // (Onda 5 · E2) Pacote do Conselho — lazy-load do módulo e build do relatório
-    // consolidado (6 páginas A4 na ordem capa→fluxo→custos→DRE→RJ→metodologia),
+    // consolidado (5 páginas A4 na ordem capa→fluxo→custos→DRE→metodologia),
     // sem disparar window.print(). Reaproveita a infra de paginação existente.
     const council = await evaluate(`(async () => {
       try {
@@ -863,12 +805,12 @@ async function run() {
         const pages = report ? report.querySelectorAll('.pdf-page').length : 0;
         const kickers = report ? [...report.querySelectorAll('.pdf-page-kicker')].map(k => (k.textContent || '').trim()) : [];
         const hasDre = !!(report && /DRE assinada/i.test(report.textContent || ''));
-        const hasRj = !!(report && /Recuperação Judicial/i.test(report.textContent || ''));
+        const noRj = !!report && !/Recuperação Judicial/i.test(report.textContent || '');
         const hasFixed = !!(report && /Custos Fixos/i.test(report.textContent || ''));
         const hasMethod = !!(report && /Metodologia/i.test(report.textContent || ''));
         if (report) report.remove();
         document.body.classList.remove('council-export-active');
-        return { ok: pages >= 6 && hasDre && hasRj && hasFixed && hasMethod, pages, kickers, hasDre, hasRj, hasFixed, hasMethod };
+        return { ok: pages >= 5 && hasDre && hasFixed && hasMethod && noRj, pages, kickers, hasDre, hasFixed, hasMethod, noRj };
       } catch (e) { return { ok: false, reason: String(e && e.message || e) }; }
     })()`);
     pushResult('council_export_builds', council.ok === true, JSON.stringify(council));

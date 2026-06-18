@@ -514,11 +514,10 @@ body[data-page="director"] .top-site-title small::after{content:' · Diretoria';
 .page-tab[data-page-link="director"]{order:0;}
 .page-tab[data-page-link="cash"]{order:1;}
 .page-tab[data-page-link="fixed"]{order:2;}
-/* DRE e RJ foram adicionadas depois; sem order explícito caíam em 0 e furavam a fila
-   (ficavam antes de Fluxo/Custos). Completar a sequência mantém a ordem do DOM. */
+/* DRE foi adicionada depois; sem order explícito caía em 0 e furava a fila
+   (ficava antes de Fluxo/Custos). Completar a sequência mantém a ordem do DOM. */
 .page-tab[data-page-link="dre"]{order:3;}
-.page-tab[data-page-link="rj"]{order:4;}
-/* Switcher pode rolar (5 abas em telas estreitas/mobile); rola limpo, sem barra visivel. */
+/* Switcher pode rolar (4 abas em telas estreitas/mobile); rola limpo, sem barra visivel. */
 .page-switcher{scrollbar-width:none!important;}
 .page-switcher::-webkit-scrollbar{display:none!important;}
 

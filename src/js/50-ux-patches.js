@@ -311,8 +311,7 @@
     cash: 'Fluxo de Caixa',
     fixed: 'Custos Fixos',
     director: 'Diretoria',
-    dre: 'DRE',
-    rj: 'Recuperação Judicial'
+    dre: 'DRE'
   };
 
   function metaUpdatedDate() {
@@ -1007,8 +1006,7 @@
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
     fixed: 'Custos Fixos',
-    dre: 'DRE',
-    rj: 'Recuperação Judicial'
+    dre: 'DRE'
   };
 
   function syncActivePageState() {
@@ -1110,15 +1108,13 @@
     director: 'Diretoria',
     cash: 'Fluxo de Caixa',
     fixed: 'Custos Fixos',
-    dre: 'DRE',
-    rj: 'Recuperação Judicial'
+    dre: 'DRE'
   };
   const PAGE_CONTROLS = {
     director: 'directoria',
     cash: 'kpis',
     fixed: 'fixed-costs',
-    dre: 'dre-page',
-    rj: 'rj-page'
+    dre: 'dre-page'
   };
 
   function textOf(el, selector) {
